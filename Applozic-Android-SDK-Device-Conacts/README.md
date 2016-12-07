@@ -326,7 +326,7 @@ UserLoginTask.TaskListener listener = new UserLoginTask.TaskListener() {
 public void onSuccess(RegistrationResponse registrationResponse, Context context) {           
    // After successful registration with Applozic server the callback will come here
 
-     //This Service is for device contacts .Note: if your app uses >= Android 6 then ask contact permission before running this service
+     //This Service is for device contacts .Note: if your app run >= Android 6 then ask contact runtime permission before running this service
       Intent device = new Intent(context, DeviceContactSyncService.class);
       context.startService(device);
 }                       
