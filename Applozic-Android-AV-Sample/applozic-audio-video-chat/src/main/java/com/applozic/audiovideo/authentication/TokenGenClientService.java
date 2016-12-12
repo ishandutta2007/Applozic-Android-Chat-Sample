@@ -14,10 +14,8 @@ public class TokenGenClientService extends MobiComKitClientService {
 
     private static final String TAG = "TokenGenClientService";
     //Todo: Take url based on env.
-    public final String TOKEN_URL = "https://staging.applozic.com/twilio/token";
-
     public String getUrl() {
-        return TOKEN_URL;
+        return getBaseUrl() + "/twilio/token";
     }
 
     public TokenGenClientService(Context context) {
@@ -33,6 +31,8 @@ public class TokenGenClientService extends MobiComKitClientService {
             String identity = pref.getUserId();
             String device = pref.getDeviceKeyString();
             String data = "identity=" + identity + "&device=" + device;
+            Log.i(TAG, getUrl());
+
             String response = httpRequestUtils.postData(getUrl(), "application/x-www-form-urlencoded", null, data);
             Log.i(TAG, response);
             return response;
