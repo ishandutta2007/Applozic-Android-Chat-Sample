@@ -822,7 +822,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
         try {
             if(ApplozicClient.getInstance(getApplicationContext()).isIPCallEnabled()){
                 //Audio Call
-                Class activityToOpen =  Class.forName("com.applozic.audiovideo.activity.AudioCallActivity");
+                Class activityToOpen =  Class.forName("com.applozic.audiovideo.activity.AudioCallActivityV2");
                 Intent intent = new Intent(this, activityToOpen);
                 intent.putExtra("CONTACT_ID", contact.getUserId());
                 startActivity(intent);
