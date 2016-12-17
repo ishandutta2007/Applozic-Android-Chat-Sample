@@ -6,11 +6,12 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-
 
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.VideoView;
@@ -20,6 +21,7 @@ import applozic.com.audiovideo.R;
 public class VideoActivity extends AudioCallActivityV2 {
     private static final String TAG = VideoActivity.class.getName();
 
+    LinearLayout videoOptionlayout;
 
     public VideoActivity() {
         super(true);
@@ -50,7 +52,16 @@ public class VideoActivity extends AudioCallActivityV2 {
         localVideoActionFab = (FloatingActionButton) findViewById(R.id.local_video_action_fab);
         muteActionFab = (FloatingActionButton) findViewById(R.id.mute_action_fab);
         speakerActionFab = (FloatingActionButton) findViewById(R.id.speaker_action_fab);
+        videoOptionlayout = (LinearLayout) findViewById(R.id.video_call_option);
+        FrameLayout frameLayout = (FrameLayout) findViewById(R.id.video_container);
 
+        frameLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                hideShowWithAnimation();
+                return false;
+            }
+        });
 
         /*
          * Enable changing the volume using the up/down keys during a conversation
@@ -73,6 +84,36 @@ public class VideoActivity extends AudioCallActivityV2 {
             initializeApplozic();
         }
 
+    }
+
+    private void hideShowWithAnimation() {
+
+        //Camera Actions
+        if(switchCameraActionFab.isShown()){
+            switchCameraActionFab.hide();
+        }else{
+            switchCameraActionFab.show();
+
+        }
+        //Mute Actions
+        if(muteActionFab.isShown()){
+            muteActionFab.hide();
+        }else{
+            muteActionFab.show();
+
+        }
+
+        if(localVideoActionFab.isShown()){
+            localVideoActionFab.hide();
+        }else{
+            localVideoActionFab.show();
+        }
+
+        if(speakerActionFab.isShown()){
+            speakerActionFab.hide();
+        }else{
+            speakerActionFab.show();
+        }
     }
 
     @Override
