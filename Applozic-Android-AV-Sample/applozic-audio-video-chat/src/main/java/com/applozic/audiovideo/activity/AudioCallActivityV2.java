@@ -419,6 +419,9 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 hideProgress();
                 for (Map.Entry<String, Participant> entry : room.getParticipants().entrySet()) {
                     addParticipant(entry.getValue());
+                    if(!videoCall){
+                        timer.start();
+                    }
                     break;
                 }
             }
@@ -426,6 +429,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             @Override
             public void onConnectFailure(Room room, VideoException e) {
                 videoStatusTextView.setText("Failed to connect");
+                hideProgress();
                 finish();
             }
 
@@ -434,27 +438,32 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 videoStatusTextView.setText("Disconnected from " + room.getName());
                 AudioCallActivityV2.this.room = null;
                 setAudioFocus(false);
-                intializeUI();
-
-                /*
-                 * Show local video in primary view
-                 */
-                thumbnailVideoView.setVisibility(View.GONE);
-                localVideoTrack.removeRenderer(thumbnailVideoView);
-                primaryVideoView.setMirror(true);
-                localVideoTrack.addRenderer(primaryVideoView);
-                localVideoView = primaryVideoView;
+                if(!videoCall){
+                    timer.cancel();
+                }
+                if(!incomingCall && callStartTime>0){
+                        long diff =  (System.currentTimeMillis() - callStartTime);
+                        videoCallNotificationHelper.sendVideoCallEnd(contactToCall,callId,String.valueOf(diff));
+                }
+                finish();
             }
 
             @Override
             public void onParticipantConnected(Room room, Participant participant) {
                 addParticipant(participant);
                 hideProgress();
+                if(!videoCall){
+                    timer.start();
+                }
+                if(!incomingCall){
+                    callStartTime = System.currentTimeMillis();
+                }
             }
 
             @Override
             public void onParticipantDisconnected(Room room, Participant participant) {
                 removeParticipant(participant);
+                disconnectAndExit();
             }
         };
     }
@@ -515,16 +524,20 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /*
-                 * Disconnect from room
-                 */
-                if (room != null) {
-                    room.disconnect();
+                //invite sent but NOT Yet connected,
+                if( inviteSent && participantIdentity==null ){
+                    videoCallNotificationHelper.sendVideoCallCanceledNotification(contactToCall, callId);
+                    videoCallNotificationHelper.sendVideoCallCanceled(contactToCall, callId);
                 }
-                finish();
-
+               disconnectAndExit();
             }
         };
+    }
+
+    private void disconnectAndExit() {
+        if (room != null) {
+            room.disconnect();
+        }
     }
 
     private View.OnClickListener connectActionClickListener() {
@@ -793,7 +806,9 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         }else{
             callId = videoCallNotificationHelper.sendAudioCallRequest(contactToCall);
         }
-        scheduleStopRinging(callId);
+        if(!incomingCall){
+            scheduleStopRinging(callId);
+        }
         connectToRoom(callId);
         setDisconnectAction();
     }
@@ -806,14 +821,13 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if (!incomingCall && inviteSent && (callId != null && callId.equals(callIdScheduled))) {
-                            inviteSent = false;
+                        if(room!=null &&  ((participantIdentity==null ) || !participantIdentity.equals(contactToCall.getUserId())) ){
+
                             videoCallNotificationHelper.sendVideoCallCanceledNotification(contactToCall, callId);
                             videoCallNotificationHelper.sendVideoCallCanceled(contactToCall, callId);
                             Toast.makeText(context, "No answer..", Toast.LENGTH_LONG).show();
                             hideProgress();
-                        //    reset();
-                      //      hangup(true);
+                            disconnectAndExit();
                         }
                     }
                 }, VideoCallNotificationHelper.MAX_NOTIFICATION_RING_DURATION + 10 * 1000);
@@ -859,11 +873,9 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 }
             }, closeSessionListener(), this);
             alertDialog.show();
-            //IF ROOM is connected...check this..
-        } else if( room!=null && room.getState().equals(RoomState.CONNECTING) ) {
-            videoCallNotificationHelper.sendVideoCallCanceledNotification(contactToCall, callId);
-            videoCallNotificationHelper.sendVideoCallCanceled(contactToCall, callId);
-            room.disconnect();
+
+        } else if( room!=null && !room.getState().equals(RoomState.CONNECTED) ) {
+            //DO nothing....
         }
         else {
             super.onBackPressed();
@@ -878,10 +890,6 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (!incomingCall) {
-                    long duration = System.currentTimeMillis() - callStartTime;
-                    videoCallNotificationHelper.sendVideoCallEnd(contactToCall, callId, String.valueOf(duration));
-                }
                 room.disconnect();
             }
         };
