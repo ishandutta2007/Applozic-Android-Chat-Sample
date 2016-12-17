@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -47,6 +48,7 @@ import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.commons.image.ImageLoader;
 import com.applozic.mobicommons.json.GsonUtils;
 import com.applozic.mobicommons.people.contact.Contact;
+import com.twilio.video.AudioOutput;
 import com.twilio.video.AudioTrack;
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.ConnectOptions;
@@ -62,9 +64,7 @@ import com.twilio.video.VideoException;
 import com.twilio.video.VideoTrack;
 import com.twilio.video.VideoView;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import applozic.com.audiovideo.R;
 
@@ -140,6 +140,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     private int cnt;
 
     protected boolean videoCall = false;
+    protected FloatingActionButton speakerActionFab;
 
     public AudioCallActivityV2() {
         this.videoCall = false;
@@ -201,11 +202,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
         connectActionFab = (FloatingActionButton) findViewById(R.id.call_action_fab);
         muteActionFab = (FloatingActionButton) findViewById(R.id.mute_action_fab);
-
-        /*
-         * Enable changing the volume using the up/down keys during a conversation
-         */
-        setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
+        speakerActionFab = (FloatingActionButton) findViewById(R.id.speaker_action_fab);
 
         /*
          * Needed for setting/abandoning audio focus during call
@@ -342,6 +339,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         }
         muteActionFab.show();
         muteActionFab.setOnClickListener(muteClickListener());
+        speakerActionFab.setOnClickListener(speakerClickListener());
     }
 
     /*
@@ -399,11 +397,15 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         /*
          * Show local video in primary view
          */
-        thumbnailVideoView.setVisibility(View.GONE);
-        localVideoTrack.removeRenderer(thumbnailVideoView);
-        primaryVideoView.setMirror(true);
-        localVideoTrack.addRenderer(primaryVideoView);
-        localVideoView = primaryVideoView;
+        if(videoCall){
+            thumbnailVideoView.setVisibility(View.GONE);
+            localVideoTrack.removeRenderer(thumbnailVideoView);
+            primaryVideoView.setMirror(true);
+            localVideoTrack.addRenderer(primaryVideoView);
+            localVideoView = primaryVideoView;
+        }
+
+
     }
 
     /*
@@ -416,9 +418,10 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             public void onConnected(Room room) {
                 videoStatusTextView.setText("Connected to " + room.getName());
                 setTitle(room.getName());
-                hideProgress();
+                setSpeakerphoneOn(videoCall);
                 for (Map.Entry<String, Participant> entry : room.getParticipants().entrySet()) {
                     addParticipant(entry.getValue());
+                    hideProgress();
                     if(!videoCall){
                         timer.start();
                     }
@@ -442,8 +445,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                     timer.cancel();
                 }
                 if(!incomingCall && callStartTime>0){
-                        long diff =  (System.currentTimeMillis() - callStartTime);
-                        videoCallNotificationHelper.sendVideoCallEnd(contactToCall,callId,String.valueOf(diff));
+                    long diff =  (System.currentTimeMillis() - callStartTime);
+                    videoCallNotificationHelper.sendVideoCallEnd(contactToCall,callId,String.valueOf(diff));
                 }
                 finish();
             }
@@ -670,10 +673,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         mediaPlayer.setLooping(true);
 
 
-        //setCallAction();
         checkForInternet();
-        AsyncTask asyncTask = new MakeAsyncRequest(this, this);
-        asyncTask.execute(new String[]{"https://192.168.0.113:/token", "GET"});
          /*
          * Check camera and microphone permissions. Needed in Android M.
          */
@@ -687,6 +687,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 progress.setIndeterminate(true);
                 progress.setCancelable(false);
                 progress.show();
+            }else{
+                mediaPlayer.start();
             }
 
             LocalBroadcastManager.getInstance(this).registerReceiver(applozicBroadCastReceiver,
@@ -694,6 +696,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         }
 
         timer = initializeTimer();
+
     }
 
     static IntentFilter BrodCastIntentFilters() {
@@ -717,11 +720,12 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             public void onTick(long millisUntilFinished) {
 
                 cnt++;
-                long millis = cnt;
-                int seconds = (int) (millis / 60);
-                int minutes = seconds / 60;
-                seconds = seconds % 60;
-                txtCount.setText(String.format("%d:%02d:%02d", minutes, seconds, millis));
+               // long millis = cnt;
+                int seconds = (cnt);
+                int hrs =  seconds/(60*60);
+                int minutes = seconds/60;
+                seconds = seconds%60;
+                txtCount.setText(String.format("%d:%02d:%02d", hrs, minutes, seconds));
             }
 
             @Override
@@ -745,6 +749,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         incomingCall = intent.getBooleanExtra("INCOMING_CALL", Boolean.FALSE);
         callId = intent.getStringExtra("CALL_ID");
         registerForNotificationBroadcast();
+        MakeAsyncRequest asyncTask = new MakeAsyncRequest(this, this);
+        asyncTask.execute((Void) null);
     }
 
     public void initiateCall() {
@@ -801,16 +807,16 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     }
 
     protected void sendInvite() {
+
         if(videoCall){
             callId = videoCallNotificationHelper.sendVideoCallRequest(contactToCall);
         }else{
             callId = videoCallNotificationHelper.sendAudioCallRequest(contactToCall);
         }
-        if(!incomingCall){
-            scheduleStopRinging(callId);
-        }
+        scheduleStopRinging(callId);
         connectToRoom(callId);
         setDisconnectAction();
+
     }
 
     public void scheduleStopRinging(final String callIdScheduled) {
@@ -895,11 +901,47 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         };
     }
 
-   protected  String getRoomName(){
 
-      String userId=  MobiComUserPreference.getInstance(this).getUserId();
-       return userId + "_" + contactToCall.getUserId();
-   }
+    private View.OnClickListener speakerClickListener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+             /*
+                 * Audio routing to speakerphone or headset
+                 */
+                if (room == null) {
+                    Log.e(TAG, "Unable to set audio output, conversation client is null");
+                    return;
+                }
+                setSpeakerphoneOn(!(videoClient.getAudioOutput() == AudioOutput.SPEAKERPHONE));
+            }
+        };
+    }
+
+    private void setSpeakerphoneOn(boolean on) {
+        if (room == null) {
+            Log.e(TAG, "Unable to set audio output, conversation client is null");
+            return;
+        }
+        try {
+            if (videoClient != null) {
+                videoClient.setAudioOutput(on ? AudioOutput.SPEAKERPHONE : AudioOutput.HEADSET);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (on) {
+            Drawable drawable = ContextCompat.getDrawable(this,
+                    R.drawable.ic_volume_down_green_24px);
+            speakerActionFab.setImageDrawable(drawable);
+        } else {
+            // route back to headset
+            Drawable drawable = ContextCompat.getDrawable(this,
+                    R.drawable.ic_volume_down_white_24px);
+            speakerActionFab.setImageDrawable(drawable);
+        }
+    }
 
 }
 

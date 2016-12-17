@@ -49,6 +49,8 @@ public class VideoActivity extends AudioCallActivityV2 {
         switchCameraActionFab = (FloatingActionButton) findViewById(R.id.switch_camera_action_fab);
         localVideoActionFab = (FloatingActionButton) findViewById(R.id.local_video_action_fab);
         muteActionFab = (FloatingActionButton) findViewById(R.id.mute_action_fab);
+        speakerActionFab = (FloatingActionButton) findViewById(R.id.speaker_action_fab);
+
 
         /*
          * Enable changing the volume using the up/down keys during a conversation
@@ -72,6 +74,13 @@ public class VideoActivity extends AudioCallActivityV2 {
         }
 
     }
+
+    @Override
+    public void initializeApplozic(){
+        super.initializeApplozic();
+
+    }
+
 
     @Override
     protected void onResume() {

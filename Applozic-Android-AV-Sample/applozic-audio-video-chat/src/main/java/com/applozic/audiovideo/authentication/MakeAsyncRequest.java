@@ -8,7 +8,7 @@ import android.util.Log;
 /**
  * Created by anuranjit on 16/7/16.
  */
-public class MakeAsyncRequest extends AsyncTask<String, Integer, String> {
+public class MakeAsyncRequest extends AsyncTask<Void, Void, String>{
     private static final String TAG = MakeAsyncRequest.class.getName();
     public TokenGeneratorCallback callback;
     private Context context;
@@ -25,7 +25,7 @@ public class MakeAsyncRequest extends AsyncTask<String, Integer, String> {
 
 
     @Override
-    protected String doInBackground(String... args) {
+    protected String doInBackground(Void... params) {
         Log.i(TAG, "Generating token.");
 
         TokenGenClientService service = new TokenGenClientService(context);
