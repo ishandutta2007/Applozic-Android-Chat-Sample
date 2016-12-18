@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
+import android.text.Html;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.TextAppearanceSpan;
@@ -217,14 +218,12 @@ public class DetailedConversationAdapter extends ArrayAdapter<Message> {
             channelMessageTextView.setTextColor(Color.parseColor(alCustomizationSettings.getChannelCustomMessageTextColor()));
             channelMessageTextView.setText(message.getMessage());
             return customView;
-        }
-        else if (type== 5 ){
+        }else if (type== 5 ){
             customView = inflater.inflate(R.layout.applozic_call_layout, parent, false);
             populateVideoCall(customView,message);
             return customView;
 
-        }
-        else if (type == 0) {
+        } else if (type == 0) {
             customView = inflater.inflate(R.layout.mobicom_received_message_list_view, parent, false);
         } else {
             customView = inflater.inflate(R.layout.mobicom_sent_message_list_view, parent, false);
@@ -597,6 +596,8 @@ public class DetailedConversationAdapter extends ArrayAdapter<Message> {
                 } else if ((message.getContentType() == Message.ContentType.VIDEO_MSG.getValue()) && !message.isAttachmentDownloaded()) {
                     preview.setVisibility(View.VISIBLE);
                     preview.setImageResource(R.drawable.applozic_video_default_thumbnail);
+                }else if (message.getContentType() == Message.ContentType.TEXT_HTML.getValue()) {
+                    messageTextView.setText(Html.fromHtml(message.getMessage()));
                 } else {
                     messageTextView.setText(EmoticonUtils.getSmiledText(context, message.getMessage(), emojiconHandler));
                     if (mimeType != null && attachmentIcon != null) {

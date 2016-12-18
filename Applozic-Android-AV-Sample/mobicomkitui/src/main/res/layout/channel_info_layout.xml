@@ -19,7 +19,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
-            app:contentScrim="@color/applozic_theme_color_primary"
             app:expandedTitleGravity="bottom"
             app:expandedTitleMarginBottom="35dp"
             app:expandedTitleMarginStart="10dp"
@@ -57,7 +56,8 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:titleTextAppearance="@color/white"
+                app:titleTextAppearance="@style/ToolbarTitle"
+                app:subtitleTextAppearance="@style/ToolbarSubtitle"
                 app:layout_collapseMode="pin"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"  />
@@ -93,9 +93,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="3dp"
+                    android:id="@+id/groupParticipantsTexView"
                     android:padding="5dp"
                     android:text="Participants"
-                    android:textColor="@color/applozic_theme_color_primary"
                     android:textSize="18sp" />
 
             </android.support.v7.widget.CardView>
@@ -162,7 +162,6 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentBottom="true"
                     android:layout_marginBottom="20dp"
-                    android:background="@color/applozic_theme_color_primary"
                     android:configChanges="orientation"
                     android:padding="5dp"
                     android:textColor="#ffffff"

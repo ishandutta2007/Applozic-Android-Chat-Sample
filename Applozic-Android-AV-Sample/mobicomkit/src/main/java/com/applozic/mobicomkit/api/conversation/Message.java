@@ -575,8 +575,9 @@ public class Message extends JsonMarker {
         return getMetadata() != null ? getMetadata().get(key) : null;
     }
 
-
-
+    public boolean isUpdateMessage(){
+        return  !Message.ContentType.HIDDEN.getValue().equals(contentType) && !Message.MetaDataType.ARCHIVE.getValue().equals(getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()));
+    }
     public boolean isVideoNotificationMessage(){
         return ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue().equals( getContentType());
     }
@@ -724,5 +725,21 @@ public class Message extends JsonMarker {
             return value;
         }
     }
+
+    public enum GroupMessageMetaData {
+        KEY("show"),
+        FALSE("false"),
+        TRUE("true");
+        private String value;
+
+        GroupMessageMetaData(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
 
 }

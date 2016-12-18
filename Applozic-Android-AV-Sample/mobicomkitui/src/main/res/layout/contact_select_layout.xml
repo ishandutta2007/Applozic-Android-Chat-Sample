@@ -11,7 +11,8 @@
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        android:titleTextAppearance="@color/white"
+        app:titleTextAppearance="@style/ToolbarTitle"
+        app:subtitleTextAppearance="@style/ToolbarSubtitle"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <RelativeLayout

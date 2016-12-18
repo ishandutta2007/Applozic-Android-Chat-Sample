@@ -141,6 +141,54 @@ public class MessageDatabaseService {
         return messageList;
     }
 
+    public static List<Message> getLatestMessageList(Cursor cursor) {
+        List<Message> messageList = new ArrayList<Message>();
+        try {
+            cursor.moveToFirst();
+            if (cursor.getCount() > 0) {
+                do {
+                    Message message = getMessage(cursor);
+                    if (message != null) {
+                        if (!Message.MetaDataType.ARCHIVE.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))) {
+                            messageList.add(message);
+                        }
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return messageList;
+    }
+
+    public static List<Message> getLatestMessageListForNotification(Cursor cursor) {
+        List<Message> messageList = new ArrayList<Message>();
+        try {
+            cursor.moveToFirst();
+            if (cursor.getCount() > 0) {
+                do {
+                    Message message = getMessage(cursor);
+                    if (message != null) {
+                        if (!Message.GroupMessageMetaData.FALSE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.KEY.getValue()))) {
+                            messageList.add(message);
+                        }
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return messageList;
+    }
+
     public List<Message> getMessages(Long startTime, Long endTime, Contact contact, Channel channel,Integer conversationId) {
         String structuredNameWhere = "";
         List<String> structuredNameParamsList = new ArrayList<String>();
@@ -202,6 +250,7 @@ public class MessageDatabaseService {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor cursor = db.query("sms", null, structuredNameWhere, structuredNameParamsList.toArray(new String[structuredNameParamsList.size()]), null, null, "createdAt desc limit 10");
         return  MessageDatabaseService.getMessageList(cursor);
+        //return  MessageDatabaseService.getLatestMessageListForNotification(cursor);
     }
 
     public List<Message> getPendingMessages() {
@@ -841,7 +890,8 @@ public class MessageDatabaseService {
         /*final Cursor cursor = db.rawQuery("SELECT t1.* FROM sms t1" +
                 "  JOIN (SELECT contactNumbers, MAX(createdAt) createdAt FROM sms GROUP BY contactNumbers) t2" +
                 "  ON t1.contactNumbers = t2.contactNumbers AND t1.createdAt = t2.createdAt order by createdAt desc", null);*/
-        List<Message> messageList = getMessageList(cursor);
+        List<Message> messageList = getLatestMessageList(cursor);
+
         dbHelper.close();
         return messageList;
     }

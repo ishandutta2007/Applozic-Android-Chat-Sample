@@ -71,6 +71,9 @@ public class NotificationService {
         Bitmap notificationIconBitmap;
         Contact displayNameContact = null;
         if (message.getGroupId() != null) {
+            if(channel == null){
+                return;
+            }
             title = ChannelUtils.getChannelTitleName(channel, MobiComUserPreference.getInstance(context).getUserId());
             displayNameContact = appContactService.getContactById(message.getTo());
             notificationIconBitmap = appContactService.downloadGroupImage(context,channel);
@@ -127,17 +130,15 @@ public class NotificationService {
         mBuilder.setAutoCancel(true);
         if (message.hasAttachment()) {
             try {
-                InputStream in;
                 FileMeta fileMeta = message.getFileMetas();
                 HttpURLConnection httpConn = null;
                 if (fileMeta.getThumbnailUrl() != null) {
                     httpConn = new MobiComKitClientService(context).openHttpConnection(fileMeta.getThumbnailUrl());
                     int response = httpConn.getResponseCode();
                     if (response == HttpURLConnection.HTTP_OK) {
-                        in = httpConn.getInputStream();
-                        Bitmap bitmap = BitmapFactory.decodeStream(in);
+                        Bitmap bitmap = BitmapFactory.decodeStream(httpConn.getInputStream());
                         String imageName = fileMeta.getBlobKeyString() + "." + FileUtils.getFileFormat(fileMeta.getName());
-                        File file = new FileClientService(context).getFilePath(imageName, context, "image", true);
+                        File file = FileClientService.getFilePath(imageName, context, "image", true);
                         ImageUtils.saveImageToInternalStorage(file, bitmap);
                         mBuilder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap));
                     }

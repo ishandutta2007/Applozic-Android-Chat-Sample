@@ -12,7 +12,7 @@ import com.applozic.mobicommons.commons.core.utils.DBUtils;
 
 public class MobiComDatabaseHelper extends SQLiteOpenHelper {
 
-    public static final int DB_VERSION = 18;
+    public static final int DB_VERSION = 19;
 
     public static final String _ID = "_id";
     public static final String SMS_KEY_STRING = "smsKeyString";
@@ -59,6 +59,7 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
     public static final String CHANNEL_USER_X = "channel_User_X";
     public static final String KEY = "key";
     public static final String CONVERSATION = "conversation";
+    public static final String CONTACT_TYPE = "contactType";
 
     public static final String CREATE_SCHEDULE_SMS_TABLE = "create table " + SCHEDULE_SMS_TABLE_NAME + "( "
             + _ID + " integer primary key autoincrement  ," + SMS
@@ -121,6 +122,7 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
     private static final String ALTER_CHANNEL_TABLE_FOR_IMAGE_LOCAL_URI_COLUMN = "ALTER TABLE " + CHANNEL + " ADD COLUMN " + CHANNEL_IMAGE_LOCAL_URI + " varchar(300) null";
     private static final String ALTER_CHANNEL_TABLE_FOR_CLIENT_GROUP_ID = "ALTER TABLE " + CHANNEL + " ADD COLUMN " + CLIENT_GROUP_ID + " varchar(200) null";
     private static final String ALTER_SMS_TABLE = "ALTER TABLE " + SMS + " RENAME TO " + SMS_BACKUP;
+    private static final String ALTER_CONTACT_TABLE_FOR_CONTENT_TYPE_COLUMN = "ALTER TABLE " + CONTACT_TABLE_NAME + " ADD COLUMN " + CONTACT_TYPE + " integer default 0";
     private static final String CREATE_CONTACT_TABLE = " CREATE TABLE contact ( " +
             USERID + " VARCHAR(50) primary key, "
             + FULL_NAME + " VARCHAR(200), "
@@ -135,7 +137,8 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
             + UNREAD_COUNT + " integer default 0,"
             + BLOCKED + " integer default 0, "
             + BLOCKED_BY + " integer default 0, "
-            + STATUS +" varchar(2500) null "
+            + STATUS +" varchar(2500) null, "
+            + CONTACT_TYPE+" integer default 0"
             + " ) ";
 
     private static final String CREATE_CHANNEL_TABLE = " CREATE TABLE channel ( " +
@@ -294,6 +297,9 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
             }
             if (!DBUtils.existsColumnInTable(database, "contact", STATUS)) {
                 database.execSQL(ALTER_CONTACT_TABLE_FOR_STATUS);
+            }
+            if (!DBUtils.existsColumnInTable(database, "contact", CONTACT_TYPE)) {
+                database.execSQL(ALTER_CONTACT_TABLE_FOR_CONTENT_TYPE_COLUMN);
             }
             database.execSQL(CREATE_INDEX_ON_CREATED_AT);
             database.execSQL(CREATE_INDEX_SMS_TYPE);

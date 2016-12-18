@@ -41,7 +41,7 @@ public class MessageIntentService extends IntentService {
         public void run() {
             try {
                 messageClientService.sendMessageToServer(message, ScheduleMessageService.class);
-               // messageClientService.syncPendingMessages(true);
+                messageClientService.syncPendingMessages(true);
             } catch (Exception e) {
                 e.printStackTrace();
             }

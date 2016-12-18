@@ -501,7 +501,7 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
                                  int visibleItemCount, int totalItemCount) {
                 if (loading) {
                     if (totalItemCount > previousTotalItemCount) {
-                        if(!messageList.isEmpty()){
+                        if (!messageList.isEmpty()) {
                             loading = false;
                         }
                         previousTotalItemCount = totalItemCount;
@@ -511,8 +511,10 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
                 if ((totalItemCount - visibleItemCount) == 0) {
                     return;
                 }
-
-                if (loadMore && !loading && (totalItemCount - visibleItemCount)<=(firstVisibleItem + visibleThreshold)) {
+                if (totalItemCount <= 5) {
+                    return;
+                }
+                if (loadMore && !loading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
                     DownloadConversation downloadConversation = new DownloadConversation(view, false, firstVisibleItem, visibleItemCount, totalItemCount);
                     AsyncTaskCompat.executeParallel(downloadConversation);
                     loading = true;

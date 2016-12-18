@@ -183,16 +183,8 @@ public class MobiComConversationService {
                         FileClientService fileClientService = new FileClientService(context);
                         fileClientService.loadContactsvCard(message);
                     }
-                    try {
-                        if(!TextUtils.isEmpty(ApplozicClient.getInstance(context).getMessageMetaDataServiceName()) && Message.MetaDataType.HIDDEN.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
-                            Class serviceName = Class.forName(ApplozicClient.getInstance(context).getMessageMetaDataServiceName());
-                            Intent hiddenIntent = new Intent(context,serviceName);
-                            hiddenIntent.putExtra(MobiComKitConstants.MESSAGE,message);
-                            context.startService(hiddenIntent);
-                            continue;
-                        }
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
+                    if(Message.MetaDataType.HIDDEN.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))||Message.MetaDataType.PUSHNOTIFICATION.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
+                        continue;
                     }
                     messageDatabaseService.createMessage(message);
                 }

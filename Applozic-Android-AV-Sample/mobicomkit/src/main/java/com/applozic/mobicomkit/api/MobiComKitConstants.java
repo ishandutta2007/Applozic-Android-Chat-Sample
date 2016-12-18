@@ -10,7 +10,10 @@ public class MobiComKitConstants {
     public static final String ERROR = "error";
     public static final String SUCCESS = "success";
     public static final String APPLOZIC_UNREAD_COUNT = "APPLOZIC_UNREAD_COUNT";
+    public static final String QUICK_LIST = "QUICK_LIST";
     public static final String MESSAGE = "MESSAGE";
+    public static final String HIDDEN = "HIDDEN";
+    public static final String PUSH_NOTIFICATION = "PUSH_NOTIFICATION";
 
     public static final String ACTIVITY_TO_OPEN = "ACTIVITY_TO_OPEN";
     public static final String LOCATION = "Location";

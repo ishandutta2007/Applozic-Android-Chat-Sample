@@ -23,8 +23,8 @@ public class AlCustomizationSettings extends JsonMarker {
     private String sentMessageTextColor = "#FFFFFFFF";
     private String receivedMessageTextColor = "#000000";
     private String messageEditTextTextColor = "#000000";
-    private String sentMessageLinkTextColor = "#5fba7d";
-    private String receivedMessageLinkTextColor = "#000000";
+    private String sentMessageLinkTextColor = "#FFFFFFFF";
+    private String receivedMessageLinkTextColor = "#5fba7d";
     private String messageEditTextHintTextColor = "#bdbdbd";
     private String typingTextColor;
     private String noConversationLabelTextColor = "#000000";
@@ -36,6 +36,16 @@ public class AlCustomizationSettings extends JsonMarker {
     private String sentMessageBorderColor = "#FF03A9F4";
     private String receivedMessageBorderColor = "#FFFFFFFF";
     private String channelCustomMessageBorderColor = "#cccccc";
+    private String collapsingToolbarLayoutColor = "#FF03A9F4";
+    private String groupParticipantsTextColor = "#FF03A9F4";
+    private String groupDeleteButtonBackgroundColor = "#FF03A9F4";
+    private String groupExitButtonBackgroundColor = "#FF03A9F4";
+    private String adminTextColor = "#FF03A9F4";
+    private String adminBackgroundColor = "#FFFFFFFF";
+    private String attachCameraIconName = "applozic_ic_action_camera_new";
+    private String adminBorderColor = "#FF03A9F4";
+    private String userNotAbleToChatTextColor = "#000000";
+    private String chatBackgroundImageName ;
 
     private String audioPermissionNotFoundMsg;
     private String noConversationLabel = "You have no conversations";
@@ -286,6 +296,47 @@ public class AlCustomizationSettings extends JsonMarker {
     public int getTotalOnlineUsers() {
         return totalOnlineUsers;
     }
+
+    public String getCollapsingToolbarLayoutColor() {
+        return collapsingToolbarLayoutColor;
+    }
+
+    public String getGroupParticipantsTextColor() {
+        return groupParticipantsTextColor;
+    }
+
+    public String getGroupExitButtonBackgroundColor() {
+        return groupExitButtonBackgroundColor;
+    }
+
+    public String getGroupDeleteButtonBackgroundColor() {
+        return groupDeleteButtonBackgroundColor;
+    }
+
+    public String getAdminTextColor() {
+        return adminTextColor;
+    }
+
+    public String getAdminBackgroundColor() {
+        return adminBackgroundColor;
+    }
+
+    public String getAttachCameraIconName() {
+        return attachCameraIconName;
+    }
+
+    public String getAdminBorderColor() {
+        return adminBorderColor;
+    }
+
+    public String getUserNotAbleToChatTextColor() {
+        return userNotAbleToChatTextColor;
+    }
+
+    public String getChatBackgroundImageName() {
+        return chatBackgroundImageName;
+    }
+
 
     @Override
     public String toString() {

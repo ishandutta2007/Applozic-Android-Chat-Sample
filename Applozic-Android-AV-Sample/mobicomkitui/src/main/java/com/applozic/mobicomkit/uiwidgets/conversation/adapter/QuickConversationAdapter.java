@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.GradientDrawable;
 import android.support.v4.app.FragmentActivity;
+import android.text.Html;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.TextAppearanceSpan;
@@ -233,7 +234,9 @@ public class QuickConversationAdapter extends BaseAdapter implements Filterable 
                 messageTextView.setText("Location");
             } else if (message.getContentType() == Message.ContentType.PRICE.getValue()) {
                 messageTextView.setText(EmoticonUtils.getSmiledText(context, ConversationUIService.FINAL_PRICE_TEXT + message.getMessage(), emojiconHandler));
-            } else {
+            } else if(message.getContentType() == Message.ContentType.TEXT_HTML.getValue()){
+                messageTextView.setText(Html.fromHtml(message.getMessage()));
+            }else{
                 messageTextView.setText(EmoticonUtils.getSmiledText(context, message.getMessage(), emojiconHandler));
             }
 
@@ -358,8 +361,15 @@ public class QuickConversationAdapter extends BaseAdapter implements Filterable 
 
     public void createVideoCallView(Message message ){
 
+        if(message.getMetadata()==null || message.getMetadata().isEmpty()){
+
+            attachmentIcon.setImageResource(R.drawable.ic_videocam_white_24px);
+            attachmentIcon.setColorFilter(R.color.applozic_green_color);
+            return;
+        }
         messageTextView.setText(VideoCallNotificationHelper.getStatus(message.getMetadata()));
         attachmentIcon.setVisibility(View.VISIBLE);
+
         if (VideoCallNotificationHelper.isMissedCall(message)) {
             attachmentIcon.setImageResource(R.drawable.ic_communication_call_missed);
         } else if(VideoCallNotificationHelper.isAudioCall(message)) {

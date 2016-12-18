@@ -375,7 +375,7 @@ public class ConversationUIService {
     }
 
     public void addMessage(Message message) {
-        if (!Message.ContentType.HIDDEN.getValue().equals(message.getContentType()) && !message.isVideoNotificationMessage()) {
+        if (message.isUpdateMessage()) {
             if (!BroadcastService.isQuick()) {
                 return;
             }
@@ -402,7 +402,7 @@ public class ConversationUIService {
     }
 
     public void syncMessages(Message message, String keyString) {
-        if (!Message.ContentType.HIDDEN.getValue().equals(message.getContentType()) &&  !message.isVideoNotificationMessage()) {
+        if (!Message.ContentType.HIDDEN.getValue().equals(message.getContentType())) {
             String userId = null;
             if (message.getGroupId() == null) {
                 userId = message.getContactIds();
@@ -414,7 +414,7 @@ public class ConversationUIService {
                 }
             }
 
-            if (message.getGroupId() == null) {
+            if (message.getGroupId() == null && !Message.MetaDataType.ARCHIVE.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))) {
                 updateLastMessage(keyString, userId);
             }
         }

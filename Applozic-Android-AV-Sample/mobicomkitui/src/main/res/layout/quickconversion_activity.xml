@@ -5,20 +5,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
-   <android.support.v7.widget.Toolbar
+    <android.support.v7.widget.Toolbar
         android:id="@+id/my_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
-        android:titleTextAppearance="@color/white"
-       android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:titleTextAppearance="@style/ToolbarTitle"
+        app:subtitleTextAppearance="@style/ToolbarSubtitle"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" >
-       </android.support.v7.widget.Toolbar>
+    </android.support.v7.widget.Toolbar>
 
-     <RelativeLayout
+    <RelativeLayout
         android:id="@+id/layout_child_activity"
-         android:background="@color/conversation_list_all_background"
+        android:background="@color/conversation_list_all_background"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="left|top" />
@@ -32,5 +33,4 @@
         android:layout_gravity="top">
     </LinearLayout>
 
-
-</LinearLayout>
+    </LinearLayout>

@@ -37,6 +37,12 @@
         <item>Exit group</item>
     </string-array>
 
+    <!--Group member list menu -->
+    <string-array name="channel_users_menu_option">
+        <item>Message</item>
+        <item>Remove</item>
+    </string-array>
+
     <!--Multimedia options -->
     <string-array name="multimediaOptions_sms">
         <item>Current location</item>

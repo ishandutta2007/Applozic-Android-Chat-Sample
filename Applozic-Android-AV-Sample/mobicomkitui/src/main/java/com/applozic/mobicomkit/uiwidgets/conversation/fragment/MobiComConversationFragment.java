@@ -148,7 +148,7 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
     protected ScheduledTimeHolder scheduledTimeHolder = new ScheduledTimeHolder();
     protected Spinner selfDestructMessageSpinner;
     protected ImageView mediaContainer;
-    protected TextView attachedFile;
+    protected TextView attachedFile,userNotAbleToChatTextView;
     protected String filePath;
     protected boolean firstTimeMTexterFriend;
     protected MessageCommunicator messageCommunicator;
@@ -282,6 +282,8 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
         messageEditText.setHintTextColor(Color.parseColor(alCustomizationSettings.getMessageEditTextHintTextColor()));
 
         userNotAbleToChatLayout = (LinearLayout) list.findViewById(R.id.user_not_able_to_chat_layout);
+        userNotAbleToChatTextView = (TextView) userNotAbleToChatLayout.findViewById(R.id.user_not_able_to_chat_textView);
+        userNotAbleToChatTextView.setTextColor(Color.parseColor(alCustomizationSettings.getUserNotAbleToChatTextColor()));
 
         if (!TextUtils.isEmpty(defaultText)) {
             messageEditText.setText(defaultText);
@@ -638,10 +640,10 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
                     currentConversationId = message.getConversationId();
                     channelKey = message.getGroupId();
                     if (Message.MessageType.MT_INBOX.getValue().equals(message.getType())) {
+                        messageDatabaseService.updateReadStatusForKeyString(message.getKeyString());
                         Intent intent = new Intent(getActivity(), ApplozicIntentService.class);
                         intent.putExtra(ApplozicIntentService.PAIRED_MESSAGE_KEY_STRING, message.getPairedMessageKeyString());
                         getActivity().startService(intent);
-                        messageDatabaseService.updateReadStatusForKeyString(message.getKeyString());
                     }
                 }
 
@@ -688,7 +690,7 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
                 if (menuItems[i].equals("Resend") && (!message.isSentViaApp() || message.isSentToServer() ||message.isVideoOrAudioCallMessage())) {
                     continue;
                 }
-                if (menuItems[i].equals("Delete") && (message.isAttachmentUploadInProgress() || TextUtils.isEmpty(message.getKeyString()))) {
+                if (menuItems[i].equals("Delete") && (message.isAttachmentUploadInProgress() || TextUtils.isEmpty(message.getKeyString()) ||(channel !=null && Channel.GroupType.OPEN.getValue().equals(channel.getType())))) {
                     continue;
                 }
                 if(menuItems[i].equals("Info") && (TextUtils.isEmpty(message.getKeyString())||message.isVideoOrAudioCallMessage() || (channel !=null && Channel.GroupType.OPEN.getValue().equals(channel.getType())))){
@@ -772,9 +774,15 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
         typingStarted = false;
         onSelected = false;
 
+        if (contact != null && userNotAbleToChatLayout != null) {
+            userNotAbleToChatLayout.setVisibility(View.GONE);
+        }
+        if(contact != null &&  this.channel != null){
+            ((AppCompatActivity)getActivity()).getSupportActionBar().setSubtitle("");
+        }
         /*
         filePath = null;*/
-        if (TextUtils.isEmpty(filePath)) {
+        if (TextUtils.isEmpty(filePath) && attachmentLayout != null) {
             attachmentLayout.setVisibility(View.GONE);
         }
 
@@ -783,7 +791,6 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
         extendedSendingOptionLayout.setVisibility(View.VISIBLE);
         setContact(contact);
         setChannel(channel);
-
 
         unregisterForContextMenu(listView);
         clearList();

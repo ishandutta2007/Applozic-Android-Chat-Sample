@@ -383,6 +383,7 @@ public class VideoCallNotificationHelper {
     public static String getStatus(Map<String, String> metaDataMap) {
 
         String type = metaDataMap.get(MSG_TYPE);
+
         String audioORVideoCallPrefix = Boolean.valueOf(metaDataMap.get(CALL_AUDIO_ONLY)) ? "Audio call" : "Video call";
         if (type.equals(CALL_STARTED)) {
             return audioORVideoCallPrefix + " started";

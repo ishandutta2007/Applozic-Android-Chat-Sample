@@ -14,13 +14,16 @@ import javax.crypto.spec.SecretKeySpec;
 public class EncryptionUtils {
 
     private static final String TAG = "EncryptionUtils";
-    private static final String ALGORITHM = "AES";
+    private static final String ALGORITHM = "AES/ECB/NoPadding";
 
     // Performs Encryption
     public static String encrypt(String ketString, String plainText) throws Exception {
         // generate key
         Key key =  generateKey(ketString);
-        Cipher chiper = Cipher.getInstance(ALGORITHM);
+        while (plainText.length() % 16 != 0) {
+            plainText = plainText.concat(" ");
+        }
+        Cipher chiper = Cipher.getInstance(ALGORITHM);;
         chiper.init(Cipher.ENCRYPT_MODE, key);
         byte[] encVal = chiper.doFinal(plainText.getBytes());
         String encryptedValue = Base64.encodeToString(encVal,Base64.DEFAULT);

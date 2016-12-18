@@ -314,7 +314,7 @@ public class MessageClientService extends MobiComKitClientService {
             message.setSentToServer(true);
         }
 
-        if(Message.MetaDataType.HIDDEN.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
+        if(Message.MetaDataType.HIDDEN.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))||Message.MetaDataType.PUSHNOTIFICATION.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
             skipMessage = true;
         }
 

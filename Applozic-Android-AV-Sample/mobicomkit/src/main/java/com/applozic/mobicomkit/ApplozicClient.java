@@ -25,6 +25,7 @@ public class ApplozicClient {
     private static final String GROUP_DEFAULT_IMAGE = "GROUP_DEFAULT_IMAGE";
     private static final String MESSAGE_META_DATA_SERVICE = "MESSAGE_META_DATA_SERVICE";
     private static final String ENABLE_IP_CALL = "ENABLE_IP_CALL";
+    private static final String SHOW_MY_CONTACT_ONLY = "SHOW_MY_CONTACT_ONLY";
     public static ApplozicClient applozicClient;
     public SharedPreferences sharedPreferences;
     private Context context;
@@ -143,7 +144,7 @@ public class ApplozicClient {
         return sharedPreferences.getString(GROUP_DEFAULT_IMAGE, "applozic_group_icon");
     }
 
-    public ApplozicClient setgetDefaultChannelImage(String groupImageName) {
+    public ApplozicClient setDefaultChannelImage(String groupImageName) {
         sharedPreferences.edit().putString(GROUP_DEFAULT_IMAGE, groupImageName).commit();
         return this;
     }
@@ -157,6 +158,19 @@ public class ApplozicClient {
         return this;
     }
 
+    public boolean isShowMyContacts() {
+        return  sharedPreferences.getBoolean(SHOW_MY_CONTACT_ONLY, false);
+    }
+
+    public ApplozicClient enableShowMyContacts() {
+        sharedPreferences.edit().putBoolean(SHOW_MY_CONTACT_ONLY, true).commit();
+        return this;
+    }
+
+    public ApplozicClient disableShowMyContacts() {
+        sharedPreferences.edit().putBoolean(SHOW_MY_CONTACT_ONLY, false).commit();
+        return this;
+    }
     public void setIPCallEnabled(boolean iPCallEnabled) {
         sharedPreferences.edit().putBoolean(ENABLE_IP_CALL, iPCallEnabled).commit();
     }

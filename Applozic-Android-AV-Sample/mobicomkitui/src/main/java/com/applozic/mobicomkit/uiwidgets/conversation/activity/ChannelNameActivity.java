@@ -21,15 +21,19 @@ import android.widget.Toast;
 
 
 import com.applozic.mobicomkit.feed.GroupInfoUpdate;
+import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.instruction.ApplozicPermissions;
 import com.applozic.mobicommons.commons.core.utils.PermissionsUtils;
 import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.file.FilePathFinder;
+import com.applozic.mobicommons.file.FileUtils;
 import com.applozic.mobicommons.json.GsonUtils;
 import com.soundcloud.android.crop.Crop;
 
 import java.io.File;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Created by sunil on 10/3/16.
@@ -44,13 +48,14 @@ public class ChannelNameActivity extends AppCompatActivity implements ActivityCo
     private static final int REQUEST_CODE_ATTACH_PHOTO = 701;
     String oldChannelName;
     ActionBar mActionBar;
-    private ImageView selectImageProfileIcon;
+    private CircleImageView selectImageProfileIcon;
     private ImageView applozicGroupProfileIcon;
     GroupInfoUpdate groupInfoUpdate;
     private LinearLayout layout;
     private Uri imageChangeUri;
     private Snackbar snackbar;
     private ApplozicPermissions applozicPermissions;
+    private AlCustomizationSettings alCustomizationSettings;
 
 
     @Override
@@ -63,8 +68,16 @@ public class ChannelNameActivity extends AppCompatActivity implements ActivityCo
         layout = (LinearLayout) findViewById(R.id.footerAd);
         applozicPermissions = new ApplozicPermissions(this, layout);
         mActionBar.setTitle(getString(R.string.update_channel_title_name));
-        selectImageProfileIcon = (ImageView) findViewById(R.id.applozic_group_profile_camera);
+        selectImageProfileIcon = (CircleImageView) findViewById(R.id.applozic_group_profile_camera);
         applozicGroupProfileIcon = (ImageView) findViewById(R.id.applozic_group_profile);
+        String jsonString = FileUtils.loadSettingsJsonFile(getApplicationContext());
+        if(!TextUtils.isEmpty(jsonString)){
+            alCustomizationSettings = (AlCustomizationSettings) GsonUtils.getObjectFromJson(jsonString,AlCustomizationSettings.class);
+        }else {
+            alCustomizationSettings =  new AlCustomizationSettings();
+        }
+        int drawableResourceId = getResources().getIdentifier(alCustomizationSettings.getAttachCameraIconName(), "drawable", getPackageName());
+        selectImageProfileIcon.setImageResource(drawableResourceId);
 
         if (getIntent().getExtras() != null) {
             String groupInfoJson  = getIntent().getExtras().getString(ChannelInfoActivity.GROUP_UPDTAE_INFO);

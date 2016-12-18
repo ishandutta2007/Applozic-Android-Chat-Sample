@@ -72,12 +72,21 @@ public class MobiComMessageService {
 
     public Message processMessage(final Message messageToProcess, String tofield) {
         try {
-            if(!TextUtils.isEmpty(ApplozicClient.getInstance(context).getMessageMetaDataServiceName()) && Message.MetaDataType.HIDDEN.getValue().equals(messageToProcess.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
+            if(!TextUtils.isEmpty(ApplozicClient.getInstance(context).getMessageMetaDataServiceName())){
                 Class serviceName = Class.forName(ApplozicClient.getInstance(context).getMessageMetaDataServiceName());
-                Intent hiddenIntent = new Intent(context,serviceName);
-                hiddenIntent.putExtra(MobiComKitConstants.MESSAGE,messageToProcess);
-                context.startService(hiddenIntent);
-                return null;
+                Intent intentService = new Intent(context,serviceName);
+                if(Message.MetaDataType.HIDDEN.getValue().equals(messageToProcess.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
+                    intentService.putExtra(MobiComKitConstants.MESSAGE,messageToProcess);
+                    intentService.putExtra(MobiComKitConstants.HIDDEN,true);
+                    context.startService(intentService);
+                    return null;
+                }else if(Message.MetaDataType.PUSHNOTIFICATION.getValue().equals(messageToProcess.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
+                    BroadcastService.sendNotificationBroadcast(context, messageToProcess);
+                    intentService.putExtra(MobiComKitConstants.MESSAGE,messageToProcess);
+                    intentService.putExtra(MobiComKitConstants.PUSH_NOTIFICATION,true);
+                    context.startService(intentService);
+                    return null;
+                }
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -155,26 +164,29 @@ public class MobiComMessageService {
 
         }else if(message.isVideoCallMessage()) {
             VideoCallNotificationHelper.buildVideoCallNotification(context,message);
-        } else if (!isContainerOpened) {
-            if (message.isConsideredForCount()) {
-                if (!Message.ContentType.HIDDEN.getValue().equals(message.getContentType()) && !message.isReadStatus()) {
-                    if (message.getTo() != null && message.getGroupId() == null) {
-                        messageDatabaseService.updateContactUnreadCount(message.getTo());
-                    }
-                    if (message.getGroupId() != null && message.getContentType() != Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue()) {
-                        messageDatabaseService.updateChannelUnreadCount(message.getGroupId());
-                    }
-                    MobiComUserPreference.getInstance(context).setNewMessageFlag(true);
-                    BroadcastService.sendNotificationBroadcast(context, message);
-                    Intent intent = new Intent(MobiComKitConstants.APPLOZIC_UNREAD_COUNT);
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }else if (!isContainerOpened) {
+            if(!Message.ContentType.HIDDEN.getValue().equals(message.getContentType())  && !message.isReadStatus()){
+                if(message.getTo() != null && message.getGroupId() == null){
+                    messageDatabaseService.updateContactUnreadCount(message.getTo());
+                    sendNotification(message);
                 }
+                if(message.getGroupId() != null && !Message.GroupMessageMetaData.FALSE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.KEY.getValue()))){
+                    messageDatabaseService.updateChannelUnreadCount(message.getGroupId());
+                    sendNotification(message);
+                }
+                MobiComUserPreference.getInstance(context).setNewMessageFlag(true);
             }
         }
 
         Log.i(TAG, "Updating delivery status: " + message.getPairedMessageKeyString() + ", " + userPreferences.getUserId() + ", " + userPreferences.getContactNumber());
         messageClientService.updateDeliveryStatus(message.getPairedMessageKeyString(), userPreferences.getUserId(), userPreferences.getContactNumber());
         return receiverContact;
+    }
+
+    public void sendNotification(Message message){
+        BroadcastService.sendNotificationBroadcast(context, message);
+        Intent intent = new Intent(MobiComKitConstants.APPLOZIC_UNREAD_COUNT);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
     public synchronized void syncMessages() {

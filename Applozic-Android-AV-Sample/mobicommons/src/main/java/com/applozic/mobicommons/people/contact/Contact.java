@@ -53,6 +53,15 @@ public class Contact implements Serializable {
     private boolean blocked;
     private boolean blockedBy;
     private String status;
+    private short contactType;
+
+    public short getContactType() {
+        return contactType;
+    }
+
+    public void setContactType(short contactType){
+        this.contactType = contactType;
+    }
 
     public Contact() {
 

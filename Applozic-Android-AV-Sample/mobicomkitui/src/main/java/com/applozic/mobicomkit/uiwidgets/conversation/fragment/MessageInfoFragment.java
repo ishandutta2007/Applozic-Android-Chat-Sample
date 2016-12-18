@@ -65,7 +65,6 @@ public class MessageInfoFragment extends Fragment  {
     private ListView readListView;
     private  ListView deliveredListView;
 
-
     public MessageInfoFragment() {
     }
 
@@ -73,7 +72,6 @@ public class MessageInfoFragment extends Fragment  {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -137,7 +135,7 @@ public class MessageInfoFragment extends Fragment  {
             mainContactShareLayout.setVisibility(View.GONE);
         }
 
-        new MessageInfoAsyncTask(message.getKeyString()).execute();
+        new MessageInfoAsyncTask(message.getKeyString(),getActivity()).execute();
         return view;
     }
 
@@ -188,22 +186,26 @@ public class MessageInfoFragment extends Fragment  {
     public class MessageInfoAsyncTask extends AsyncTask<Void, Integer, Long> {
 
         String messageKey;
-        public MessageInfoAsyncTask(String messageKey) {
+        MobiComMessageService messageService;
+
+        public MessageInfoAsyncTask(String messageKey,Context context) {
           this.messageKey = messageKey;
+            messageService =  new MobiComMessageService(context, MessageIntentService.class);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
 
-
         }
 
         @Override
         protected Long doInBackground(Void... params) {
-            Context context = getActivity();
-            MobiComMessageService messageService =  new MobiComMessageService(context, MessageIntentService.class);
-            messageInfoResponse = messageService.getMessageInfoResponse(messageKey);
+            try{
+                messageInfoResponse = messageService.getMessageInfoResponse(messageKey);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
             return null;
         }
 

@@ -57,7 +57,7 @@ public class ChannelCreateActivity extends AppCompatActivity implements Activity
     private CircleImageView circleImageView;
     private View focus;
     private ActionBar mActionBar;
-    private ImageView uploadImageButton;
+    private CircleImageView uploadImageButton;
     private Uri imageChangeUri;
     private String groupIconImageLink;
     private int groupType;
@@ -93,13 +93,16 @@ public class ChannelCreateActivity extends AppCompatActivity implements Activity
         applozicPermissions = new ApplozicPermissions(this, layout);
         channelName = (EditText) findViewById(R.id.channelName);
         circleImageView = (CircleImageView) findViewById(R.id.channelIcon);
-        uploadImageButton = (ImageView) findViewById(R.id.applozic_channel_profile_camera);
+        uploadImageButton = (CircleImageView) findViewById(R.id.applozic_channel_profile_camera);
         uploadImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 processImagePicker();
             }
         });
+
+        int drawableResourceId = getResources().getIdentifier(alCustomizationSettings.getAttachCameraIconName(), "drawable", getPackageName());
+        uploadImageButton.setImageResource(drawableResourceId);
 
         if(getIntent() != null){
             groupType = getIntent().getIntExtra(GROUP_TYPE, Channel.GroupType.PUBLIC.getValue().intValue());

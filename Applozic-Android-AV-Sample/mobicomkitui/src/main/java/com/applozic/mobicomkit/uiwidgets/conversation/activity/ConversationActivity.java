@@ -24,6 +24,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -281,7 +282,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        resourceId = ApplozicSetting.getInstance(this).getChatBackgroundColorOrDrawableResource();
+
         baseContactService =  new AppContactService(this);
         conversationUIService =  new ConversationUIService(this);
         mobiComMessageService = new MobiComMessageService(this, MessageIntentService.class);
@@ -290,6 +291,10 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
             alCustomizationSettings = (AlCustomizationSettings) GsonUtils.getObjectFromJson(jsonString,AlCustomizationSettings.class);
         }else {
             alCustomizationSettings = new AlCustomizationSettings();
+        }
+
+        if(!TextUtils.isEmpty(alCustomizationSettings.getChatBackgroundImageName())){
+            resourceId = getResources().getIdentifier(alCustomizationSettings.getChatBackgroundImageName(), "drawable", getPackageName());
         }
         if(resourceId != 0){
             getWindow().setBackgroundDrawableResource(resourceId);
