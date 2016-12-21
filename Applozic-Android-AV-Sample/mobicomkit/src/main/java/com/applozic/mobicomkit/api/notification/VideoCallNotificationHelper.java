@@ -179,7 +179,6 @@ public class VideoCallNotificationHelper {
         Message notificationMessage = getNotificationMessage(contact);
         notificationMessage.setMessage(videoCallId);
         notificationMessage.setMetadata(getAnswerCallMetaData());
-        //   updateVideoMessageStatus(videoCallId, VideoCallNotificationHelper.CALL_ANSWERED);
         conversationService.sendMessage(notificationMessage, MessageIntentService.class);
         Log.i(TAG, "sendVideoCallAnswer()  END");
 
@@ -190,7 +189,6 @@ public class VideoCallNotificationHelper {
         this.videoCallId = videoCallId;
         Message notificationMessage = getNotificationMessage(contact);
         notificationMessage.setMetadata(getRejectedCallMap());
-        // updateVideoMessageStatus(videoCallId, VideoCallNotificationHelper.CALL_REJECTED);
         notificationMessage.setMessage(videoCallId);
         conversationService.sendMessage(notificationMessage, MessageIntentService.class);
     }
@@ -221,23 +219,23 @@ public class VideoCallNotificationHelper {
 
     }
 
-    public void sendVideoCallCanceled(Contact contact, String videoCallId) {
+//    public void sendVideoCallCanceled(Contact contact, String videoCallId) {
+//
+//        Message statusMessage = getVideoCallStatusMessage(contact);
+//        statusMessage.setMetadata(getVideoCanceledMap());
+//        statusMessage.setMessage(videoCallId);
+//        conversationService.sendMessage(statusMessage, MessageIntentService.class);
+//
+//    }
 
-        Message statusMessage = getVideoCallStatusMessage(contact);
-        statusMessage.setMetadata(getVideoCanceledMap());
-        statusMessage.setMessage(videoCallId);
-        conversationService.sendMessage(statusMessage, MessageIntentService.class);
-
-    }
-
-    public void sendVideoCallCanceledNotification(Contact contact, String videoCallId) {
-
-        Message statusMessage = getNotificationMessage(contact);
-        statusMessage.setMetadata(getVideoCanceledMap());
-        statusMessage.setMessage(videoCallId);
-        conversationService.sendMessage(statusMessage, MessageIntentService.class);
-
-    }
+//    public void sendVideoCallCanceledNotification(Contact contact, String videoCallId) {
+//
+//        Message statusMessage = getNotificationMessage(contact);
+//        statusMessage.setMetadata(getVideoCanceledMap());
+//        statusMessage.setMessage(videoCallId);
+//        conversationService.sendMessage(statusMessage, MessageIntentService.class);
+//
+//    }
 
     @NonNull
     private Message getNotificationMessage(Contact contact) {
@@ -316,11 +314,10 @@ public class VideoCallNotificationHelper {
             intent.putExtra(CALL_ID, videoCallId);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-
-            Contact contact = baseContactService.getContactById(message.getContactIds());
-            Message statusMessage = getVideoCallStatusMessage(contact);
-            statusMessage.setMetadata(getMissedCallMap());
-            conversationService.sendMessage(statusMessage, MessageIntentService.class);
+//            Contact contact = baseContactService.getContactById(message.getContactIds());
+//            Message statusMessage = getVideoCallStatusMessage(contact);
+//            statusMessage.setMetadata(getMissedCallMap());
+//            conversationService.sendMessage(statusMessage, MessageIntentService.class);
 
         } else if (Type.equals(CALL_CANCELED)) {
 
@@ -340,12 +337,14 @@ public class VideoCallNotificationHelper {
     private void handleIncomingVideoNotification(Message msg) {
 
         String isAudioCallOnly = msg.getMetadata().get(CALL_AUDIO_ONLY);
+        boolean staleNotification = System.currentTimeMillis() - msg.getCreatedAtTime() > MAX_NOTIFICATION_RING_DURATION;
+        //OR SELF Connecting
 
+        if (staleNotification|| msg.isTypeOutbox()) {
 
-        if (System.currentTimeMillis() - msg.getCreatedAtTime() > MAX_NOTIFICATION_RING_DURATION) {
-
-            Contact contact = baseContactService.getContactById(msg.getContactIds());
-            sendCallMissed(contact, msg.getMessage());
+            //Contact contact = baseContactService.getContactById(msg.getContactIds());
+            //sendCallMissed(contact, msg.getMessage());
+            Log.i(TAG, "notification not valid ignoring.." );
             return;
 
         }

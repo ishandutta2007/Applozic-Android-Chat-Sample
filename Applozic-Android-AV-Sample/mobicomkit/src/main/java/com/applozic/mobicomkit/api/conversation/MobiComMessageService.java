@@ -101,6 +101,12 @@ public class MobiComMessageService {
             if (!message.getCurrentId().equals(BroadcastService.currentUserId)) {
                 MobiComUserPreference.getInstance(context).setNewMessageFlag(true);
             }
+            if(message.isVideoNotificationMessage()) {
+                Log.i(TAG, "Got notifications for Video call...");
+                VideoCallNotificationHelper helper = new VideoCallNotificationHelper(context);
+                helper.handleVideoCallNotificationMessages(message);
+
+            }
         }
         Log.i(TAG, "processing message: " + message);
         return message;

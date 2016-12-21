@@ -36,6 +36,8 @@ import com.applozic.mobicommons.people.contact.Contact;
 
 import applozic.com.audiovideo.R;
 
+import static com.applozic.mobicomkit.api.notification.VideoCallNotificationHelper.CALL_MISSED;
+
 
 public class CallActivity extends Activity {
 
@@ -130,7 +132,12 @@ public class CallActivity extends Activity {
                 try {
                     if (!responded) {
                         Log.i(TAG, "Rejecting call due to responded being false.");
-                        rejectCall();
+                            responded=true;
+                            vibrator.cancel();
+                            if (r.isPlaying()) {
+                                r.stop();
+                            }
+                            finish();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -155,9 +162,10 @@ public class CallActivity extends Activity {
 
                 String callId = intent.getStringExtra(VideoCallNotificationHelper.CALL_ID);
                 boolean isNotificationForSameId = (inComingCallId.equals(callId));
-                if ((VideoCallNotificationHelper.CALL_CANCELED.equals(intent.getAction()) ||
-                        MobiComKitConstants.APPLOZIC_VIDEO_CALL_REJECTED.equals(intent.getAction()))
-                        && isNotificationForSameId) {
+                if ( (CALL_MISSED.equals(intent.getAction()) ||
+                        MobiComKitConstants.APPLOZIC_VIDEO_CALL_REJECTED.equals(intent.getAction()) ||
+                        MobiComKitConstants.APPLOZIC_VIDEO_CALL_ANSWER.equals(intent.getAction()))
+                        && isNotificationForSameId ) {
                     responded = true;
                     vibrator.cancel();
                     if (r.isPlaying()) {
@@ -191,6 +199,8 @@ public class CallActivity extends Activity {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(VideoCallNotificationHelper.CALL_CANCELED);
         intentFilter.addAction(MobiComKitConstants.APPLOZIC_VIDEO_CALL_REJECTED);
+        intentFilter.addAction(MobiComKitConstants.APPLOZIC_VIDEO_CALL_ANSWER);
+        intentFilter.addAction(CALL_MISSED);
         LocalBroadcastManager.getInstance(this).registerReceiver(applozicBroadCastReceiver, intentFilter);
     }
 

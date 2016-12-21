@@ -367,6 +367,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                     .setAction("Action", null).show();
             return;
         }
+        videoCallNotificationHelper.sendVideoCallAnswer(contactToCall,callId);
         participantIdentity = participant.getIdentity();
         videoStatusTextView.setText("Participant "+ participantIdentity + " joined");
         /*
@@ -529,8 +530,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             public void onClick(View v) {
                 //invite sent but NOT Yet connected,
                 if( inviteSent && participantIdentity==null ){
-                    videoCallNotificationHelper.sendVideoCallCanceledNotification(contactToCall, callId);
-                    videoCallNotificationHelper.sendVideoCallCanceled(contactToCall, callId);
+                    videoCallNotificationHelper.sendCallMissed(contactToCall, callId);
+                    videoCallNotificationHelper.sendVideoCallMissedMessage(contactToCall, callId);
                 }
                disconnectAndExit();
             }
@@ -702,7 +703,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     static IntentFilter BrodCastIntentFilters() {
         IntentFilter intentFilter = new IntentFilter();
 
-        intentFilter.addAction(MobiComKitConstants.APPLOZIC_VIDEO_CALL_ANSWER);
+       // intentFilter.addAction(MobiComKitConstants.APPLOZIC_VIDEO_CALL_ANSWER);
         intentFilter.addAction(MobiComKitConstants.APPLOZIC_VIDEO_CALL_REJECTED);
         intentFilter.addAction(VideoCallNotificationHelper.CALL_CANCELED);
         intentFilter.addAction(VideoCallNotificationHelper.CALL_END);
@@ -784,7 +785,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 //                } else
                  if ((MobiComKitConstants.APPLOZIC_VIDEO_CALL_REJECTED.equals(intent.getAction()) ||
                         VideoCallNotificationHelper.CALL_CANCELED.equals(intent.getAction()) ||
-                        VideoCallNotificationHelper.CALL_MISSED.equals(intent.getAction()) || VideoCallNotificationHelper.CALL_END.equals(intent.getAction()))
+                        VideoCallNotificationHelper.CALL_MISSED.equals(intent.getAction()) ||
+                         VideoCallNotificationHelper.CALL_END.equals(intent.getAction()))
                         && isNotificationForSameId) {
 
                     Toast.makeText(context, "Participant is busy..", Toast.LENGTH_LONG).show();
@@ -827,10 +829,11 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if(room!=null &&  ((participantIdentity==null ) || !participantIdentity.equals(contactToCall.getUserId())) ){
 
-                            videoCallNotificationHelper.sendVideoCallCanceledNotification(contactToCall, callId);
-                            videoCallNotificationHelper.sendVideoCallCanceled(contactToCall, callId);
+                        if( isScheduleStopRequire() ){
+
+                            videoCallNotificationHelper.sendCallMissed(contactToCall, callId);
+                            videoCallNotificationHelper.sendVideoCallMissedMessage(contactToCall, callId);
                             Toast.makeText(context, "No answer..", Toast.LENGTH_LONG).show();
                             hideProgress();
                             disconnectAndExit();
@@ -839,6 +842,12 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 }, VideoCallNotificationHelper.MAX_NOTIFICATION_RING_DURATION + 10 * 1000);
             }
         });
+    }
+
+    private boolean isScheduleStopRequire() {
+
+      return  ( (room!=null && room.getState().equals(RoomState.CONNECTED)) ||
+        (participantIdentity==null  || !participantIdentity.equals(contactToCall.getUserId())) );
     }
 
     protected void hideProgress() {
