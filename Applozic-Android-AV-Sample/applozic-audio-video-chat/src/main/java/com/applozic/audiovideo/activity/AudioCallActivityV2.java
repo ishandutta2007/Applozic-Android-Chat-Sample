@@ -216,10 +216,9 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             requestPermissionForCameraAndMicrophone();
         } else {
             createLocalMedia();
-            createVideoClient();
+            intializeUI();
+            initializeApplozic();
         }
-        intializeUI();
-        initializeApplozic();
 
     }
 
@@ -237,7 +236,6 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             if (cameraAndMicPermissionGranted) {
 
                 createLocalMedia();
-              //  createVideoClient();
 
             } else {
 
@@ -306,11 +304,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         }
 
     }
-    //TODO: get this and reference
-    private void createVideoClient() {
 
-
-    }
 
     //TODO: get this and connectToRoom
     private void connectToRoom(String roomName) {
@@ -406,7 +400,6 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             localVideoView = primaryVideoView;
         }
 
-
     }
 
     /*
@@ -432,6 +425,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
             @Override
             public void onConnectFailure(Room room, VideoException e) {
+                inviteSent=false;
                 videoStatusTextView.setText("Failed to connect");
                 hideProgress();
                 finish();
@@ -530,6 +524,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             public void onClick(View v) {
                 //invite sent but NOT Yet connected,
                 if( inviteSent && participantIdentity==null ){
+
+                    inviteSent=false;
                     videoCallNotificationHelper.sendCallMissed(contactToCall, callId);
                     videoCallNotificationHelper.sendVideoCallMissedMessage(contactToCall, callId);
                 }
@@ -673,7 +669,6 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         mediaPlayer = MediaPlayer.create(this, R.raw.hangouts_video_call);
         mediaPlayer.setLooping(true);
 
-
         checkForInternet();
          /*
          * Check camera and microphone permissions. Needed in Android M.
@@ -697,7 +692,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         }
 
         timer = initializeTimer();
-
+        startCallWithAcessToken();
     }
 
     static IntentFilter BrodCastIntentFilters() {
@@ -750,8 +745,27 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         incomingCall = intent.getBooleanExtra("INCOMING_CALL", Boolean.FALSE);
         callId = intent.getStringExtra("CALL_ID");
         registerForNotificationBroadcast();
-        MakeAsyncRequest asyncTask = new MakeAsyncRequest(this, this);
-        asyncTask.execute((Void) null);
+
+    }
+
+    private void startCallWithAcessToken() {
+
+        //Token generations ..
+        String  accessTokenValue = null;
+                //MobiComUserPreference.getInstance(this).getVideoCallToken();
+
+        if( TextUtils.isEmpty(accessTokenValue)  ){
+
+            MakeAsyncRequest asyncTask = new MakeAsyncRequest(this, this);
+            asyncTask.execute((Void) null);
+
+        }else{
+
+            Token tokenObj = new Token(MobiComUserPreference.getInstance(this).getUserId(),accessTokenValue);
+            retrieveAccessTokenfromServer(tokenObj);
+
+        }
+
     }
 
     public void initiateCall() {
@@ -846,8 +860,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
     private boolean isScheduleStopRequire() {
 
-      return  ( (room!=null && room.getState().equals(RoomState.CONNECTED)) ||
-        (participantIdentity==null  || !participantIdentity.equals(contactToCall.getUserId())) );
+      return  ( inviteSent &&
+        ( participantIdentity==null || !participantIdentity.equals(contactToCall.getUserId())) );
     }
 
     protected void hideProgress() {

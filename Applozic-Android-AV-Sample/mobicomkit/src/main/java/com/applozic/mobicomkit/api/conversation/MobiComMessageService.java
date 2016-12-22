@@ -171,7 +171,7 @@ public class MobiComMessageService {
         }else if(message.isVideoCallMessage()) {
             VideoCallNotificationHelper.buildVideoCallNotification(context,message);
         }else if (!isContainerOpened) {
-            if(!Message.ContentType.HIDDEN.getValue().equals(message.getContentType())  && !message.isReadStatus()){
+            if(message.isConsideredForCount()){
                 if(message.getTo() != null && message.getGroupId() == null){
                     messageDatabaseService.updateContactUnreadCount(message.getTo());
                     sendNotification(message);

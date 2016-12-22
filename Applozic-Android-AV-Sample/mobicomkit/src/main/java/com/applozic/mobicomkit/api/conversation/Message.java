@@ -576,7 +576,10 @@ public class Message extends JsonMarker {
     }
 
     public boolean isUpdateMessage(){
-        return  !Message.ContentType.HIDDEN.getValue().equals(contentType) && !Message.MetaDataType.ARCHIVE.getValue().equals(getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()));
+        return !Message.ContentType.HIDDEN.getValue().equals(contentType)
+                && !Message.MetaDataType.ARCHIVE.getValue().equals(getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))
+                 && !isVideoNotificationMessage();
+
     }
     public boolean isVideoNotificationMessage(){
         return ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue().equals( getContentType());
@@ -595,7 +598,7 @@ public class Message extends JsonMarker {
                 || VideoCallNotificationHelper.CALL_END.equals(msgType)
                 || VideoCallNotificationHelper.CALL_DIALED.equals(msgType)
                 || VideoCallNotificationHelper.CALL_ANSWERED.equals(msgType)
-                ||VideoCallNotificationHelper.CALL_MISSED.equals(msgType));
+                || VideoCallNotificationHelper.CALL_MISSED.equals(msgType));
     }
 
     public boolean  isConsideredForCount(){

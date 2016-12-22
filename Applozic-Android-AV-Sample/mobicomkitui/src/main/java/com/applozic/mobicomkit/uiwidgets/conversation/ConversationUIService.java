@@ -402,7 +402,7 @@ public class ConversationUIService {
     }
 
     public void syncMessages(Message message, String keyString) {
-        if (!Message.ContentType.HIDDEN.getValue().equals(message.getContentType())) {
+        if (!Message.ContentType.HIDDEN.getValue().equals(message.getContentType())&& !message.isVideoNotificationMessage()) {
             String userId = null;
             if (message.getGroupId() == null) {
                 userId = message.getContactIds();
