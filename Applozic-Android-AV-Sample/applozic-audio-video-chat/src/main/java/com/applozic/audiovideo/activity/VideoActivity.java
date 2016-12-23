@@ -126,19 +126,22 @@ public class VideoActivity extends AudioCallActivityV2 {
     @Override
     protected void onResume() {
         super.onResume();
-        setIsInOpenStatus(true);
     }
 
 
     @Override
     public void onPause() {
         super.onPause();
-        setIsInOpenStatus(false);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     /*

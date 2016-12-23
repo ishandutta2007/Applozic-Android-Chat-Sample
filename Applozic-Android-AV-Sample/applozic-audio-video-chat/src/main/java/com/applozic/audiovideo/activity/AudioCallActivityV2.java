@@ -128,7 +128,6 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     protected long callStartTime;
     protected boolean autoCall = false;
     protected MediaPlayer mediaPlayer;
-    protected static boolean isInOpenStatus = false;
     protected AppContactService contactService;
     protected TextView contactName;
     protected ImageView profileImage;
@@ -151,12 +150,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         this.videoCall = videoCall;
     }
 
-    public static boolean isInOpenStatus() {
-        return isInOpenStatus;
-    }
 
-    public static void setIsInOpenStatus(boolean isInOpenStatus) {
-        AudioCallActivityV2.isInOpenStatus = isInOpenStatus;
+    public static void setOpenStatus(boolean isInOpenStatus) {
         BroadcastService.videoCallAcitivityOpend = isInOpenStatus;
     }
 
@@ -166,6 +161,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setOpenStatus(true);
+
         /*
          * Set the initial state of the UI
          */
@@ -262,6 +259,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         }
         LocalBroadcastManager.getInstance(this).unregisterReceiver(applozicBroadCastReceiver);
         super.onDestroy();
+        setOpenStatus(false);
     }
 
     protected boolean checkPermissionForCameraAndMicrophone(){
@@ -529,6 +527,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                     inviteSent=false;
                     videoCallNotificationHelper.sendCallMissed(contactToCall, callId);
                     videoCallNotificationHelper.sendVideoCallMissedMessage(contactToCall, callId);
+
                 }
                disconnectAndExit();
             }
@@ -699,7 +698,6 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     static IntentFilter BrodCastIntentFilters() {
         IntentFilter intentFilter = new IntentFilter();
 
-       // intentFilter.addAction(MobiComKitConstants.APPLOZIC_VIDEO_CALL_ANSWER);
         intentFilter.addAction(MobiComKitConstants.APPLOZIC_VIDEO_CALL_REJECTED);
         intentFilter.addAction(VideoCallNotificationHelper.CALL_CANCELED);
         intentFilter.addAction(VideoCallNotificationHelper.CALL_END);
@@ -822,8 +820,10 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                          room.disconnect();
                      }
                  } else if (MobiComKitConstants.APPLOZIC_VIDEO_DIALED.equals(intent.getAction())) {
+
                     String contactId = intent.getStringExtra("CONTACT_ID");
-                    if (room != null && room.getState().equals(RoomState.CONNECTED)) {
+
+                    if (!contactId.equals(contactToCall.getUserId()) || ( room != null && room.getState().equals(RoomState.CONNECTED))) {
                         Contact contact = contactService.getContactById(contactId);
                         videoCallNotificationHelper.sendVideoCallReject(contact, incomingCallId);
                         return;

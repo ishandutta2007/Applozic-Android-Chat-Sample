@@ -215,7 +215,7 @@ public class VideoCallNotificationHelper {
 
         Message statusMessage = getVideoCallStatusMessage(contact);
         statusMessage.setMetadata(getVideoCallEndMap(duration));
-        statusMessage.setMessage(videoCallId);
+        statusMessage.setMessage("Call End");
         conversationService.sendMessage(statusMessage, MessageIntentService.class);
 
     }
@@ -306,6 +306,7 @@ public class VideoCallNotificationHelper {
 
             Contact contact = baseContactService.getContactById(message.getContactIds());
             Message statusMessage = getVideoCallStatusMessage(contact);
+            statusMessage.setMessage("Call Busy");
             statusMessage.setMetadata(getRejectedCallMap());
             conversationService.sendMessage(statusMessage, MessageIntentService.class);
 
@@ -363,7 +364,6 @@ public class VideoCallNotificationHelper {
             Intent intent = new Intent(MobiComKitConstants.APPLOZIC_VIDEO_DIALED);
             intent.putExtra("CONTACT_ID", msg.getTo());
             intent.putExtra(CALL_ID, videoCallId);
-
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
             return;
         }
@@ -418,7 +418,7 @@ public class VideoCallNotificationHelper {
     public void sendVideoCallMissedMessage(Contact contactToCall, String callId) {
         Message notificationMessage = getVideoCallStatusMessage(contactToCall);
         notificationMessage.setMetadata(getMissedCallMap());
-        notificationMessage.setMessage(callId);
+        notificationMessage.setMessage("Call Missed");
         conversationService.sendMessage(notificationMessage, MessageIntentService.class);
 
     }
