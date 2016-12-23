@@ -1,5 +1,6 @@
 package com.applozic.mobicomkit.api.notification;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -340,7 +341,7 @@ public class VideoCallNotificationHelper {
         boolean staleNotification = System.currentTimeMillis() - msg.getCreatedAtTime() > MAX_NOTIFICATION_RING_DURATION;
         //OR SELF Connecting
 
-        if (staleNotification|| msg.isTypeOutbox()) {
+        if (staleNotification|| msg.isTypeOutbox() ) {
 
             //Contact contact = baseContactService.getContactById(msg.getContactIds());
             //sendCallMissed(contact, msg.getMessage());
@@ -349,7 +350,15 @@ public class VideoCallNotificationHelper {
 
         }
 
-        if (BroadcastService.videoCallAcitivityOpend) {
+        if(BroadcastService.callRinging) {
+
+            Contact contactDetail = baseContactService.getContactById(msg.getTo());
+            VideoCallNotificationHelper helper = new VideoCallNotificationHelper(context, isAudioOnly);
+            helper.sendVideoCallReject(contactDetail, videoCallId);
+            return;
+        }
+
+        if (BroadcastService.videoCallAcitivityOpend ) {
 
             Intent intent = new Intent(MobiComKitConstants.APPLOZIC_VIDEO_DIALED);
             intent.putExtra("CONTACT_ID", msg.getTo());
@@ -387,7 +396,7 @@ public class VideoCallNotificationHelper {
         if (type.equals(CALL_STARTED)) {
             return audioORVideoCallPrefix + " started";
         } else if (type.equals(CALL_END)) {
-            return audioORVideoCallPrefix + " ended";
+            return audioORVideoCallPrefix ;
         } else if (type.equals(CALL_REJECTED)) {
             return "Call busy";
         } else {

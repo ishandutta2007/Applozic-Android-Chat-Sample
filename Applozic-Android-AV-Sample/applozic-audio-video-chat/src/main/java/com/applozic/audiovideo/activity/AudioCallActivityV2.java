@@ -43,6 +43,7 @@ import com.applozic.mobicomkit.api.conversation.MessageIntentService;
 import com.applozic.mobicomkit.api.conversation.MobiComMessageService;
 import com.applozic.mobicomkit.api.notification.VideoCallNotificationHelper;
 import com.applozic.mobicomkit.broadcast.BroadcastService;
+import com.applozic.mobicomkit.broadcast.ConnectivityReceiver;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.commons.image.ImageLoader;
@@ -704,6 +705,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         intentFilter.addAction(VideoCallNotificationHelper.CALL_END);
         intentFilter.addAction(MobiComKitConstants.APPLOZIC_VIDEO_DIALED);
         intentFilter.addAction(VideoCallNotificationHelper.CALL_MISSED);
+        intentFilter.addAction(ConnectivityReceiver.CONNECTIVITY_CHANGE);
 
         return intentFilter;
     }
@@ -789,6 +791,16 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
                 Log.i(TAG, "incomingCallId: " + incomingCallId + ", intent.getAction(): " + intent.getAction());
 
+                if(ConnectivityReceiver.CONNECTIVITY_CHANGE.equals(intent.getAction())){
+                    if(!Utils.isInternetAvailable(context)){
+                        Toast.makeText(context,"No network connectivity.",Toast.LENGTH_LONG);
+                        if(room!=null && room.getState().equals(RoomState.CONNECTED)){
+                            room.disconnect();
+                        }
+                    }
+                    return;
+                }
+
                 if (!TextUtils.isEmpty(callId)) {
                     isNotificationForSameId = (callId.equals(incomingCallId));
                 }
@@ -806,6 +818,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                     Toast.makeText(context, "Participant is busy..", Toast.LENGTH_LONG).show();
                     hideProgress();
                      if(room!=null){
+                         inviteSent=false;
                          room.disconnect();
                      }
                  } else if (MobiComKitConstants.APPLOZIC_VIDEO_DIALED.equals(intent.getAction())) {

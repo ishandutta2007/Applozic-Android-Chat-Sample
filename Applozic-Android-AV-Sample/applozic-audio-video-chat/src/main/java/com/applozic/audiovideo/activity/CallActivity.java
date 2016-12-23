@@ -29,6 +29,7 @@ import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.notification.VideoCallNotificationHelper;
 import com.applozic.mobicomkit.api.conversation.MessageIntentService;
 import com.applozic.mobicomkit.api.conversation.MobiComMessageService;
+import com.applozic.mobicomkit.broadcast.BroadcastService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
 import com.applozic.mobicommons.commons.image.ImageLoader;
@@ -70,7 +71,7 @@ public class CallActivity extends Activity {
         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         r = RingtoneManager.getRingtone(getApplicationContext(), notification);
         r.play();
-
+        setRinging(true);
         baseContactService = new AppContactService(this);
         messageService = new MobiComMessageService(this, MessageIntentService.class);
         Intent intent = getIntent();
@@ -207,6 +208,7 @@ public class CallActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        setRinging(false);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(applozicBroadCastReceiver);
     }
 
@@ -214,5 +216,13 @@ public class CallActivity extends Activity {
     public void onBackPressed() {
         super.onBackPressed();
         rejectCall();
+        setRinging(false);
     }
+
+
+
+    public  void setRinging(boolean ringing) {
+        BroadcastService.callRinging = ringing;
+    }
+
 }
