@@ -97,6 +97,7 @@ public class CallActivity extends Activity {
             public void onClick(View v) {
                 try {
                     responded = true;
+
                     Class activityClass = isAudioOnly ? AudioCallActivityV2.class : VideoActivity.class;
                     Intent intent = new Intent(getApplicationContext(), activityClass);
                     intent.putExtra("CONTACT_ID", contactId);

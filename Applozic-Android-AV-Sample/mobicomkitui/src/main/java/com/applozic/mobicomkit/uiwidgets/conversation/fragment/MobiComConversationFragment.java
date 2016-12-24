@@ -77,6 +77,7 @@ import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.feed.ApiResponse;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
+import com.applozic.mobicomkit.uiwidgets.ApplozicSetting;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.conversation.ConversationListView;
 import com.applozic.mobicomkit.uiwidgets.conversation.ConversationUIService;
@@ -754,7 +755,8 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
         }
         if(id == R.id.video_call){
             try{
-                Class activityToOpen =  Class.forName("com.applozic.audiovideo.activity.VideoActivity");
+                String activityName = ApplozicSetting.getInstance(getActivity()).getActivityCallback(ApplozicSetting.RequestCode.VIDEO_CALL);
+                Class activityToOpen =  Class.forName(activityName);
                 Intent intent = new Intent(getActivity(), activityToOpen);
                 intent.putExtra("CONTACT_ID", contact.getUserId());
                 startActivity(intent);

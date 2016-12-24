@@ -38,6 +38,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.applozic.audiovideo.activity.AudioCallActivityV2;
+import com.applozic.audiovideo.activity.VideoActivity;
 import com.applozic.mobicomkit.Applozic;
 import com.applozic.mobicomkit.ApplozicClient;
 import com.applozic.mobicomkit.api.account.register.RegistrationResponse;
@@ -272,6 +274,10 @@ public class LoginActivity extends Activity implements ActivityCompat.OnRequestP
 
                     Map<ApplozicSetting.RequestCode, String> activityCallbacks = new HashMap<ApplozicSetting.RequestCode, String>();
                     activityCallbacks.put(ApplozicSetting.RequestCode.USER_LOOUT, LoginActivity.class.getName());
+
+                    activityCallbacks.put(ApplozicSetting.RequestCode.AUDIO_CALL, AudioCallActivityV2.class.getName());
+                    activityCallbacks.put(ApplozicSetting.RequestCode.VIDEO_CALL, VideoActivity.class.getName());
+
                     ApplozicSetting.getInstance(context).setActivityCallbacks(activityCallbacks);
 
                     //Set activity callbacks
@@ -336,12 +342,21 @@ public class LoginActivity extends Activity implements ActivityCompat.OnRequestP
             user.setDisplayName(displayName);
             user.setContactNumber(phoneNumber);
             user.setAuthenticationTypeId(authenticationType.getValue());
+            user.setFeatures(getFeatureList());
 
             mAuthTask = new UserLoginTask(user, listener, this);
             mEmailSignInButton.setVisibility(View.INVISIBLE);
             mSpinnerView.setVisibility(View.INVISIBLE);
             mAuthTask.execute((Void) null);
         }
+    }
+
+    private List<String> getFeatureList() {
+
+        List<String> featureList =  new ArrayList<>();
+        featureList.add(User.Features.IP_AUDIO_CALL.getValue());
+        featureList.add(User.Features.IP_VIDEO_CALL.getValue());
+        return featureList;
     }
 
     /**

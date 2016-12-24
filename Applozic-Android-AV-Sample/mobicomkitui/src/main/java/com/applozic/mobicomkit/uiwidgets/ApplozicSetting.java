@@ -90,7 +90,13 @@ public class ApplozicSetting {
 
     public enum RequestCode {
 
-        MESSAGE_TAP(Integer.valueOf("1905")), PROFILE_VIEW(Integer.valueOf("1903")), USER_BLOCK(Integer.valueOf("1904")),USER_LOOUT(Integer.valueOf("1905"));
+        MESSAGE_TAP(Integer.valueOf("1905")),
+        PROFILE_VIEW(Integer.valueOf("1903")),
+        USER_BLOCK(Integer.valueOf("1904")),
+        USER_LOOUT(Integer.valueOf("1905")),
+        VIDEO_CALL(Integer.valueOf("1906")),
+        AUDIO_CALL(Integer.valueOf("1907"));
+
         private Integer value;
 
         RequestCode(Integer c) {
