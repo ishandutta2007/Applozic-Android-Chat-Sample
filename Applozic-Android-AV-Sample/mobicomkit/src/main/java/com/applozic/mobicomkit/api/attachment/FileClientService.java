@@ -7,16 +7,21 @@ import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.applozic.mobicomkit.api.HttpRequestUtils;
 import com.applozic.mobicomkit.api.MobiComKitClientService;
 import com.applozic.mobicomkit.api.conversation.Message;
 import com.applozic.mobicomkit.api.conversation.database.MessageDatabaseService;
+import com.applozic.mobicomkit.api.conversation.service.ConversationService;
+import com.applozic.mobicomkit.feed.TopicDetail;
 import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.commons.image.ImageUtils;
 import com.applozic.mobicommons.file.FileUtils;
+import com.applozic.mobicommons.json.GsonUtils;
 import com.applozic.mobicommons.people.channel.Channel;
+import com.applozic.mobicommons.people.channel.Conversation;
 import com.applozic.mobicommons.people.contact.Contact;
 
 import java.io.File;
@@ -222,6 +227,82 @@ public class FileClientService extends MobiComKitClientService {
             Log.e(TAG, "Exception fetching file from server: " + ex.getMessage());
         }
 
+        return null;
+    }
+
+    public Bitmap loadMessageImage(Context context, Conversation conversation) {
+        try{
+            if(conversation == null){
+                return null;
+            }
+            Bitmap attachedImage = ImageUtils.getBitMapFromLocalPath(conversation.getTopicLocalImageUri());
+            if (attachedImage != null) {
+                return attachedImage;
+            }
+            Bitmap bitmap = downloadProductImage(conversation);
+            if (bitmap != null) {
+                File file = FileClientService.getFilePath("topic_"+conversation.getId(), context.getApplicationContext(), "image", true);
+                String imageLocalPath = ImageUtils.saveImageToInternalStorage(file, bitmap);
+                conversation.setTopicLocalImageUri(imageLocalPath);
+            }
+            if (!TextUtils.isEmpty(conversation.getTopicLocalImageUri())) {
+                ConversationService.getInstance(context).updateTopicLocalImageUri(conversation.getTopicLocalImageUri(),conversation.getId());
+            }
+            return bitmap;
+
+        }catch (Exception e){
+
+        }
+        return  null;
+    }
+
+    public  Bitmap downloadProductImage(Conversation conversation){
+        TopicDetail topicDetail = (TopicDetail) GsonUtils.getObjectFromJson(conversation.getTopicDetail(),TopicDetail.class);
+        if(TextUtils.isEmpty(topicDetail.getLink())){
+            return null;
+        }
+        HttpURLConnection connection = null;
+        MarkStream inputStream = null;
+        try {
+            if (conversation != null) {
+                connection = openHttpConnection(topicDetail.getLink());
+            }
+            if (connection != null) {
+                if (connection.getResponseCode() == 200) {
+                    inputStream = new MarkStream(connection.getInputStream());
+                    BitmapFactory.Options optionsBitmap = new BitmapFactory.Options();
+                    optionsBitmap.inJustDecodeBounds = true;
+                    inputStream.allowMarksToExpire(false);
+                    long mark = inputStream.setPos(MARK);
+                    BitmapFactory.decodeStream(inputStream, null, optionsBitmap);
+                    inputStream.resetPos(mark);
+                    optionsBitmap.inJustDecodeBounds = false;
+                    optionsBitmap.inSampleSize = ImageUtils.calculateInSampleSize(optionsBitmap, 100, 50);
+                    Bitmap attachedImage = BitmapFactory.decodeStream(inputStream, null, optionsBitmap);
+                    inputStream.allowMarksToExpire(true);
+                    return attachedImage;
+                } else {
+                    return null;
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            Log.e(TAG, "Image not found on server: " + ex.getMessage());
+        } catch (Exception ex) {
+            Log.e(TAG, "Exception fetching file from server: " + ex.getMessage());
+        } catch (Throwable t) {
+
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         return null;
     }
 

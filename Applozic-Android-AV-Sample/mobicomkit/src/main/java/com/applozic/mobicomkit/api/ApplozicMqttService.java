@@ -212,7 +212,7 @@ public class ApplozicMqttService extends MobiComKitClientService implements Mqtt
         if (client != null && client.isConnected()) {
             try {
                 client.disconnect();
-            } catch (MqttException e) {
+            } catch (Exception  e) {
                 e.printStackTrace();
             }
         }
@@ -346,7 +346,7 @@ public class ApplozicMqttService extends MobiComKitClientService implements Mqtt
             message.setQos(0);
             client.publish("typing" + "-" + applicationId + "-" + userId, message);
             Log.i(TAG, "Published " + new String(message.getPayload()) + " to topic: " + "typing" + "-" + applicationId + "-" + userId);
-        } catch (MqttException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -249,8 +249,7 @@ public class MessageDatabaseService {
         structuredNameParamsList.add(String.valueOf(Message.MessageType.MT_INBOX.getValue()));
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor cursor = db.query("sms", null, structuredNameWhere, structuredNameParamsList.toArray(new String[structuredNameParamsList.size()]), null, null, "createdAt desc limit 10");
-        return  MessageDatabaseService.getMessageList(cursor);
-        //return  MessageDatabaseService.getLatestMessageListForNotification(cursor);
+        return  MessageDatabaseService.getLatestMessageListForNotification(cursor);
     }
 
     public List<Message> getPendingMessages() {

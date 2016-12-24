@@ -184,6 +184,7 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
     AppContactService appContactService;
     protected Message messageToForward;
     protected String searchString;
+    ConversationUIService conversationUIService;
     protected AlCustomizationSettings alCustomizationSettings;
     public void setEmojiIconHandler(EmojiconHandler emojiIconHandler) {
         this.emojiIconHandler = emojiIconHandler;
@@ -198,6 +199,7 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
         }else {
             alCustomizationSettings =  new AlCustomizationSettings();
         }
+         conversationUIService = new ConversationUIService(getActivity());
         syncCallService = SyncCallService.getInstance(getActivity());
         appContactService = new AppContactService(getActivity());
         messageDatabaseService = new MessageDatabaseService(getActivity());
@@ -1673,7 +1675,7 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
                 }
                 break;
             case 1:
-                new ConversationUIService(getActivity()).startContactActivityForResult(message, null);
+                conversationUIService.startContactActivityForResult(message, null);
                 break;
             case 2:
                 Message messageToResend = new Message(message);
@@ -1687,7 +1689,6 @@ abstract public class MobiComConversationFragment extends Fragment implements Vi
                 deleteMessageFromDeviceList(messageKeyString);
                 break;
             case 4:
-                ConversationUIService conversationUIService = new ConversationUIService(getActivity());
                 String messageJson = GsonUtils.getJsonFromObject(message, Message.class);
                 conversationUIService.startMessageInfoFragment(messageJson);
                 break;

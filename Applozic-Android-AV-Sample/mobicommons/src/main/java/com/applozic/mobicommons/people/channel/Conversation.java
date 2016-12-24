@@ -26,7 +26,7 @@ public class Conversation extends JsonMarker {
     private String applicationKey;
     private Integer groupId;
     private ArrayList fallBackTemplatesList;
-
+    private String topicLocalImageUri;
     public Conversation() {
 
     }
@@ -118,6 +118,14 @@ public class Conversation extends JsonMarker {
 
     public void setReceiverSmsFormat(String userId, String format){
         setSmsFormat(userId,format);
+    }
+
+    public String getTopicLocalImageUri() {
+        return topicLocalImageUri;
+    }
+
+    public void setTopicLocalImageUri(String topicLocalImageUri) {
+        this.topicLocalImageUri = topicLocalImageUri;
     }
 
     public void setSmsFormat(String userId, String smsFormat) {

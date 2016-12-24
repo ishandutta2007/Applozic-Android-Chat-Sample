@@ -57,6 +57,7 @@ import com.applozic.mobicomkit.contact.BaseContactService;
 import com.applozic.mobicomkit.uiwidgets.ApplozicSetting;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
 import com.applozic.mobicomkit.uiwidgets.R;
+import com.applozic.mobicomkit.uiwidgets.async.AlSyncAccountStatusTask;
 import com.applozic.mobicomkit.uiwidgets.conversation.ConversationUIService;
 import com.applozic.mobicomkit.uiwidgets.conversation.MessageCommunicator;
 import com.applozic.mobicomkit.uiwidgets.conversation.MobiComKitBroadcastReceiver;
@@ -356,12 +357,23 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
             new MobiComConversationService(getApplicationContext()).processLastSeenAtStatus();
         }
 
-        if (ApplozicClient.getInstance(this).isAccountClosed() || ApplozicClient.getInstance(this).isNotAllowed()) {
-            snackbar = Snackbar.make(layout, ApplozicClient.getInstance(this).isAccountClosed() ?
-                            R.string.applozic_account_closed : R.string.applozic_free_version_not_allowed_on_release_build,
-                    Snackbar.LENGTH_INDEFINITE);
-            snackbar.show();
-        }
+
+        new AlSyncAccountStatusTask(this, new AlSyncAccountStatusTask.TaskListener() {
+            @Override
+            public void onCompletion(Context context) {
+                try {
+                    if (ApplozicClient.getInstance(context).isAccountClosed() || ApplozicClient.getInstance(context).isNotAllowed()) {
+                        snackbar = Snackbar.make(layout, ApplozicClient.getInstance(context).isAccountClosed() ?
+                                        R.string.applozic_account_closed : R.string.applozic_free_version_not_allowed_on_release_build,
+                                Snackbar.LENGTH_INDEFINITE);
+                        snackbar.show();
+                    }
+                } catch (Exception e) {
+                }
+            }
+
+        }).execute((Void)null);
+
     }
 
     @Override

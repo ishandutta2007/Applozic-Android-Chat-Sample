@@ -112,4 +112,7 @@ public class ConversationService {
         return  conversationDatabaseService.isConversationExit(userId,topicId);
     }
 
+    public void updateTopicLocalImageUri(String imageUri,Integer conversationId){
+        conversationDatabaseService.updateTopicLocalImageUri(imageUri,conversationId);
+    }
 }

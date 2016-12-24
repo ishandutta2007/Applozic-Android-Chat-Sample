@@ -60,11 +60,11 @@ public class ConversationDatabaseService {
         if (!TextUtils.isEmpty(topicDetail)) {
             conversation.setTopicDetail(topicDetail);
         }
-
         String userId = cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.USERID));
         if (!TextUtils.isEmpty(userId)) {
             conversation.setUserId(userId);
         }
+        conversation.setTopicLocalImageUri(cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.TOPIC_LOCAL_IMAGE_URL)));
         return conversation;
     }
 
@@ -97,6 +97,9 @@ public class ConversationDatabaseService {
             if (!TextUtils.isEmpty(conversation.getTopicDetail())) {
                 contentValues.put(MobiComDatabaseHelper.TOPIC_DETAIL, conversation.getTopicDetail());
             }
+            if (!TextUtils.isEmpty(conversation.getTopicLocalImageUri()) ) {
+                contentValues.put(MobiComDatabaseHelper.TOPIC_LOCAL_IMAGE_URL, conversation.getTopicLocalImageUri());
+            }
         }
         return contentValues;
     }
@@ -121,6 +124,33 @@ public class ConversationDatabaseService {
         dbHelper.close();
         return conversation;
     }
+
+
+    public Conversation getConversationByTopicId(final String  topicId,Context context) {
+        if(TextUtils.isEmpty(topicId)){
+           return null;
+        }
+        Conversation conversation = null;
+        SQLiteDatabase database = MobiComDatabaseHelper.getInstance(context).getReadableDatabase();
+        String conversationParameters = "";
+        List<String> structuredNameParamsList = new ArrayList<>();
+
+        conversationParameters += MobiComDatabaseHelper.TOPIC_ID+"= ? ";
+        structuredNameParamsList.add(topicId);
+
+        Cursor cursor = database.query(MobiComDatabaseHelper.CONVERSATION, null, conversationParameters, structuredNameParamsList.toArray(new String[structuredNameParamsList.size()]), null, null, null);
+
+        if (cursor.moveToFirst()) {
+            conversation = getConversation(cursor);
+        }
+        if(cursor != null){
+            cursor.close();
+        }
+
+        dbHelper.close();
+        return conversation;
+    }
+
 
     public List<Conversation> getConversationList(final Channel channel, final Contact contact) {
         List<Conversation> conversation = null;
@@ -199,6 +229,13 @@ public class ConversationDatabaseService {
             cursor.close();
         }
         return null;
+    }
+
+    public void updateTopicLocalImageUri(String imageUri,Integer conversationId){
+        ContentValues contentValues =  new ContentValues();
+        contentValues.put(MobiComDatabaseHelper.TOPIC_LOCAL_IMAGE_URL,imageUri);
+        int updatedRow =  dbHelper.getWritableDatabase().update(MobiComDatabaseHelper.CONVERSATION,contentValues, MobiComDatabaseHelper.KEY + "=?", new String[]{String.valueOf(conversationId)});
+        Log.i("updating","now"+updatedRow);
     }
 
 }

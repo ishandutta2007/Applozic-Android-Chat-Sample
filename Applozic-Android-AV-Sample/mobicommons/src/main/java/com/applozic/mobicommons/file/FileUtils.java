@@ -425,17 +425,14 @@ public class FileUtils {
                 }
             }
         } catch (IOException ioe) {
-            ioe.printStackTrace();
             return null;
         }catch (Exception e){
-            e.printStackTrace();
         }  finally{
             try {
                 if (br != null) {
                     br.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         return sb.toString();
