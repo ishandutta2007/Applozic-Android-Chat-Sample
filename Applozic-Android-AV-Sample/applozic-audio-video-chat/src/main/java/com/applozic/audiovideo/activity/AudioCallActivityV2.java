@@ -312,8 +312,11 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 .roomName(roomName)
                 .localMedia(localMedia)
                 .build();
-        room = videoClient.connect(connectOptions, roomListener());
-        setDisconnectAction();
+        if(videoClient!=null){
+            room = videoClient.connect(connectOptions, roomListener());
+            setDisconnectAction();
+        }
+
     }
 
     /*
@@ -674,7 +677,14 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         mediaPlayer = MediaPlayer.create(this, R.raw.hangouts_video_call);
         mediaPlayer.setLooping(true);
 
-        checkForInternet();
+        if (!Utils.isInternetAvailable(this)) {
+            Toast toast = Toast.makeText(this, getString(R.string.internet_connection_not_available), Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.show();
+            finish();
+            return;
+        }
+
          /*
          * Check camera and microphone permissions. Needed in Android M.
          */
@@ -899,14 +909,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         }
     }
 
-    public void checkForInternet() {
-        if (!Utils.isInternetAvailable(this)) {
-            Toast toast = Toast.makeText(this, getString(R.string.internet_connection_not_available), Toast.LENGTH_SHORT);
-            toast.setGravity(Gravity.CENTER, 0, 0);
-            toast.show();
-            return;
-        }
-    }
+
 
     @Override
     public void onBackPressed() {
