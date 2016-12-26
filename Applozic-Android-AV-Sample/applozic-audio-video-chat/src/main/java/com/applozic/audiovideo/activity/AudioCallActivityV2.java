@@ -442,7 +442,12 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                     long diff =  (System.currentTimeMillis() - callStartTime);
                     videoCallNotificationHelper.sendVideoCallEnd(contactToCall,callId,String.valueOf(diff));
                 }
-                finish();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                    }
+                }, 2000);
             }
 
             @Override

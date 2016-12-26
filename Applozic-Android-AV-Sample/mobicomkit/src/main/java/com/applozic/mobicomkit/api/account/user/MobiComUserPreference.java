@@ -56,6 +56,7 @@ public class MobiComUserPreference {
     private static String enable_encryption = "enable_encryption";
     private static String enable_auto_download_on_wifi = "enable_auto_download_on_wifi";
     private static String enable_auto_download_on_cellular = "enable_auto_download_on_cellular";
+
     private static String video_call_token= "video_call_token";
 
     public SharedPreferences sharedPreferences;
