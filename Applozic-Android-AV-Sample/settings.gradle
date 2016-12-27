@@ -1,1 +1,1 @@
-include ':app', ':mobicommons', ':mobicomkit', ':mobicomkitui', ':applozic-audio-video-chat'
+include ':app', ':mobicommons', ':mobicomkit', ':mobicomkitui', ':audiovideo'

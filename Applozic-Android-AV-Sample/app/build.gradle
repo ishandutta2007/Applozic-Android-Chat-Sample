@@ -57,7 +57,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':applozic-audio-video-chat')  //Note: use this for customization
+    compile project(':audiovideo')  //Note: use this for customization
    //compile 'com.applozic.communication.uiwidget:mobicomkitui:4.63' //Note:use this in case customization is not required
     compile "com.android.support:support-v4:${rootProject.supportLibraryVersion}"
     compile "com.android.support:appcompat-v7:${rootProject.supportLibraryVersion}"

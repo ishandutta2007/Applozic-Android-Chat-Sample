@@ -196,7 +196,10 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
         primaryVideoView = (VideoView) findViewById(R.id.primary_video_view);
         thumbnailVideoView = (VideoView) findViewById(R.id.thumbnail_video_view);
+
+        //Video Status Text view, for debug only
         videoStatusTextView = (TextView) findViewById(R.id.video_status_textview);
+        videoStatusTextView.setVisibility(View.GONE);
 
         connectActionFab = (FloatingActionButton) findViewById(R.id.call_action_fab);
         muteActionFab = (FloatingActionButton) findViewById(R.id.mute_action_fab);
@@ -234,6 +237,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             if (cameraAndMicPermissionGranted) {
 
                 createLocalMedia();
+                intializeUI();
+                initializeApplozic();
 
             } else {
 
