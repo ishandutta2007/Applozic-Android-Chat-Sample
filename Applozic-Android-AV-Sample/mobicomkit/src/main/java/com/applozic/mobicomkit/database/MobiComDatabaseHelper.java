@@ -12,7 +12,7 @@ import com.applozic.mobicommons.commons.core.utils.DBUtils;
 
 public class MobiComDatabaseHelper extends SQLiteOpenHelper {
 
-    public static final int DB_VERSION = 20;
+    public static final int DB_VERSION = 21;
 
     public static final String _ID = "_id";
     public static final String SMS_KEY_STRING = "smsKeyString";

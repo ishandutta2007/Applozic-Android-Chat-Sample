@@ -76,6 +76,7 @@ import applozic.com.audiovideo.R;
 public class AudioCallActivityV2 extends AppCompatActivity implements TokenGeneratorCallback{
     private static final int CAMERA_MIC_PERMISSION_REQUEST_CODE = 1;
     private static final String TAG = "AudioCallActivityV2";
+    public static final long IN_COMING_CALL_TIMEOUT = 30 * 1000L;
 
     /*
      * The Video Client allows a client to connect to a room
@@ -703,6 +704,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                 progress.setIndeterminate(true);
                 progress.setCancelable(false);
                 progress.show();
+                scheduleStopRinging(callId);
             }else{
                 mediaPlayer.start();
             }
@@ -873,20 +875,28 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                long timeDuration = incomingCall ? IN_COMING_CALL_TIMEOUT : VideoCallNotificationHelper.MAX_NOTIFICATION_RING_DURATION + 10 * 1000;
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        //Check for incoming call if
+                        if( incomingCall && participantIdentity==null ){
+                            Toast.makeText(context, "Connection error..", Toast.LENGTH_LONG).show();
+                            hideProgress();
+                            disconnectAndExit();
+                            return;
+                        }
 
                         if( isScheduleStopRequire() ){
 
                             videoCallNotificationHelper.sendCallMissed(contactToCall, callId);
                             videoCallNotificationHelper.sendVideoCallMissedMessage(contactToCall, callId);
-                            Toast.makeText(context, "No answer..", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, "No answers..", Toast.LENGTH_LONG).show();
                             hideProgress();
                             disconnectAndExit();
                         }
                     }
-                }, VideoCallNotificationHelper.MAX_NOTIFICATION_RING_DURATION + 10 * 1000);
+                }, timeDuration);
             }
         });
     }
@@ -899,7 +909,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
     protected void hideProgress() {
         try {
-            Log.i(TAG, "Hiding progres dialog.");
+            Log.i(TAG, "Hiding progress dialog.");
             if (alertDialog != null && alertDialog.isShowing()) {
                 alertDialog.dismiss();
             }

@@ -30,8 +30,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile "com.twilio:video-android:1.0.0-beta4"
     compile 'com.koushikdutta.ion:ion:2.1.7'
-    compile 'com.applozic.communication.uiwidget:mobicomkitui:4.69'
-    //compile project(':mobicomkitui')
+    //compile 'com.applozic.communication.uiwidget:mobicomkitui:4.69'
+    compile project(':mobicomkitui')
 }
 
 /*ext {
