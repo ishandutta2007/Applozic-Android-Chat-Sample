@@ -280,54 +280,52 @@ public class VideoCallNotificationHelper {
     public void handleVideoCallNotificationMessages(final Message message) {
 
         Map<String, String> valueMap = message.getMetadata();
-        String Type = valueMap.get(MSG_TYPE);
+        String type = valueMap.get(MSG_TYPE);
         videoCallId = valueMap.get(CALL_ID);
 
-        if (TextUtils.isEmpty(Type)) {
+        if (TextUtils.isEmpty(type)) {
             return;
         }
 
-        if (Type.equals(CALL_DIALED)) {
+        if (type.equals(CALL_DIALED)) {
 
             handleIncomingVideoNotification(message);
 
-        } else if (Type.equals(CALL_ANSWERED)) {
+        } else if (type.equals(CALL_ANSWERED)) {
 
             Intent intent = new Intent(MobiComKitConstants.APPLOZIC_VIDEO_CALL_ANSWER);
             intent.putExtra(CALL_ID, videoCallId);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-        } else if (Type.equals(CALL_REJECTED)) {
+        } else if (type.equals(CALL_REJECTED)) {
 
             Intent intent = new Intent(MobiComKitConstants.APPLOZIC_VIDEO_CALL_REJECTED);
             intent.putExtra(CALL_ID, videoCallId);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
+            if(!message.isTypeOutbox() && BroadcastService.videoCallAcitivityOpend){
 
-            Contact contact = baseContactService.getContactById(message.getContactIds());
-            Message statusMessage = getVideoCallStatusMessage(contact);
-            statusMessage.setMessage("Call Busy");
-            statusMessage.setMetadata(getRejectedCallMap());
-            conversationService.sendMessage(statusMessage, MessageIntentService.class);
+                Contact contact = baseContactService.getContactById(message.getContactIds());
+                Message statusMessage = getVideoCallStatusMessage(contact);
+                statusMessage.setMessage("Call Busy");
+                statusMessage.setMetadata(getRejectedCallMap());
+                conversationService.sendMessage(statusMessage, MessageIntentService.class);
 
-        } else if (Type.equals(CALL_MISSED)) {
+            }
+
+        } else if (type.equals(CALL_MISSED)) {
 
             Intent intent = new Intent(CALL_MISSED);
             intent.putExtra(CALL_ID, videoCallId);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-//            Contact contact = baseContactService.getContactById(message.getContactIds());
-//            Message statusMessage = getVideoCallStatusMessage(contact);
-//            statusMessage.setMetadata(getMissedCallMap());
-//            conversationService.sendMessage(statusMessage, MessageIntentService.class);
-
-        } else if (Type.equals(CALL_CANCELED)) {
+        } else if (type.equals(CALL_CANCELED)) {
 
             Intent intent = new Intent(CALL_CANCELED);
             intent.putExtra(CALL_ID, videoCallId);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-        } else if (Type.equals(CALL_END)) {
+        } else if (type.equals(CALL_END)) {
             Intent intent = new Intent(CALL_END);
             intent.putExtra(CALL_ID, videoCallId);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
