@@ -5,9 +5,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.0.0'
+        classpath 'com.android.tools.build:gradle:2.2.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.1'
-        //classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
        // classpath 'com.github.dcendents:android-maven-plugin:1.2'
         classpath 'com.google.gms:google-services:3.0.0'
         classpath 'com.novoda:bintray-release:0.3.4'
@@ -18,11 +18,15 @@ buildscript {
 }
 
 ext.googlePlayServicesVersion = '9.0.2'
-ext.supportLibraryVersion = '23.1.1'
+ext.supportLibraryVersion = '23.2.1'
 
 allprojects {
     repositories {
         jcenter()
     }
+}
+
+subprojects {
+    tasks.withType(Javadoc).all { enabled = false }
 }
 

@@ -8,7 +8,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
-        versionName "4.62"
+        versionName "1.0"
     }
     buildTypes {
         release {
@@ -26,29 +26,28 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:support-v4:23.1.1'
-    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile "com.android.support:support-v4:${rootProject.supportLibraryVersion}"
+    compile "com.android.support:appcompat-v7:${rootProject.supportLibraryVersion}"
     compile "com.twilio:video-android:1.0.0-beta4"
-    compile 'com.koushikdutta.ion:ion:2.1.7'
-    //compile 'com.applozic.communication.uiwidget:mobicomkitui:4.69'
-    compile project(':mobicomkitui')
+    compile 'com.applozic.communication.uiwidget:mobicomkitui:4.70'
+   // compile project(':mobicomkitui')
 }
-
-/*ext {
+/*
+ext {
     // Where you will see your artifact in Bintray's web interface
     // The "bintrayName" should match the name of the Bintray repro.
     bintrayRepo = 'maven'
-    bintrayName = 'applozic-communication-video'
+    bintrayName = 'applozic-communication-audio-video'
 
     // Maven metadata
-    publishedGroupId = 'com.applozic.audiovideo'
+    publishedGroupId = 'com.applozic.communication.uiwidget'
     libraryName = 'audiovideo'
     // Save yourself a head ache, and set this equal to the name of the Android Studio library
     // module. The artifact name needs to match the name of the library.
     artifact = 'audiovideo'
 
-    libraryDescription = 'Applozic Communication Chat/Messaging library'
-    libraryVersion = '4.68'
+    libraryDescription = 'Applozic Communication Chat/Messaging library with audio/video support'
+    libraryVersion = '1.0'
 
     developerId = 'devashish'
     developerName = 'Applozic'
@@ -56,6 +55,60 @@ dependencies {
 }
 
 
+//apply from: 'https://raw.githubusercontent.com/attwellBrian/JCenter/master/installv1.gradle'
+//apply from: 'https://raw.githubusercontent.com/attwellBrian/JCenter/master/bintrayv1.gradle'
+
 apply from: 'https://raw.githubusercontent.com/attwellBrian/JCenter/master/installv1.gradle'
-apply from: 'https://raw.githubusercontent.com/attwellBrian/JCenter/master/bintrayv1.gradle'
-*/
+
+apply plugin: 'com.jfrog.bintray'
+
+version = libraryVersion
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    failOnError false // add this line
+
+    source = android.sourceSets.main.java.srcDirs
+    //source = android.sourceSets.main.allJava
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+// Bintray
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        repo = bintrayRepo
+        name = bintrayName
+        desc = libraryDescription
+        publish = true
+        publicDownloadNumbers = true
+        version {
+            desc = libraryDescription
+            // Optional. The passphrase for GPG signing'
+            // gpg {
+            //    sign = true //Determines whether to GPG sign the files. The default is false
+            //    passphrase = properties.getProperty("bintray.gpg.password")
+            //}
+        }
+    }
+}*/
