@@ -1,4 +1,4 @@
-# Applozic-Android-Chat-Sample
+# Applozic-Android-Video-Audio-Call-Chat-Sample
 Android Video calling and Chat SDK samples using [Applozic SDK](https://www.applozic.com)
 
 ### Getting Started       
