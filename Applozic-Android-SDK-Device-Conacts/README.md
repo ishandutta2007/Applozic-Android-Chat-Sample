@@ -23,14 +23,7 @@ Documentation: [Applozic Android Chat & Messaging SDK Documentation](https://www
 
 
 
-**Step 1: Add the following in your Top-level/Proejct level build.gradle file change the version according to your app**:   
-
-```
-ext.googlePlayServicesVersion = '9.0.2'
-ext.supportLibraryVersion = '23.1.1'
-```
-
-**Step 2: import the mobicomkitui and Add the following in your build.gradle dependency**:
+**Step 1: import the mobicomkitui and Add the following in your build.gradle dependency**:
 
 `compile project(':mobicomkitui')`
 
@@ -54,7 +47,7 @@ android {
 ```
 
 
-**Step 3: Addition of Permissions,Activities, Services and Receivers in androidmanifest.xml**:
+**Step 2: Addition of Permissions,Activities, Services and Receivers in androidmanifest.xml**:
         
 **Note**: Add meta-data, Activities, Services and Receivers within application Tag ``` <application> </application> ```
 
@@ -80,7 +73,18 @@ To disable the location sharing via map add this line ApplozicSetting.getInstanc
             
 <meta-data android:name="com.package.name" 
            android:value="${applicationId}" /> <!-- NOTE: Do NOT change this, it should remain same i.e 'com.package.name' -->
-         
+                 
+<meta-data android:name="com.package.name" 
+           android:value="${applicationId}" /> <!-- NOTE: Do NOT change this, it should remain same i.e 'com.package.name' -->
+           
+ <provider android:name="android.support.v4.content.FileProvider"
+           android:authorities="${applicationId}.provider"
+           android:exported="false"
+           android:grantUriPermissions="true">
+<meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+           android:resource="@xml/provider_paths"/>
+ </provider>  
+     
 ```
    **Note**: If you are **not using gradle build** you need to replace ${applicationId}  with your Android app package name
 
@@ -91,11 +95,20 @@ To disable the location sharing via map add this line ApplozicSetting.getInstanc
 <string name="default_media_location_folder">YOUR_APP_NAME</string> 
 ```
 
+Adding  File Provider path in your app 
+
+1.Create a android resorce directory as xml directory  
+2.Create a XML resource file in xml directory as provider_paths and paste the below code
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-path name="files" path="."/>
+</paths>
+```
 
 
 Permissions:          
-
-
 
 
 
@@ -314,7 +327,7 @@ Paste the following in your androidmanifest.xml:
 
 Replace APP_PARENT_ACTIVITY with your app's parent activity.        
 
-**Step 4: Register user account**:     
+**Step 3: Register user account**:     
 
 
 
@@ -349,14 +362,14 @@ If it is a new user, new user account will get created else existing user will b
 
 
 
-####Step 5: Push Notification Setup
+
+####Step 4: Push Notification Setup
 
 ***Go to Applozic Dashboard, Edit Application. 
 Under Module section, update the GCM Server Key.***
 
 #### Firebase Cloud Messaging (FCM)  is already enabled in my app
-
-  Add the below code and pass the FCM registration token:
+ Add the below code and pass the FCM registration token:
   
  **1.** In UserLoginTask "onSuccess" (refer Step 3)
   
@@ -382,6 +395,7 @@ pushNotificationTask.execute((Void) null);
 }
 ```
 
+
  **2.** In your FcmInstanceIDListenerService  onTokenRefresh() method
 
  ```
@@ -402,29 +416,42 @@ Add the following in your FcmListenerService  in onMessageReceived(RemoteMessage
 ```
 
 
-
 #### GCM is already enabled in my app
 
-If you already have GCM enabled in your app, then paste PushNotificationTask code at the place where you are getting the GCM registration id in your app.       
-     
+If you already have GCM enabled in your app, add the below code and pass the GCM registration token:
+  
+ **1.** In UserLoginTask "onSuccess" (refer Step 3)
+  
+
 ```
+if(MobiComUserPreference.getInstance(context).isRegistered()) {
+
 PushNotificationTask pushNotificationTask = null;         
 PushNotificationTask.TaskListener listener = new PushNotificationTask.TaskListener() {                  
 @Override           
-public void onSuccess(RegistrationResponse registrationResponse) {  
+public void onSuccess(RegistrationResponse registrationResponse) {   
 
 }            
 @Override          
-public void onFailure(RegistrationResponse registrationResponse, Exception exception) {     
+public void onFailure(RegistrationResponse registrationResponse, Exception exception) {
 
 } 
 
 };                    
 
-pushNotificationTask = new PushNotificationTask(pushnotificationId, listener, mActivity);            
-pushNotificationTask.execute((Void) null);                          
+pushNotificationTask = new PushNotificationTask(registrationToken, listener, mActivity);            
+pushNotificationTask.execute((Void) null);  
+}
 ```
 
+
+ **2.** At the place where you are getting the GCM registration token in your app.       
+
+ ```
+ if (MobiComUserPreference.getInstance(this).isRegistered()) {
+      new RegisterUserClientService(this).updatePushNotificationId(registrationToken);
+ }
+```
 
 ##### For Receiving Notifications In GCM
 
@@ -469,7 +496,7 @@ And add below code in your androidmanifest.xml file
        </intent-filter>
 </service>
   ``` 
-####Setup PushNotificationTask in UserLoginTask "onSuccess" (refer Step 4).
+####Setup PushNotificationTask in UserLoginTask "onSuccess" (refer Step 3).
 
 ```
  PushNotificationTask pushNotificationTask = null;
@@ -489,7 +516,7 @@ And add below code in your androidmanifest.xml file
 ```
 
 
-**Step 6: For starting the messaging activity**:        
+**Step 5: For starting the messaging activity**:        
 
       
 ```
@@ -508,13 +535,14 @@ intent.putExtra(ConversationUIService.DISPLAY_NAME, "Devashish Mamgain"); //put 
 startActivity(intent);                              
 ```
 
-**Step 7: On logout, call the following**:       
+**Step 6: On logout, call the following**:       
 
 
 
-
- new UserClientService(this).logout();      
  
+```
+ new UserClientService(this).logout();      
+ ``` 
  
  
  Note: If you are running ProGuard, please add following lines:        
