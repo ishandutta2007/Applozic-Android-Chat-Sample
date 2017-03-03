@@ -53,10 +53,10 @@ public class UserClientService extends MobiComKitClientService {
     public static final String ONLINE_USER_LIST_URL = "/rest/ws/user/ol/list";
     public static final String REGISTERED_USER_LIST_URL = "/rest/ws/user/filter";
     public static final String USER_PROFILE_UPDATE_URL = "/rest/ws/user/update";
-    public static final String USER_DETAILS_LIST_POST_URL = "/rest/ws/user/detail";
     public static final String USER_READ_URL = "/rest/ws/user/read";
-
+    public static final String USER_DETAILS_LIST_POST_URL = "/rest/ws/user/detail";
     public static final int BATCH_SIZE = 60;
+
 
     private HttpRequestUtils httpRequestUtils;
 
@@ -128,12 +128,12 @@ public class UserClientService extends MobiComKitClientService {
         return getBaseUrl() + REGISTERED_USER_LIST_URL;
     }
 
-    public String getUserReadUrl() {
-        return getBaseUrl() + USER_READ_URL;
-    }
-
     public String getUserDetailsListPostUrl() {
         return getBaseUrl() + USER_DETAILS_LIST_POST_URL;
+    }
+
+    public String getUserReadUrl() {
+        return getBaseUrl() + USER_READ_URL;
     }
 
     public void logout() {
@@ -145,6 +145,8 @@ public class UserClientService extends MobiComKitClientService {
         final String deviceKeyString = mobiComUserPreference.getDeviceKeyString();
         final String userKeyString = mobiComUserPreference.getSuUserKeyString();
         String url = mobiComUserPreference.getUrl();
+
+        Log.i(TAG,"Al Logout call !!");
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();

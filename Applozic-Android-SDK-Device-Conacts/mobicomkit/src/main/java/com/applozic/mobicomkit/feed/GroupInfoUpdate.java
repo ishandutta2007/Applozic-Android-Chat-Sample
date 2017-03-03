@@ -4,6 +4,9 @@ import com.applozic.mobicommons.json.Exclude;
 import com.applozic.mobicommons.json.JsonMarker;
 import com.applozic.mobicommons.people.channel.Channel;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Created by sunil on 11/3/16.
  */
@@ -11,12 +14,17 @@ public class GroupInfoUpdate extends JsonMarker {
 
     private Integer groupId;
     private String clientGroupId;
+    private Integer parentKey;
+    private Set<Integer> childKeys = new HashSet<>();
     private String newName;
     private String imageUrl;
     @Exclude
     private String localImagePath;
     @Exclude
     private String newlocalPath;
+    @Exclude
+    private String contentUri;
+
 
     public GroupInfoUpdate(Channel channel) {
         this.newName = channel.getName();
@@ -84,13 +92,41 @@ public class GroupInfoUpdate extends JsonMarker {
         this.newlocalPath = newlocalPath;
     }
 
+    public Integer getParentKey() {
+        return parentKey;
+    }
+
+    public void setParentKey(Integer parentKey) {
+        this.parentKey = parentKey;
+    }
+
+    public Set<Integer> getChildKeys() {
+        return childKeys;
+    }
+
+    public void setChildKeys(Set<Integer> childKeys) {
+        this.childKeys = childKeys;
+    }
+
+    public String getContentUri() {
+        return contentUri;
+    }
+
+    public void setContentUri(String contentUri) {
+        this.contentUri = contentUri;
+    }
+
     @Override
     public String toString() {
         return "GroupInfoUpdate{" +
                 "groupId=" + groupId +
                 ", clientGroupId='" + clientGroupId + '\'' +
+                ", parentKey=" + parentKey +
+                ", childKeys=" + childKeys +
                 ", newName='" + newName + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
+                ", localImagePath='" + localImagePath + '\'' +
+                ", newlocalPath='" + newlocalPath + '\'' +
                 '}';
     }
 }

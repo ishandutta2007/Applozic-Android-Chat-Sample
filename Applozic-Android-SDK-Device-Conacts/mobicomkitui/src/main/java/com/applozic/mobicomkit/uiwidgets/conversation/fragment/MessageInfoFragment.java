@@ -8,6 +8,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -18,17 +20,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.applozic.mobicomkit.ApplozicClient;
 import com.applozic.mobicomkit.api.attachment.AttachmentView;
 import com.applozic.mobicomkit.api.attachment.FileClientService;
 import com.applozic.mobicomkit.api.attachment.FileMeta;
@@ -62,8 +61,9 @@ public class MessageInfoFragment extends Fragment  {
     AttachmentView attachmentView;
     MessageInfoResponse messageInfoResponse;
     private ImageLoader contactImageLoader,locationImageLoader;
-    private ListView readListView;
-    private  ListView deliveredListView;
+    private RecyclerView readListView;
+    private  RecyclerView deliveredListView;
+    MessageInfoAsyncTask messageInfoAsyncTask;
 
     public MessageInfoFragment() {
     }
@@ -92,8 +92,19 @@ public class MessageInfoFragment extends Fragment  {
 
         RelativeLayout defaultRelativeLayout  =(RelativeLayout) view.findViewById(R.id.applozic_message_info_default_layout);
         TextView textView = (TextView) view.findViewById(R.id.applozic_message_info_message_text);
-        readListView = (ListView)view.findViewById(R.id.applozic_message_info_read_list);
-        deliveredListView =  (ListView)view.findViewById(R.id.applozic_message_info_delivered_list_view);
+        readListView = (RecyclerView)view.findViewById(R.id.applozic_message_info_read_list);
+        deliveredListView =  (RecyclerView)view.findViewById(R.id.applozic_message_info_delivered_list_view);
+        readListView.setHasFixedSize(true);
+        deliveredListView.setHasFixedSize(true);
+
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
+        RecyclerView.LayoutManager mLayoutManagerForDev = new LinearLayoutManager(getActivity());
+        readListView.setLayoutManager(mLayoutManager);
+        readListView.setClickable(true);
+        deliveredListView.setLayoutManager(mLayoutManagerForDev);
+        deliveredListView.setClickable(true);
+
+
         ImageView locationImageView  = (ImageView)view.findViewById(R.id.static_mapview);
         final LinearLayout mainContactShareLayout = (LinearLayout) view.findViewById(R.id.contact_share_layout);
 
@@ -135,7 +146,8 @@ public class MessageInfoFragment extends Fragment  {
             mainContactShareLayout.setVisibility(View.GONE);
         }
 
-        new MessageInfoAsyncTask(message.getKeyString(),getActivity()).execute();
+        messageInfoAsyncTask = new MessageInfoAsyncTask(message.getKeyString(),getActivity());
+        messageInfoAsyncTask.execute();
         return view;
     }
 
@@ -187,15 +199,15 @@ public class MessageInfoFragment extends Fragment  {
 
         String messageKey;
         MobiComMessageService messageService;
-
         public MessageInfoAsyncTask(String messageKey,Context context) {
-          this.messageKey = messageKey;
-            messageService =  new MobiComMessageService(context, MessageIntentService.class);
+            this.messageKey = messageKey;
+            this.messageService =  new MobiComMessageService(context, MessageIntentService.class);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
 
         }
 
@@ -237,51 +249,55 @@ public class MessageInfoFragment extends Fragment  {
 
     }
 
-    //Contact Adapter
-    private class ContactsAdapter extends BaseAdapter {
+    private int getListPreferredItemHeight() {
+        final TypedValue typedValue = new TypedValue();
+
+        getActivity().getTheme().resolveAttribute(
+                android.R.attr.listPreferredItemHeight, typedValue, true);
+        final DisplayMetrics metrics = new DisplayMetrics();
+
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        return (int) typedValue.getDimension(metrics);
+    }
+
+
+    public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyViewHolder> {
 
         List<MessageInfo> messageInfoList;
-        private LayoutInflater mInflater;
         BaseContactService contactService;
-
-
-        public ContactsAdapter(){
-
+        public class MyViewHolder extends RecyclerView.ViewHolder {
+            public TextView displayName, alphabeticImage, adminTextView,lastSeenAtTextView;
+            CircleImageView circleImageView;
+            public MyViewHolder(View view) {
+                super(view);
+                displayName = (TextView) view.findViewById(R.id.displayName);
+                alphabeticImage = (TextView) view.findViewById(R.id.alphabeticImage);
+                circleImageView = (CircleImageView) view.findViewById(R.id.contactImage);
+                adminTextView = (TextView) view.findViewById(R.id.adminTextView);
+                lastSeenAtTextView = (TextView) view.findViewById(R.id.lastSeenAtTextView);
+            }
         }
 
-        public ContactsAdapter(List<MessageInfo> messageInfoList){
-
-            this.messageInfoList = messageInfoList;
+        public ContactsAdapter(List<MessageInfo> messageInfoList) {
             this.contactService =  new AppContactService(getContext());
-            mInflater = LayoutInflater.from(getContext());
-
-
+            this.messageInfoList = messageInfoList;
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.contact_users_layout, parent, false);
+
+            return new MyViewHolder(itemView);
+        }
+
+        @Override
+        public void onBindViewHolder(MyViewHolder holder, int position) {
+            MessageInfo messageInfo = messageInfoList.get(position);
             String contactNumber;
             char firstLetter;
-            ContactViewHolder holder;
-
-            MessageInfo messageInfo =  messageInfoList.get(position);
             Contact contact = contactService.getContactById(messageInfo.getUserId());
-            if (convertView == null) {
-                convertView =
-                        mInflater.inflate(R.layout.contact_users_layout, parent, false);
-                holder = new ContactViewHolder();
-                holder.displayName = (TextView) convertView.findViewById(R.id.displayName);
-                holder.alphabeticImage = (TextView) convertView.findViewById(R.id.alphabeticImage);
-                holder.circleImageView = (CircleImageView) convertView.findViewById(R.id.contactImage);
-                holder.adminTextView = (TextView) convertView.findViewById(R.id.adminTextView);
-                holder.lastSeenAtTextView = (TextView) convertView.findViewById(R.id.lastSeenAtTextView);
-                convertView.setTag(holder);
-            } else {
-                holder = (ContactViewHolder) convertView.getTag();
-            }
-
             holder.displayName.setText(contact.getDisplayName());
-
             long timeStamp = messageInfo.isRead() ? messageInfo.getReadAtTime() :
                     ( messageInfo.getDeliveredAtTime()==null ? 0 : messageInfo.getDeliveredAtTime());
             if (timeStamp !=0 ) {
@@ -313,92 +329,12 @@ public class MessageInfoFragment extends Fragment  {
             } else {
                 contactImageLoader.loadImage(contact, holder.circleImageView, holder.alphabeticImage);
             }
-
-            return convertView;
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return messageInfoList.size();
         }
-
-        @Override
-        public Object getItem(int position) {
-            return messageInfoList.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-    }
-
-    private class ContactViewHolder {
-        public TextView displayName, alphabeticImage, adminTextView, lastSeenAtTextView;
-        public CircleImageView circleImageView;
-
-        public ContactViewHolder() {
-        }
-
-        public ContactViewHolder(TextView displayName, TextView alphabeticImage, TextView adminTextView, TextView lastSeenAtTextView, CircleImageView circleImageView) {
-            this.displayName = displayName;
-            this.alphabeticImage = alphabeticImage;
-            this.adminTextView = adminTextView;
-            this.lastSeenAtTextView = lastSeenAtTextView;
-            this.circleImageView = circleImageView;
-        }
-
-        public TextView getDisplayName() {
-            return displayName;
-        }
-
-        public void setDisplayName(TextView displayName) {
-            this.displayName = displayName;
-        }
-
-        public TextView getAlphabeticImage() {
-            return alphabeticImage;
-        }
-
-        public void setAlphabeticImage(TextView alphabeticImage) {
-            this.alphabeticImage = alphabeticImage;
-        }
-
-        public TextView getAdminTextView() {
-            return adminTextView;
-        }
-
-        public void setAdminTextView(TextView adminTextView) {
-            this.adminTextView = adminTextView;
-        }
-
-        public CircleImageView getCircleImageView() {
-            return circleImageView;
-        }
-
-        public void setCircleImageView(CircleImageView circleImageView) {
-            this.circleImageView = circleImageView;
-        }
-
-        public TextView getLastSeenAtTextView() {
-            return lastSeenAtTextView;
-        }
-
-        public void setLastSeenAtTextView(TextView lastSeenAtTextView) {
-            this.lastSeenAtTextView = lastSeenAtTextView;
-        }
-    }
-
-    private int getListPreferredItemHeight() {
-        final TypedValue typedValue = new TypedValue();
-
-        getActivity().getTheme().resolveAttribute(
-                android.R.attr.listPreferredItemHeight, typedValue, true);
-        final DisplayMetrics metrics = new DisplayMetrics();
-
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        return (int) typedValue.getDimension(metrics);
     }
 
     private void setupAttachmentView(Message message, RelativeLayout defaultRelativeLayout) {
@@ -408,10 +344,12 @@ public class MessageInfoFragment extends Fragment  {
         TextView  attachmentFilename =  (TextView) defaultRelativeLayout.findViewById(R.id.applozic_message_info_attachment_filename);
         TextView messageText = (TextView) defaultRelativeLayout.findViewById(R.id.messageText);
 
+        if(TextUtils.isEmpty(message.getMessage())){
+            messageText.setVisibility(View.GONE);
+        }
         if(message.getMessage()!=null){
             messageText.setText(message.getMessage());
         }
-
         if (fileMeta.getContentType().contains("image") ) {
 
             attachmentView.setVisibility(View.VISIBLE);
@@ -467,4 +405,12 @@ public class MessageInfoFragment extends Fragment  {
         }
     }
 
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(messageInfoAsyncTask != null){
+            messageInfoAsyncTask.cancel(true);
+        }
+    }
 }

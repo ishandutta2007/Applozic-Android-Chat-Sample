@@ -60,7 +60,6 @@ public class AppContactService implements BaseContactService {
         return contactDatabase.getAllContact();
     }
 
-
     @Override
     public Contact getContactById(String contactId) {
         Contact contact = contactDatabase.getContactById(contactId);
@@ -73,13 +72,11 @@ public class AppContactService implements BaseContactService {
         return contact;
     }
 
-
     @Override
     public void updateContact(Contact contact) {
         contact.processContactNumbers(context);
         contactDatabase.updateContact(contact);
     }
-
 
     @Override
     public void upsert(Contact contact) {

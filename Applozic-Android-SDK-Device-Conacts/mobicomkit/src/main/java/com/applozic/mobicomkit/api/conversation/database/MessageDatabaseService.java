@@ -121,14 +121,20 @@ public class MessageDatabaseService {
         }
         return message;
     }
-
     public static List<Message> getMessageList(Cursor cursor) {
         List<Message> messageList = new ArrayList<Message>();
         try {
             cursor.moveToFirst();
             if (cursor.getCount() > 0) {
                 do {
-                    messageList.add(getMessage(cursor));
+                    Message message = getMessage(cursor);
+                    if(Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())){
+                        if(!Message.GroupMessageMetaData.TRUE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.HIDE_KEY.getValue()))) {
+                            messageList.add(message);
+                        }
+                    } else {
+                        messageList.add(message);
+                    }
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
@@ -216,8 +222,9 @@ public class MessageDatabaseService {
             structuredNameWhere += "conversationId = ? AND ";
             structuredNameParamsList.add(String.valueOf(conversationId));
         }
-        structuredNameWhere += "messageContentType != ? AND ";
+        structuredNameWhere += "messageContentType not in ( ?,? ) AND ";
         structuredNameParamsList.add(String.valueOf(Message.ContentType.HIDDEN.getValue()));
+        structuredNameParamsList.add(String.valueOf(Message.ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue()));
         structuredNameWhere += "deleted = ? AND ";
         structuredNameParamsList.add("0");
 
@@ -875,7 +882,8 @@ public class MessageDatabaseService {
             searchCaluse  +=  " and m1.message like '%"+searchText.replaceAll("'","''") +"%' ";
         }
 
-        String hiddenType = " and m1.messageContentType != "+Message.ContentType.HIDDEN.getValue() ;
+        String hiddenType = " and m1.messageContentType not in ("+Message.ContentType.HIDDEN.getValue()
+                + "," + Message.ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue() + ") ";
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         /*final Cursor cursor = db.rawQuery("select * from sms where createdAt in " +

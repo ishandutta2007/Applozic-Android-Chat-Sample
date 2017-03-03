@@ -57,7 +57,7 @@ public class Contact implements Serializable {
     private String phoneDisplayName;
     private Integer contactType;// Default is 0, 1 is for device
     private boolean applozicType = true;
-
+    private Short userTypeId;
 
 
     public Contact() {
@@ -90,7 +90,6 @@ public class Contact implements Serializable {
         this.processContactNumbers(context);
     }
 
-
     public void processContactNumbers(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         String countryCode = telephonyManager.getSimCountryIso().toUpperCase();
@@ -98,7 +97,6 @@ public class Contact implements Serializable {
             setFormattedContactNumber(ContactNumberUtils.getPhoneNumber(getContactNumber(), countryCode));
         }
     }
-
 
 /*  Todo: Will be used for device contacts
     public void processContactNumbers(Context context) {
@@ -295,6 +293,14 @@ public class Contact implements Serializable {
                 }
             }
         }
+    }
+
+    public Short getUserTypeId() {
+        return userTypeId;
+    }
+
+    public void setUserTypeId(Short userTypeId) {
+        this.userTypeId = userTypeId;
     }
 
     @Override

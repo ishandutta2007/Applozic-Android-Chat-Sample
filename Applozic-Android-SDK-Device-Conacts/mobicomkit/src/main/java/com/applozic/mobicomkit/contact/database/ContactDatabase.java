@@ -48,8 +48,6 @@ public class ContactDatabase {
      * @return
      */
     public Contact getContact(Cursor cursor, String primaryKeyAliash) {
-
-
         Contact contact = new Contact();
         contact.setFullName(cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.FULL_NAME)));
         contact.setUserId(cursor.getString(cursor.getColumnIndex(primaryKeyAliash == null ? MobiComDatabaseHelper.USERID : primaryKeyAliash)));
@@ -68,6 +66,7 @@ public class ContactDatabase {
         Boolean userBlockedBy = (cursor.getInt(cursor.getColumnIndex(MobiComDatabaseHelper.BLOCKED_BY)) == 1);
         contact.setBlockedBy(userBlockedBy);
         contact.setStatus(cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.STATUS)));
+        contact.setUserTypeId(cursor.getShort(cursor.getColumnIndex(MobiComDatabaseHelper.USER_TYPE_ID)));
         String phoneDisplayName =  getContactName(contact.getFormattedContactNumber());
         contact.setPhoneDisplayName(!TextUtils.isEmpty(phoneDisplayName)?phoneDisplayName:cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.PHONE_CONTACT_DISPLAY_NAME)));
         return contact;
@@ -225,8 +224,6 @@ public class ContactDatabase {
         dbHelper.close();
     }
 
-
-
     public ContentValues prepareContactValues(Contact contact) {
         ContentValues contentValues = new ContentValues();
         Contact contactImage = null;
@@ -275,6 +272,7 @@ public class ContactDatabase {
             contentValues.put(MobiComDatabaseHelper.CONTACT_TYPE, contact.getContactType());
             contentValues.put(MobiComDatabaseHelper.APPLOZIC_TYPE, contact.isApplozicType() ? 1 : 0);
         }
+        contentValues.put(MobiComDatabaseHelper.USER_TYPE_ID, contact.getUserTypeId());
         return contentValues;
     }
 
@@ -381,7 +379,7 @@ public class ContactDatabase {
                 String query = "select userId as _id, fullName, contactNO, " +
                         "displayName,contactImageURL,contactImageLocalURI,email," +
                         "applicationId,connected,lastSeenAt,unreadCount,blocked," +
-                        "blockedBy,status,phoneContactDisplayName,contactType,applozicType from " + CONTACT;
+                        "blockedBy,status,phoneContactDisplayName,contactType,applozicType,userTypeId from " + CONTACT;
 
 
                 if (userIdArray != null && userIdArray.length > 0) {
@@ -402,7 +400,6 @@ public class ContactDatabase {
                     }
                     query = query + " order by applozicType desc, phoneContactDisplayName COLLATE NOCASE,userId COLLATE NOCASE asc ";
                     cursor = db.rawQuery(query, null);
-
                 }
 
                 return cursor;

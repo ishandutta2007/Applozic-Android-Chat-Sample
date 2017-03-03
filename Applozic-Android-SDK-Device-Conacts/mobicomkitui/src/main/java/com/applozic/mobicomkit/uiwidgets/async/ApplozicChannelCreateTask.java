@@ -27,6 +27,14 @@ public class ApplozicChannelCreateTask extends AsyncTask<Void, Void, Boolean> {
     int type = Channel.GroupType.PUBLIC.getValue().intValue();
 
 
+    public String getClientGroupId() {
+        return clientGroupId;
+    }
+
+    public void setClientGroupId(String clientGroupId) {
+        this.clientGroupId = clientGroupId;
+    }
+
     public int getType() {
         return type;
     }

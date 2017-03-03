@@ -1,5 +1,7 @@
 package com.applozic.mobicomkit.uiwidgets.conversation.activity;
 
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -13,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.applozic.mobicomkit.broadcast.ConnectivityReceiver;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.database.ContactDatabase;
 import com.applozic.mobicomkit.uiwidgets.R;
@@ -44,6 +47,7 @@ public class ContactSelectionActivity extends AppCompatActivity implements Searc
     public static boolean isSearching = false;
     ContactSelectionFragment contactSelectionFragment;
     private AppContactService contactService;
+    private ConnectivityReceiver connectivityReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +80,8 @@ public class ContactSelectionActivity extends AppCompatActivity implements Searc
         bundle.putInt(GROUP_TYPE,groupType);
         contactSelectionFragment.setArguments(bundle);
         addFragment(this, contactSelectionFragment, "ContactSelectionFragment");
+        connectivityReceiver = new ConnectivityReceiver();
+        registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     public static void addFragment(FragmentActivity fragmentActivity, Fragment fragmentToAdd, String fragmentTag) {
@@ -169,6 +175,19 @@ public class ContactSelectionActivity extends AppCompatActivity implements Searc
 
     public void setSearchListFragment(SearchListFragment searchListFragment) {
         this.searchListFragment = searchListFragment;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try{
+            if(connectivityReceiver != null){
+                unregisterReceiver(connectivityReceiver);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
 }

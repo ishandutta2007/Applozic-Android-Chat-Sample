@@ -2,6 +2,8 @@ package com.applozic.mobicomkit.api.account.user;
 
 import com.applozic.mobicommons.json.JsonMarker;
 
+import java.util.List;
+
 /**
  * Created by devashish on 22/12/14.
  */
@@ -24,8 +26,19 @@ public class User extends JsonMarker {
     private boolean enableEncryption;
     private Short authenticationTypeId = AuthenticationType.CLIENT.getValue();
     private String displayName;
-
     private String appModuleName;
+    private Short userTypeId;
+
+    public List<String> getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(List<String> features) {
+        this.features = features;
+    }
+
+    private List<String> features;
+
 
     public String getUserId() {
         return userId;
@@ -171,6 +184,14 @@ public class User extends JsonMarker {
         this.enableEncryption = enableEncryption;
     }
 
+    public Short getUserTypeId() {
+        return userTypeId;
+    }
+
+    public void setUserTypeId(Short userTypeId) {
+        this.userTypeId = userTypeId;
+    }
+
     public enum AuthenticationType {
 
         CLIENT(Short.valueOf("0")), APPLOZIC(Short.valueOf("1")), FACEBOOK(Short.valueOf("2"));
@@ -181,6 +202,20 @@ public class User extends JsonMarker {
         }
 
         public Short getValue() {
+            return value;
+        }
+    }
+
+    public enum Features {
+
+        IP_AUDIO_CALL("100"), IP_VIDEO_CALL("101");
+        private String value;
+
+        Features(String c) {
+            value = c;
+        }
+
+        public String getValue() {
             return value;
         }
     }

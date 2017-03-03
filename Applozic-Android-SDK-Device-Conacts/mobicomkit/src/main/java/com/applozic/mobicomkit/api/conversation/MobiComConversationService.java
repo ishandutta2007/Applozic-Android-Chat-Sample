@@ -79,17 +79,21 @@ public class MobiComConversationService {
         boolean emptyTable = messageDatabaseService.isMessageTableEmpty();
 
         if (emptyTable || createdAt != null  && createdAt != 0) {
-            getMessages(null, createdAt, null, null,null);
+            getMessages(null, createdAt, null, null,null,false);
         }
 
         return  messageDatabaseService.getMessages(createdAt,searchString);
     }
 
     public List<Message> getMessages(String userId, Long startTime, Long endTime) {
-        return getMessages(startTime, endTime, new Contact(userId), null,null);
+        return getMessages(startTime, endTime, new Contact(userId), null,null,false);
     }
 
-    public synchronized List<Message> getMessages(Long startTime, Long endTime, Contact contact, Channel channel, Integer conversationId) {
+    public synchronized List<Message>  getMessages(Long startTime, Long endTime, Contact contact, Channel channel, Integer conversationId){
+        return getMessages(startTime,endTime,contact,channel,conversationId,false);
+    }
+
+    public synchronized List<Message> getMessages(Long startTime, Long endTime, Contact contact, Channel channel, Integer conversationId,boolean isSkipRead) {
         List<Message> messageList = new ArrayList<Message>();
         List<Message> cachedMessageList = messageDatabaseService.getMessages(startTime, endTime, contact, channel,conversationId);
         boolean isServerCallNotRequired = false;
@@ -110,7 +114,7 @@ public class MobiComConversationService {
 
         String data;
         try {
-            data = messageClientService.getMessages(contact, channel, startTime, endTime,conversationId);
+            data = messageClientService.getMessages(contact, channel, startTime, endTime,conversationId,isSkipRead);
             Log.i(TAG, "Received response from server for Messages: " + data);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -219,6 +223,7 @@ public class MobiComConversationService {
             contact.setConnected(userDetail.isConnected());
             contact.setFullName(userDetail.getDisplayName());
             contact.setLastSeenAt(userDetail.getLastSeenAtTime());
+            contact.setUserTypeId(userDetail.getUserTypeId());
             if(userDetail.getUnreadCount() != null){
                 contact.setUnreadCount(userDetail.getUnreadCount());
             }
@@ -234,7 +239,6 @@ public class MobiComConversationService {
         }
         MobiComUserPreference.getInstance(context).setLastSeenAtSyncTime(userDetailsResponse.getGeneratedAt());
     }
-
 
     private boolean wasServerCallDoneBefore(Contact contact, Channel channel, Integer conversationId) {
         if(contact == null && channel == null ){
@@ -372,6 +376,7 @@ public class MobiComConversationService {
                 contact.setLastSeenAt(userDetail.getLastSeenAtTime());
                 contact.setStatus(userDetail.getStatusMessage());
                 contact.setUnreadCount(userDetail.getUnreadCount());
+                contact.setUserTypeId(userDetail.getUserTypeId());
                 contact.setImageURL(userDetail.getImageLink());
                 baseContactService.upsert(contact);
             }

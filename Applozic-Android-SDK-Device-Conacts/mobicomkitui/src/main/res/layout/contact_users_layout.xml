@@ -91,7 +91,5 @@
         android:text="@string/admin_text"
         android:background="@drawable/admin_text"
         android:textSize="12sp"
-        android:padding="2dp"
-        android:textColor="@color/applozic_theme_color_primary"
-        />
+        android:padding="2dp" />
 </RelativeLayout>

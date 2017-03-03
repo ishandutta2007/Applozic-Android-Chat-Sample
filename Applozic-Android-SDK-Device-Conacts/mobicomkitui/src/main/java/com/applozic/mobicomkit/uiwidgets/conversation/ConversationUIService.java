@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -27,6 +28,7 @@ import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.RegisteredUsersAsyncTask;
 import com.applozic.mobicomkit.api.account.user.UserClientService;
+import com.applozic.mobicomkit.api.attachment.FileClientService;
 import com.applozic.mobicomkit.api.attachment.FileMeta;
 import com.applozic.mobicomkit.api.conversation.ApplozicMqttIntentService;
 import com.applozic.mobicomkit.api.conversation.Message;
@@ -70,11 +72,13 @@ import java.util.regex.Pattern;
 
 public class ConversationUIService {
 
-    public static final int REQUEST_CODE_CONTACT_GROUP_SELECTION = 101;
+    public static final int REQUEST_CODE_CONTACT_GROUP_SELECTION = 1011;
     public static final String CONVERSATION_FRAGMENT = "ConversationFragment";
     public static final String MESSGAE_INFO_FRAGMENT = "messageInfoFagment";
     public static final String USER_PROFILE_FRAMENT = "userProfilefragment";
     public static final String QUICK_CONVERSATION_FRAGMENT = "QuickConversationFragment";
+    public static final String FORWARD_MESSAGE = "forwardMessage";
+    public static final String CLIENT_GROUP_ID = "clientGroupId";
     public static final String DISPLAY_NAME = "displayName";
     public static final String TAKE_ORDER = "takeOrder";
     public static final String USER_ID = "userId";
@@ -104,12 +108,14 @@ public class ConversationUIService {
     public static final String TOPIC_ID = "TOPIC_ID";
     private Contact contact;
     private NotificationManager notificationManager;
+    FileClientService fileClientService;
 
     public ConversationUIService(FragmentActivity fragmentActivity) {
         this.fragmentActivity = fragmentActivity;
         this.baseContactService = new AppContactService(fragmentActivity);
         this.userPreference = MobiComUserPreference.getInstance(fragmentActivity);
         this.notificationManager  = (NotificationManager) fragmentActivity.getSystemService(Context.NOTIFICATION_SERVICE);
+        this.fileClientService =new FileClientService(fragmentActivity);
     }
 
     public MobiComQuickConversationFragment getQuickConversationFragment() {
@@ -158,14 +164,19 @@ public class ConversationUIService {
         });
     }
 
-    public void openConversationFragment(final Channel channel, Integer conversationId,String searchString) {
-        ConversationFragment conversationFragment = (ConversationFragment) UIService.getFragmentByTag(fragmentActivity, CONVERSATION_FRAGMENT);
-        if (conversationFragment == null) {
-            conversationFragment = new ConversationFragment(null, channel, conversationId,searchString);
-            ((MobiComKitActivityInterface) fragmentActivity).addFragment(conversationFragment);
-        } else {
-            conversationFragment.loadConversation(channel, conversationId,searchString);
-        }
+    public void openConversationFragment(final Channel channel, final Integer conversationId, final String searchString) {
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+                ConversationFragment conversationFragment = (ConversationFragment) UIService.getFragmentByTag(fragmentActivity, CONVERSATION_FRAGMENT);
+                if (conversationFragment == null) {
+                    conversationFragment = new ConversationFragment(null, channel, conversationId, searchString);
+                    ((MobiComKitActivityInterface) fragmentActivity).addFragment(conversationFragment);
+                } else {
+                    conversationFragment.loadConversation(channel, conversationId, searchString);
+                }
+            }
+        });
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -174,17 +185,23 @@ public class ConversationUIService {
                     requestCode == MultimediaOptionFragment.REQUEST_CODE_TAKE_PHOTO)
                     && resultCode == Activity.RESULT_OK) {
                 Uri selectedFileUri = (intent == null ? null : intent.getData());
+                File file = null;
                 if (selectedFileUri == null) {
-
+                    file = ((ConversationActivity) fragmentActivity).getFileObject();
                     selectedFileUri = ((ConversationActivity) fragmentActivity).getCapturedImageUri();
-                    ImageUtils.addImageToGallery(FilePathFinder.getPath(fragmentActivity, selectedFileUri), fragmentActivity);
                 }
 
-                if (selectedFileUri == null) {
-                    Bitmap photo = (Bitmap) (intent != null ? intent.getExtras().get("data") : null);
-                    selectedFileUri = ImageUtils.getImageUri(fragmentActivity, photo);
+                if(selectedFileUri != null){
+                    selectedFileUri = ((ConversationActivity) fragmentActivity).getCapturedImageUri();
+                    file = ((ConversationActivity) fragmentActivity).getFileObject();
                 }
-                getConversationFragment().loadFile(selectedFileUri);
+                MediaScannerConnection.scanFile(fragmentActivity,
+                        new String[] { file.getAbsolutePath() }, null,
+                        new MediaScannerConnection.OnScanCompletedListener() {
+                            public void onScanCompleted(String path, Uri uri) {
+                            }
+                        });
+                getConversationFragment().loadFile(selectedFileUri,file);
                 Log.i(TAG, "File uri: " + selectedFileUri);
             }
 
@@ -195,16 +212,16 @@ public class ConversationUIService {
 
                 Uri selectedFilePath = ((ConversationActivity) fragmentActivity).getVideoFileUri();
 
-                String file = Pattern.compile("//").split(selectedFilePath.toString())[1];
+                File  file = ((ConversationActivity) fragmentActivity).getFileObject();
 
-                if (!(new File(file).exists())) {
-                    FileUtils.getLastModifiedFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Camera/").renameTo(new File(file));
+                if (!(file != null && file.exists())) {
+                    FileUtils.getLastModifiedFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Camera/").renameTo(file);
                 }
 
                 if (selectedFilePath != null) {
-                    getConversationFragment().loadFile(selectedFilePath);
+                    getConversationFragment().loadFile(selectedFilePath,file);
+                    getConversationFragment().sendMessage("", Message.ContentType.VIDEO_MSG.getValue());
                 }
-                getConversationFragment().sendMessage("", Message.ContentType.VIDEO_MSG.getValue());
             }
 
             if (requestCode == MultimediaOptionFragment.REQUEST_CODE_CONTACT_SHARE && resultCode == Activity.RESULT_OK) {
@@ -213,8 +230,7 @@ public class ConversationUIService {
                     File vCradFile = new ContactService(fragmentActivity).vCard(intent.getData());
 
                     if (vCradFile != null) {
-                        getConversationFragment().loadFile(Uri.fromFile(vCradFile));
-                        getConversationFragment().sendMessage("", Message.ContentType.CONTACT_MSG.getValue());
+                        getConversationFragment().sendMessage(Message.ContentType.CONTACT_MSG.getValue(),vCradFile.getAbsolutePath());
                     }
 
                 } catch (Exception e) {
@@ -230,8 +246,7 @@ public class ConversationUIService {
                 //TODO: check performance, we might need to put in each posting in separate thread.
 
                 for (Uri info : attachmentList) {
-                    getConversationFragment().loadFile(info);
-                    getConversationFragment().sendMessage(messageText, Message.ContentType.ATTACHMENT.getValue());
+                    getConversationFragment().sendMessage(messageText,Message.ContentType.ATTACHMENT.getValue(),info.toString());
                 }
 
             }
@@ -267,7 +282,15 @@ public class ConversationUIService {
         });
         String name = "";
         if (channel != null) {
-            name = ChannelUtils.getChannelTitleName(channel, MobiComUserPreference.getInstance(fragmentActivity).getUserId());
+            if(Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())) {
+                String userId = ChannelService.getInstance(fragmentActivity).getGroupOfTwoReceiverUserId(channel.getKey());
+                if(!TextUtils.isEmpty(userId)){
+                    Contact withUserContact = baseContactService.getContactById(userId);
+                    name =  withUserContact.getDisplayName();
+                }
+            }else {
+                name = ChannelUtils.getChannelTitleName(channel, MobiComUserPreference.getInstance(fragmentActivity).getUserId());
+            }
         } else {
             name = contact.getDisplayName();
         }
@@ -409,7 +432,7 @@ public class ConversationUIService {
             }
             if (BroadcastService.isIndividual()) {
                 ConversationFragment conversationFragment = getConversationFragment();
-                if (conversationFragment.isMsgForConversation(message)) {
+                if (conversationFragment.isMsgForConversation(message) && !Message.GroupMessageMetaData.TRUE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.HIDE_KEY.getValue()))) {
                     conversationFragment.addMessage(message);
                 }
             }
@@ -460,7 +483,7 @@ public class ConversationUIService {
         }
         if (BroadcastService.isIndividual()) {
             ConversationFragment conversationFragment = getConversationFragment();
-            if (conversationFragment.getContact() != null && contactId.equals(conversationFragment.getContact().getContactIds())) {
+            if (conversationFragment.getContact() != null && contactId.equals(conversationFragment.getContact().getContactIds())|| conversationFragment.getChannel() != null) {
                 conversationFragment.updateLastSeenStatus();
             }
         }
@@ -664,11 +687,7 @@ public class ConversationUIService {
 
         Log.i("ConversationUIService:", "Send audio message ...");
 
-        if (selectedFilePath != null) {
-            Uri uri = Uri.fromFile(new File(selectedFilePath));
-            getConversationFragment().loadFile(uri);
-        }
-        getConversationFragment().sendMessage("", Message.ContentType.AUDIO_MSG.getValue());
+        getConversationFragment().sendMessage(Message.ContentType.AUDIO_MSG.getValue(),selectedFilePath);
 
     }
 
@@ -690,7 +709,6 @@ public class ConversationUIService {
         Contact contact = null;
         Channel channel = null;
         Integer conversationId = null;
-        ;
 
         if (Intent.ACTION_SEND.equals(intent.getAction()) && intent.getType() != null) {
             if ("text/plain".equals(intent.getType())) {
@@ -715,9 +733,15 @@ public class ConversationUIService {
         }
 
         Integer channelKey = intent.getIntExtra(GROUP_ID, -1);
+        String clientGroupId = intent.getStringExtra(CLIENT_GROUP_ID);
         String channelName = intent.getStringExtra(GROUP_NAME);
 
-        if (channelKey != -1 && channelKey != null && channelKey != 0) {
+        if(!TextUtils.isEmpty(clientGroupId)){
+            channel = ChannelService.getInstance(fragmentActivity).getChannelByClientGroupId(clientGroupId);
+            if(channel == null){
+                return;
+            }
+        }else if (channelKey != -1 && channelKey != null && channelKey != 0) {
             channel = ChannelService.getInstance(fragmentActivity).getChannel(channelKey);
         }
 

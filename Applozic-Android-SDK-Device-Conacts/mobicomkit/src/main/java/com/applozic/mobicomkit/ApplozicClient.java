@@ -8,6 +8,10 @@ import com.applozic.mobicomkit.api.MobiComKitClientService;
 import com.applozic.mobicomkit.api.account.register.RegistrationResponse;
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 
+import org.json.JSONObject;
+
+import java.util.Map;
+
 /**
  * Created by devashish on 8/21/2015.
  */
@@ -24,6 +28,11 @@ public class ApplozicClient {
     private static final String CONTACT_DEFAULT_IMAGE = "CONTACT_DEFAULT_IMAGE";
     private static final String GROUP_DEFAULT_IMAGE = "GROUP_DEFAULT_IMAGE";
     private static final String MESSAGE_META_DATA_SERVICE = "MESSAGE_META_DATA_SERVICE";
+    private static final String ENABLE_IP_CALL = "ENABLE_IP_CALL";
+    private static final String SHOW_MY_CONTACT_ONLY = "SHOW_MY_CONTACT_ONLY";
+    public static final String AL_MESSAGE_META_DATA_KEY ="AL_MESSAGE_META_DATA_KEY";
+    private static final String START_GROUP_OF_TWO = "START_GROUP_OF_TWO";
+    private static final String AL_SHOW_APP_ICON = "AL_SHOW_APP_ICON";
     public static ApplozicClient applozicClient;
     public SharedPreferences sharedPreferences;
     private Context context;
@@ -155,5 +164,60 @@ public class ApplozicClient {
         sharedPreferences.edit().putString(MESSAGE_META_DATA_SERVICE, messageMetaDataServiceName).commit();
         return this;
     }
+
+    public boolean isShowMyContacts() {
+        return  sharedPreferences.getBoolean(SHOW_MY_CONTACT_ONLY, false);
+    }
+
+    public ApplozicClient enableShowMyContacts() {
+        sharedPreferences.edit().putBoolean(SHOW_MY_CONTACT_ONLY, true).commit();
+        return this;
+    }
+
+    public ApplozicClient disableShowMyContacts() {
+        sharedPreferences.edit().putBoolean(SHOW_MY_CONTACT_ONLY, false).commit();
+        return this;
+    }
+    public void setIPCallEnabled(boolean iPCallEnabled) {
+        sharedPreferences.edit().putBoolean(ENABLE_IP_CALL, iPCallEnabled).commit();
+    }
+
+    public boolean isIPCallEnabled() {
+        return sharedPreferences.getBoolean(ENABLE_IP_CALL, false);
+    }
+
+    public ApplozicClient setMessageMetaData(Map<String, String> messageMetaDataMap) {
+        if(messageMetaDataMap != null){
+            sharedPreferences.edit().putString(AL_MESSAGE_META_DATA_KEY , new JSONObject(messageMetaDataMap).toString()).commit();
+        }
+        return this;
+    }
+
+    public String getMessageMetaData() {
+        return sharedPreferences.getString(AL_MESSAGE_META_DATA_KEY, null);
+    }
+
+
+    public ApplozicClient startGroupOfTwo() {
+        sharedPreferences.edit().putBoolean(START_GROUP_OF_TWO, true).commit();
+        return this;
+    }
+    public boolean isStartGroupOfTwo() {
+        return  sharedPreferences.getBoolean(START_GROUP_OF_TWO, false);
+    }
+
+    public ApplozicClient disableStartGroupOfTwo() {
+        sharedPreferences.edit().putBoolean(START_GROUP_OF_TWO, false).commit();
+        return this;
+    }
+
+    public ApplozicClient showAppIconInNotification(boolean showOrHide) {
+        sharedPreferences.edit().putBoolean(AL_SHOW_APP_ICON, showOrHide).commit();
+        return this;
+    }
+    public boolean isShowAppIconInNotification() {
+        return  sharedPreferences.getBoolean(AL_SHOW_APP_ICON, false);
+    }
+
 
 }

@@ -37,7 +37,6 @@
             android:clickable="true"
             android:id="@+id/applozic_group_profile_camera"
             android:background="@color/apploizc_transparent_color"
-            android:src="@drawable/applozic_ic_action_camera_new"
             android:layout_alignBottom="@+id/applozic_group_profile"
             android:layout_alignRight="@+id/applozic_group_profile"
             android:layout_alignEnd="@+id/applozic_group_profile" />

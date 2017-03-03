@@ -12,7 +12,7 @@ import com.applozic.mobicommons.commons.core.utils.DBUtils;
 
 public class MobiComDatabaseHelper extends SQLiteOpenHelper {
 
-    public static final int DB_VERSION = 19;
+    public static final int DB_VERSION = 23;
 
     public static final String _ID = "_id";
     public static final String SMS_KEY_STRING = "smsKeyString";
@@ -53,20 +53,25 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
     public static final String BLOCKED_BY = "blockedBy";
     public static final String UNREAD_COUNT = "unreadCount";
     public static final String TOPIC_DETAIL = "topicDetail";
+    public static final String TOPIC_LOCAL_IMAGE_URL = "topicLocalImageUrl";
     public static final String CREATED = "created";
     public static final String SENDER_USER_NAME = "senderUserName";
     public static final String CHANNEL = "channel";
     public static final String CHANNEL_USER_X = "channel_User_X";
     public static final String KEY = "key";
     public static final String CONVERSATION = "conversation";
+    public static final String CONTACT_TYPE = "contactType";
+    public static final String USER_TYPE_ID = "userTypeId";
+    public static final String NOTIFICATION_AFTER_TIME = "notificationAfterTime";
+    public static final String DELETED_AT = "deletedAtTime";
 
-    public static final String CONTACT_TYPE="contactType";
     public static final String APPLOZIC_TYPE = "applozicType";
     public static final String PHONE_CONTACT_DISPLAY_NAME = "phoneContactDisplayName";
 
     private static final String ALTER_CONTACT_TABLE_FOR_PHONE_CONTACT_DISPLAY_NAME = "ALTER TABLE " + CONTACT_TABLE_NAME + " ADD COLUMN "+PHONE_CONTACT_DISPLAY_NAME+" varchar(100) ";
     private static final String ALTER_CONTACT_TABLE_FOR_CONTENT_TYPE_COLUMN = "ALTER TABLE " + CONTACT_TABLE_NAME + " ADD COLUMN " + CONTACT_TYPE + " integer default 0";
     private static final String ALTER_CONTACT_TABLE_FOR_APPLOZIC_TYPE = "ALTER TABLE " + CONTACT_TABLE_NAME + " ADD COLUMN " + APPLOZIC_TYPE + " integer default 1";
+
 
     public static final String CREATE_SCHEDULE_SMS_TABLE = "create table " + SCHEDULE_SMS_TABLE_NAME + "( "
             + _ID + " integer primary key autoincrement  ," + SMS
@@ -129,6 +134,11 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
     private static final String ALTER_CHANNEL_TABLE_FOR_IMAGE_LOCAL_URI_COLUMN = "ALTER TABLE " + CHANNEL + " ADD COLUMN " + CHANNEL_IMAGE_LOCAL_URI + " varchar(300) null";
     private static final String ALTER_CHANNEL_TABLE_FOR_CLIENT_GROUP_ID = "ALTER TABLE " + CHANNEL + " ADD COLUMN " + CLIENT_GROUP_ID + " varchar(200) null";
     private static final String ALTER_SMS_TABLE = "ALTER TABLE " + SMS + " RENAME TO " + SMS_BACKUP;
+    private static final String ALTER_CONVERSATION_TABLE_FOR_TOPIC_LOCAL_IMAGE_URL = "ALTER TABLE " + CONVERSATION + " ADD COLUMN " + TOPIC_LOCAL_IMAGE_URL + " varchar(500) null";
+    private static final String ALTER_CONTACT_TABLE_FOR_USER_TYPE_ID_COLUMN = "ALTER TABLE " + CONTACT_TABLE_NAME + " ADD COLUMN " + USER_TYPE_ID + " integer default 0";
+    private static final String ALTER_CHANNEL_TABLE_FOR_NOTIFICATION_AFTER_TIME_COLUMN = "ALTER TABLE " + CHANNEL + " ADD COLUMN " + NOTIFICATION_AFTER_TIME + " integer default 0";
+    private static final String ALTER_CHANNEL_TABLE_FOR_DELETED_AT_COLUMN = "ALTER TABLE " + CHANNEL + " ADD COLUMN " + DELETED_AT + " integer";
+
     private static final String CREATE_CONTACT_TABLE = " CREATE TABLE contact ( " +
             USERID + " VARCHAR(50) primary key, "
             + FULL_NAME + " VARCHAR(200), "
@@ -146,7 +156,8 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
             + CONTACT_TYPE + " integer default 0,"//add this column
             + APPLOZIC_TYPE +" integer default 1, "//add this column
             + STATUS +" varchar(2500) null, "
-            + PHONE_CONTACT_DISPLAY_NAME +" varchar(100)" //add this column
+            + PHONE_CONTACT_DISPLAY_NAME +" varchar(100)," //add this column
+            + USER_TYPE_ID +" integer default 0 "
             + " ) ";
 
     private static final String CREATE_CHANNEL_TABLE = " CREATE TABLE channel ( " +
@@ -159,7 +170,9 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
             + UNREAD_COUNT + " integer default 0, "
             + USER_COUNT + "integer, "
             + CHANNEL_IMAGE_URL + " VARCHAR(300), "
-            + CHANNEL_IMAGE_LOCAL_URI + " VARCHAR(300)"
+            + CHANNEL_IMAGE_LOCAL_URI + " VARCHAR(300), "
+            + NOTIFICATION_AFTER_TIME +" integer default 0, "
+            + DELETED_AT +" integer"
             + " )";
 
     private static final String CREATE_CHANNEL_USER_X_TABLE = " CREATE TABLE channel_User_X ( " +
@@ -176,7 +189,8 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
             + TOPIC_ID + " varchar(100) , "
             + USERID + " varchar(100) ,"
             + CHANNEL_KEY + " integer ,"
-            + TOPIC_DETAIL + " varchar(2500))";
+            + TOPIC_DETAIL + " varchar(2500),"
+            + TOPIC_LOCAL_IMAGE_URL + " varchar(500))";
 
     private static final String CREATE_INDEX_SMS_TYPE = "CREATE INDEX IF NOT EXISTS INDEX_SMS_TYPE ON sms (type)";
     private static final String CREATE_INDEX_ON_CREATED_AT =  "CREATE INDEX IF NOT EXISTS message_createdAt ON sms (createdAt)";
@@ -224,6 +238,7 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
         if (!DBUtils.isTableExists(database, CHANNEL_USER_X)) {
             database.execSQL(CREATE_CHANNEL_USER_X_TABLE);
         }
+
         //ALL indexes should go here after creating tables.
         database.execSQL(CREATE_INDEX_ON_CREATED_AT);
         database.execSQL(CREATE_INDEX_SMS_TYPE);
@@ -306,16 +321,29 @@ public class MobiComDatabaseHelper extends SQLiteOpenHelper {
             if (!DBUtils.existsColumnInTable(database, "contact", STATUS)) {
                 database.execSQL(ALTER_CONTACT_TABLE_FOR_STATUS);
             }
-
             if (!DBUtils.existsColumnInTable(database, "contact", CONTACT_TYPE)) {
                 database.execSQL(ALTER_CONTACT_TABLE_FOR_CONTENT_TYPE_COLUMN);
             }
+            if (!DBUtils.existsColumnInTable(database, CONVERSATION, TOPIC_LOCAL_IMAGE_URL)) {
+                database.execSQL(ALTER_CONVERSATION_TABLE_FOR_TOPIC_LOCAL_IMAGE_URL);
+            }
+            if (!DBUtils.existsColumnInTable(database, "contact", USER_TYPE_ID)) {
+                database.execSQL(ALTER_CONTACT_TABLE_FOR_USER_TYPE_ID_COLUMN);
+            }
+            if (!DBUtils.existsColumnInTable(database, "channel", NOTIFICATION_AFTER_TIME)) {
+                database.execSQL(ALTER_CHANNEL_TABLE_FOR_NOTIFICATION_AFTER_TIME_COLUMN);
+            }
+            if (!DBUtils.existsColumnInTable(database, "channel", DELETED_AT)) {
+                database.execSQL(ALTER_CHANNEL_TABLE_FOR_DELETED_AT_COLUMN);
+            }
+
             if (!DBUtils.existsColumnInTable(database, "contact", APPLOZIC_TYPE)) {
                 database.execSQL(ALTER_CONTACT_TABLE_FOR_APPLOZIC_TYPE);
             }
             if (!DBUtils.existsColumnInTable(database, "contact", PHONE_CONTACT_DISPLAY_NAME)) {
                 database.execSQL(ALTER_CONTACT_TABLE_FOR_PHONE_CONTACT_DISPLAY_NAME);
             }
+
 
             database.execSQL(CREATE_INDEX_ON_CREATED_AT);
             database.execSQL(CREATE_INDEX_SMS_TYPE);

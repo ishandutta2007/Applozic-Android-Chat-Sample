@@ -150,8 +150,10 @@ public class DeviceContactService implements BaseContactService {
         String displayName = people.getString(people.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
         String lookupKey = "lkupkey-"+people.getString(people.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY));
 
+
         if(!TextUtils.isEmpty(contactNO) && contactNO.trim().length() > 8){
             contactNO = contactNO.trim().replace(" ","").replace("-","");
+            contactNO =  contactNO.replaceFirst("^0+(?!$)", "");
         } else {
             return null;
         }

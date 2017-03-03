@@ -69,8 +69,8 @@ public class WearableNotificationWithVoice {
         if (pendingIntent == null && notificationHandler == null) {
             throw new RuntimeException("Either pendingIntent or handler class requires.");
         }
-        Action action = buildWearableAction();
-        Notification notification = notificationBuilder.extend(new WearableExtender().addAction(action)).build();
+        //Action action = buildWearableAction(); removed remote input action for now
+        Notification notification = notificationBuilder.extend(new WearableExtender()).build();
 
         if(ApplozicClient.getInstance(mContext).isNotificationSmallIconHidden() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN ){
             int smallIconViewId = mContext.getResources().getIdentifier("right_icon", "id", android.R.class.getPackage().getName());

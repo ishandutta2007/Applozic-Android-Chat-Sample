@@ -12,16 +12,18 @@ import android.widget.TextView;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
 import com.applozic.mobicomkit.uiwidgets.R;
 
+import java.util.List;
+
 /**
  * Created by reytum on 18/3/16.
  */
 public class MobicomMultimediaPopupAdapter extends BaseAdapter {
     Context context;
-    String[] multimediaIcons;
-    String[] multimediaText;
+    List<String> multimediaIcons;
+    List<String> multimediaText;
     AlCustomizationSettings alCustomizationSettings;
 
-    public MobicomMultimediaPopupAdapter(Context context, String[] multimediaIcons, String[] multimediaText) {
+    public MobicomMultimediaPopupAdapter(Context context, List<String> multimediaIcons, List<String> multimediaText) {
         this.context = context;
         this.multimediaIcons = multimediaIcons;
         this.multimediaText = multimediaText;
@@ -33,7 +35,7 @@ public class MobicomMultimediaPopupAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return multimediaText.length;
+        return multimediaText.size();
     }
 
     @Override
@@ -56,8 +58,8 @@ public class MobicomMultimediaPopupAdapter extends BaseAdapter {
         icon.setTypeface(iconTypeface);
         TextView text = (TextView) convertView.findViewById(R.id.mobicom_multimedia_text);
         icon.setTextColor(Color.parseColor(alCustomizationSettings.getAttachmentIconsBackgroundColor()));
-        icon.setText(multimediaIcons[position]);
-        text.setText(multimediaText[position]);
+        icon.setText(multimediaIcons.get(position));
+        text.setText(multimediaText.get(position));
         return convertView;
     }
 

@@ -16,6 +16,7 @@ import com.applozic.mobicomkit.api.account.user.UserService;
 import com.applozic.mobicomkit.api.attachment.FileClientService;
 import com.applozic.mobicomkit.api.conversation.database.MessageDatabaseService;
 import com.applozic.mobicomkit.api.conversation.selfdestruct.DisappearingMessageTask;
+import com.applozic.mobicomkit.api.notification.VideoCallNotificationHelper;
 import com.applozic.mobicomkit.broadcast.BroadcastService;
 import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.contact.AppContactService;
@@ -24,6 +25,7 @@ import com.applozic.mobicomkit.sync.SyncMessageFeed;
 
 import com.applozic.mobicommons.commons.core.utils.Support;
 import com.applozic.mobicommons.commons.core.utils.Utils;
+import com.applozic.mobicommons.people.channel.Channel;
 import com.applozic.mobicommons.people.contact.Contact;
 import com.applozic.mobicommons.personalization.PersonalizedMessage;
 
@@ -91,6 +93,13 @@ public class MobiComMessageService {
             e.printStackTrace();
         }
         Message message = prepareMessage(messageToProcess, tofield);
+        //download contacts in advance.
+        if(message.getGroupId() != null){
+            ChannelService.getInstance(context).getChannelInfo(message.getGroupId());
+        }
+        if(message.getContentType()== Message.ContentType.CONTACT_MSG.getValue()){
+            fileClientService.loadContactsvCard(message);
+        }
 
         if (message.getType().equals(Message.MessageType.MT_INBOX.getValue())) {
             addMTMessage(message);
@@ -99,6 +108,12 @@ public class MobiComMessageService {
             messageDatabaseService.createMessage(message);
             if (!message.getCurrentId().equals(BroadcastService.currentUserId)) {
                 MobiComUserPreference.getInstance(context).setNewMessageFlag(true);
+            }
+            if(message.isVideoNotificationMessage()) {
+                Log.i(TAG, "Got notifications for Video call...");
+                VideoCallNotificationHelper helper = new VideoCallNotificationHelper(context);
+                helper.handleVideoCallNotificationMessages(message);
+
             }
         }
         Log.i(TAG, "processing message: " + message);
@@ -138,10 +153,6 @@ public class MobiComMessageService {
         }
 
         messageDatabaseService.createMessage(message);
-        //download contacts in advance.
-        if(message.getContentType()== Message.ContentType.CONTACT_MSG.getValue()){
-            fileClientService.loadContactsvCard(message);
-        }
 
         BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
 
@@ -155,15 +166,28 @@ public class MobiComMessageService {
         }else {
             isContainerOpened = currentId.equals(BroadcastService.currentUserId);
         }
-        if (!isContainerOpened) {
-            if(!Message.ContentType.HIDDEN.getValue().equals(message.getContentType())  && !message.isReadStatus()){
+        if(message.isVideoNotificationMessage()) {
+            Log.i(TAG, "Got notifications for Video call...");
+
+            VideoCallNotificationHelper helper = new VideoCallNotificationHelper(context);
+            helper.handleVideoCallNotificationMessages(message);
+
+        }else if(message.isVideoCallMessage()) {
+            VideoCallNotificationHelper.buildVideoCallNotification(context,message);
+        }else if (!isContainerOpened) {
+            if(message.isConsideredForCount()){
                 if(message.getTo() != null && message.getGroupId() == null){
                     messageDatabaseService.updateContactUnreadCount(message.getTo());
                     sendNotification(message);
                 }
                 if(message.getGroupId() != null && !Message.GroupMessageMetaData.FALSE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.KEY.getValue()))){
-                    messageDatabaseService.updateChannelUnreadCount(message.getGroupId());
-                    sendNotification(message);
+                    if(!Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())) {
+                        messageDatabaseService.updateChannelUnreadCount(message.getGroupId());
+                    }
+                    Channel currentChannel= ChannelService.getInstance(context).getChannelInfo(message.getGroupId());
+                    if(!currentChannel.isNotificationMuted()) {
+                        sendNotification(message);
+                    }
                 }
                 MobiComUserPreference.getInstance(context).setNewMessageFlag(true);
             }

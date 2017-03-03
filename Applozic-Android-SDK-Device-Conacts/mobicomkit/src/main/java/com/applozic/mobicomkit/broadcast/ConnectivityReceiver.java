@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Process;
 import android.net.ConnectivityManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
@@ -20,7 +21,7 @@ import com.applozic.mobicommons.commons.core.utils.Utils;
 public class ConnectivityReceiver extends BroadcastReceiver {
 
     static final private String TAG = "ConnectivityReceiver";
-    static final private String CONNECTIVITY_CHANGE = "android.net.conn.CONNECTIVITY_CHANGE";
+    static final public String CONNECTIVITY_CHANGE = "android.net.conn.CONNECTIVITY_CHANGE";
     private static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
     Context context;
     private static boolean firstConnect = true;
@@ -36,7 +37,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         Log.i(TAG, action);
-
+        LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(action));
         if (action.equalsIgnoreCase(CONNECTIVITY_CHANGE) ||  action.equalsIgnoreCase(BOOT_COMPLETED)) {
             if (!Utils.isInternetAvailable(context)) {
                 firstConnect = true;
@@ -46,6 +47,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
                 return;
             }
             ConnectivityManager cm = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+
             if (cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected()) {
                 if (firstConnect) {
                     firstConnect = false;

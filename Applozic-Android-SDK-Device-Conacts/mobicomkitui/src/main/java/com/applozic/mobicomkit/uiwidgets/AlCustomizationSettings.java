@@ -2,6 +2,8 @@ package com.applozic.mobicomkit.uiwidgets;
 
 import com.applozic.mobicommons.json.JsonMarker;
 
+import java.util.Map;
+
 /**
  * Created by sunil on 10/10/16.
  */
@@ -36,11 +38,21 @@ public class AlCustomizationSettings extends JsonMarker {
     private String sentMessageBorderColor = "#FF03A9F4";
     private String receivedMessageBorderColor = "#FFFFFFFF";
     private String channelCustomMessageBorderColor = "#cccccc";
+    private String collapsingToolbarLayoutColor = "#FF03A9F4";
+    private String groupParticipantsTextColor = "#FF03A9F4";
+    private String groupDeleteButtonBackgroundColor = "#FF03A9F4";
+    private String groupExitButtonBackgroundColor = "#FF03A9F4";
+    private String adminTextColor = "#FF03A9F4";
+    private String adminBackgroundColor = "#FFFFFFFF";
+    private String attachCameraIconName = "applozic_ic_action_camera_new";
+    private String adminBorderColor = "#FF03A9F4";
+    private String userNotAbleToChatTextColor = "#000000";
+    private String chatBackgroundImageName ;
 
     private String audioPermissionNotFoundMsg;
     private String noConversationLabel = "You have no conversations";
     private String noSearchFoundForChatMessages = "No conversation found";
-
+    private String restrictedWordMessage = "Restricted words are not allowed";
     private boolean locationShareViaMap = true;
     private boolean startNewFloatingButton;
     private boolean startNewButton;
@@ -62,14 +74,22 @@ public class AlCustomizationSettings extends JsonMarker {
     private boolean hideGroupRemoveMemberOption;
     private boolean profileOption;
     private boolean broadcastOption;
-
+    private boolean hideAttachmentButton;
+    private boolean groupUsersOnlineStatus;
 
     private int totalRegisteredUserToFetch = 100;
     private int maxAttachmentAllowed = 5;
     private int maxAttachmentSizeAllowed = 30;
     private int totalOnlineUsers = 0;
 
-    public boolean isBroadcastOption() {return broadcastOption;}
+    private boolean launchChatFromProfilePicOrName;
+
+    private Map<String, Boolean> attachmentOptions;
+
+    public boolean isBroadcastOption() {
+        return broadcastOption;
+    }
+
     public boolean isStartNewFloatingButton() {
         return startNewFloatingButton;
     }
@@ -285,6 +305,77 @@ public class AlCustomizationSettings extends JsonMarker {
 
     public int getTotalOnlineUsers() {
         return totalOnlineUsers;
+    }
+
+    public String getCollapsingToolbarLayoutColor() {
+        return collapsingToolbarLayoutColor;
+    }
+
+    public String getGroupParticipantsTextColor() {
+        return groupParticipantsTextColor;
+    }
+
+    public String getGroupExitButtonBackgroundColor() {
+        return groupExitButtonBackgroundColor;
+    }
+
+    public String getGroupDeleteButtonBackgroundColor() {
+        return groupDeleteButtonBackgroundColor;
+    }
+
+    public String getAdminTextColor() {
+        return adminTextColor;
+    }
+
+    public String getAdminBackgroundColor() {
+        return adminBackgroundColor;
+    }
+
+    public String getAttachCameraIconName() {
+        return attachCameraIconName;
+    }
+
+    public String getAdminBorderColor() {
+        return adminBorderColor;
+    }
+
+    public String getUserNotAbleToChatTextColor() {
+        return userNotAbleToChatTextColor;
+    }
+
+    public String getChatBackgroundImageName() {
+        return chatBackgroundImageName;
+    }
+    public Map<String, Boolean> getAttachmentOptions() {
+        return attachmentOptions;
+    }
+
+    public void setAttachmentOptions(Map<String, Boolean> attachmentOptions) {
+        this.attachmentOptions = attachmentOptions;
+    }
+
+
+    public boolean isHideAttachmentButton() {
+        return hideAttachmentButton;
+    }
+
+    public void setHideAttachmentButton(boolean hideAttachmentButton) {
+        this.hideAttachmentButton = hideAttachmentButton;
+    }
+
+    public String getRestrictedWordMessage() {
+        return restrictedWordMessage;
+    }
+
+    public void setRestrictedWordMessage(String restrictedWordMessage) {
+        this.restrictedWordMessage = restrictedWordMessage;
+    }
+
+    public boolean isLaunchChatFromProfilePicOrName() {
+        return launchChatFromProfilePicOrName;
+    }
+    public boolean isGroupUsersOnlineStatus() {
+        return groupUsersOnlineStatus;
     }
 
     @Override

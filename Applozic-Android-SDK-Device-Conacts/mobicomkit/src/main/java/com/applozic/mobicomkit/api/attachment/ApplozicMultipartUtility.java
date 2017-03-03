@@ -1,6 +1,7 @@
 package com.applozic.mobicomkit.api.attachment;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.applozic.mobicomkit.api.HttpRequestUtils;
 
@@ -22,6 +23,7 @@ public class ApplozicMultipartUtility {
     private HttpURLConnection httpConn;
     private OutputStream outputStream;
     private PrintWriter writer;
+   final String TAG  ="AlMultipartUtility";
 
     public ApplozicMultipartUtility(String requestURL, String charset, Context context)
             throws IOException {
@@ -44,7 +46,7 @@ public class ApplozicMultipartUtility {
 
 
     public void addFilePart(String fieldName, File uploadFile)
-            throws IOException {
+            throws IOException,InterruptedException {
         String fileName = uploadFile.getName();
         writer.append("--" + boundary).append(LINE_FEED);
         writer.append(
@@ -63,6 +65,9 @@ public class ApplozicMultipartUtility {
         byte[] buffer = new byte[4096];
         int bytesRead = -1;
         while ((bytesRead = inputStream.read(buffer)) != -1) {
+            if (Thread.interrupted()) {
+                              throw new InterruptedException();
+            }
             outputStream.write(buffer, 0, bytesRead);
         }
         outputStream.flush();

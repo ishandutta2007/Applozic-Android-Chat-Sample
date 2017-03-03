@@ -6,8 +6,11 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -37,13 +40,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.applozic.mobicomkit.ApplozicClient;
+import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.RegisteredUsersAsyncTask;
 import com.applozic.mobicomkit.api.attachment.FileClientService;
 import com.applozic.mobicomkit.broadcast.BroadcastService;
+import com.applozic.mobicomkit.broadcast.ConnectivityReceiver;
 import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
+import com.applozic.mobicomkit.feed.ApiResponse;
+import com.applozic.mobicomkit.feed.ErrorResponseFeed;
 import com.applozic.mobicomkit.feed.GroupInfoUpdate;
 import com.applozic.mobicomkit.feed.RegisteredUsersApiResponse;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
@@ -63,6 +70,7 @@ import com.applozic.mobicommons.people.contact.Contact;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -82,7 +90,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
     private static final String SUCCESS= "success" ;
     private ImageView channelImage;
     public static final String USERID = "USERID";
-    private TextView createdBy;
+    private TextView createdBy,groupParticipantsTexView;
     protected ListView mainListView;
     CollapsingToolbarLayout collapsingToolbarLayout;
     public static final String CHANNEL_NAME = "CHANNEL_NAME";
@@ -98,6 +106,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
     MobiComKitBroadcastReceiver mobiComKitBroadcastReceiver;
     MobiComUserPreference userPreference;
     AlCustomizationSettings alCustomizationSettings;
+    ConnectivityReceiver connectivityReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,11 +124,17 @@ public class ChannelInfoActivity extends AppCompatActivity {
         channelImage = (ImageView) findViewById(R.id.channelImage);
         userPreference = MobiComUserPreference.getInstance(this);
         createdBy = (TextView) findViewById(R.id.created_by);
+        groupParticipantsTexView  = (TextView) findViewById(R.id.groupParticipantsTexView);
         exitChannelButton = (Button) findViewById(R.id.exit_channel);
         deleteChannelButton = (Button) findViewById(R.id.delete_channel_button);
         channelDeleteRelativeLayout = (RelativeLayout) findViewById(R.id.channel_delete_relativeLayout);
         channelExitRelativeLayout = (RelativeLayout) findViewById(R.id.channel_exit_relativeLayout);
         collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.toolbar_layout);
+        collapsingToolbarLayout.setContentScrimColor(Color.parseColor(alCustomizationSettings.getCollapsingToolbarLayoutColor()));
+        groupParticipantsTexView.setTextColor(Color.parseColor(alCustomizationSettings.getGroupParticipantsTextColor()));
+        deleteChannelButton.setBackgroundColor(Color.parseColor((alCustomizationSettings.getGroupDeleteButtonBackgroundColor())));
+        exitChannelButton.setBackgroundColor(Color.parseColor(alCustomizationSettings.getGroupExitButtonBackgroundColor()));
+
         mActionBar = getSupportActionBar();
         mActionBar.setDisplayHomeAsUpEnabled(true);
         mActionBar.setHomeButtonEnabled(true);
@@ -130,6 +145,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
         if (Utils.hasLollipop()) {
             mainListView.setNestedScrollingEnabled(true);
         }
+        connectivityReceiver = new ConnectivityReceiver();
         mobiComKitBroadcastReceiver = new MobiComKitBroadcastReceiver(this);
 
         registerForContextMenu(mainListView);
@@ -159,7 +175,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
             }
         }
 
-        if(channel.getType() != null ) {
+        if(channel != null && channel.getType() != null ) {
             if (Channel.GroupType.BROADCAST.getValue().equals(channel.getType())) {
                 deleteChannelButton.setText(R.string.broadcast_delete_button);
                 exitChannelButton.setText(R.string.broadcast_exit_button);
@@ -228,6 +244,8 @@ public class ChannelInfoActivity extends AppCompatActivity {
                 deleteChannel(channel);
             }
         });
+
+        registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     @Override
@@ -245,6 +263,14 @@ public class ChannelInfoActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(mobiComKitBroadcastReceiver, BroadcastService.getIntentFilter());
         if (channel != null) {
             BroadcastService.currentInfoId = String.valueOf(channel.getKey());
+            Channel newChannel = ChannelService.getInstance(this).getChannelByChannelKey(channel.getKey());
+            if(newChannel != null && TextUtils.isEmpty(newChannel.getImageUrl())){
+                if(!channel.isBroadcastMessage()){
+                    channelImage.setImageResource(R.drawable.applozic_group_icon);
+                }else{
+                    channelImage.setImageResource(R.drawable.applozic_ic_applozic_broadcast);
+                }
+            }
         }
     }
 
@@ -469,6 +495,12 @@ public class ChannelInfoActivity extends AppCompatActivity {
             } else {
                 holder = (ContactViewHolder) convertView.getTag();
             }
+
+            GradientDrawable bgShapeAdminText = (GradientDrawable) holder.adminTextView.getBackground();
+            bgShapeAdminText.setColor(Color.parseColor(alCustomizationSettings.getAdminBackgroundColor()));
+            bgShapeAdminText.setStroke(2, Color.parseColor(alCustomizationSettings.getAdminBorderColor()));
+            holder.adminTextView.setTextColor(Color.parseColor(alCustomizationSettings.getAdminTextColor()));
+
             if(userPreference.getUserId().equals(contact.getUserId())){
                 holder.displayName.setText(getString(R.string.you_string));
             }else {
@@ -569,7 +601,6 @@ public class ChannelInfoActivity extends AppCompatActivity {
             if (channel != null && channelUserMapper != null) {
                 responseForRemove = channelService.removeMemberFromChannelProcess(channel.getKey(), channelUserMapper.getUserKey());
             }
-
             return null;
         }
 
@@ -638,7 +669,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
         private ProgressDialog progressDialog;
         private Context context;
         private Channel channel;
-        String responseForAdd;
+        ApiResponse apiResponse;
         String responseForDeleteGroup;
         String userId;
 
@@ -671,7 +702,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
         @Override
         protected Long doInBackground(Void... params) {
             if (channel != null && !TextUtils.isEmpty(userId)) {
-                responseForAdd = channelService.addMemberToChannelProcess(channel.getKey(), userId);
+                apiResponse = channelService.addMemberToChannelWithResponseProcess(channel.getKey(), userId);
             }
             if(channel != null && TextUtils.isEmpty(userId)){
                 responseForDeleteGroup = channelService.processChannelDeleteConversation(channel, context);
@@ -690,12 +721,26 @@ public class ChannelInfoActivity extends AppCompatActivity {
                 toast.setGravity(Gravity.CENTER, 0, 0);
                 toast.show();
             }
-            if (!TextUtils.isEmpty(responseForAdd) && SUCCESS.equals(responseForAdd)) {
-                ChannelUserMapper channelUserMapper = new ChannelUserMapper(channel.getKey(), userId);
-                channelUserMapperList.add(channelUserMapper);
-                contactsAdapter.notifyDataSetChanged();
+            if (apiResponse != null ) {
+                if(apiResponse.isSuccess()){
+                    ChannelUserMapper channelUserMapper = new ChannelUserMapper(channel.getKey(), userId);
+                    channelUserMapperList.add(channelUserMapper);
+                    contactsAdapter.notifyDataSetChanged();
+                }else {
+                    List<ErrorResponseFeed> error = apiResponse.getErrorResponse();
+                    if(error !=null  && error.size()>0){
+                        ErrorResponseFeed errorResponseFeed =  error.get(0);
+                        String  errorDescription  = errorResponseFeed.getDescription();
+                        if(!TextUtils.isEmpty(errorDescription)){
+                            if(MobiComKitConstants.GROUP_USER_LIMIT_EXCEED.equalsIgnoreCase(errorDescription)){
+                                Toast.makeText(context,R.string.group_members_limit_exceeds,Toast.LENGTH_SHORT).show();
+                            }else {
+                                Toast.makeText(context,R.string.applozic_server_error ,Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                }
             }
-
             if (!TextUtils.isEmpty(responseForDeleteGroup) && SUCCESS.equals(responseForDeleteGroup)) {
                 Intent intent = new Intent(ChannelInfoActivity.this, ConversationActivity.class);
                 if(ApplozicClient.getInstance(ChannelInfoActivity.this).isContextBasedChat()){
@@ -859,7 +904,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
                     collapsingToolbarLayout.setTitle(groupInfoUpdate.getNewName());
                 }
                 //File has been updated..rename new file to oldfile
-                if(!TextUtils.isEmpty(groupInfoUpdate.getNewlocalPath()) && !TextUtils.isEmpty(groupInfoUpdate.getImageUrl())){
+                if(!TextUtils.isEmpty(groupInfoUpdate.getNewlocalPath()) && !TextUtils.isEmpty(groupInfoUpdate.getImageUrl()) && !TextUtils.isEmpty(groupInfoUpdate.getContentUri())){
                     File file = new File(groupInfoUpdate.getNewlocalPath());
                     channel = ChannelInfoActivity.this.channel;
                     if(!TextUtils.isEmpty(channel.getLocalImageUri())){
@@ -869,9 +914,21 @@ public class ChannelInfoActivity extends AppCompatActivity {
                     }
                     channel.setLocalImageUri(file.getAbsolutePath());
                     channelService.updateChannel(channel);
-                    channelImage.setImageURI(Uri.fromFile(file));
+                    channelImage.setImageURI(Uri.parse(groupInfoUpdate.getContentUri()));
                 }
             }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try{
+            if(connectivityReceiver != null){
+                unregisterReceiver(connectivityReceiver);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

@@ -7,6 +7,7 @@ import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.UserService;
 import com.applozic.mobicomkit.api.conversation.MobiComConversationService;
 import com.applozic.mobicomkit.api.conversation.service.ConversationService;
+import com.applozic.mobicomkit.api.notification.MuteNotificationRequest;
 import com.applozic.mobicomkit.api.people.ChannelInfo;
 import com.applozic.mobicomkit.broadcast.BroadcastService;
 import com.applozic.mobicomkit.channel.database.ChannelDatabaseService;
@@ -14,6 +15,7 @@ import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
 import com.applozic.mobicomkit.feed.ApiResponse;
 import com.applozic.mobicomkit.feed.ChannelFeed;
+import com.applozic.mobicomkit.feed.ChannelFeedApiResponse;
 import com.applozic.mobicomkit.feed.GroupInfoUpdate;
 import com.applozic.mobicomkit.sync.SyncChannelFeed;
 import com.applozic.mobicommons.people.channel.Channel;
@@ -100,7 +102,7 @@ public class ChannelService {
                     for (String userId : memberUserIds) {
                         ChannelUserMapper channelUserMapper = new ChannelUserMapper(channelFeed.getId(), userId);
                         if (channelDatabaseService.isChannelUserPresent(channelFeed.getId(), userId)) {
-                            channelDatabaseService.updateChannel(channelUserMapper);
+                            channelDatabaseService.updateChannelUserMapper(channelUserMapper);
                         } else {
                             channelDatabaseService.addChannelUserMapper(channelUserMapper);
                         }
@@ -175,6 +177,8 @@ public class ChannelService {
     public Channel getChannel(ChannelFeed channelFeed) {
         Channel channel = new Channel(channelFeed.getId(), channelFeed.getName(), channelFeed.getAdminName(), channelFeed.getType(), channelFeed.getUnreadCount(),channelFeed.getImageUrl());
         channel.setClientGroupId(channelFeed.getClientGroupId());
+        channel.setNotificationAfterTime(channelFeed.getNotificationAfterTime());
+        channel.setDeletedAtTime(channelFeed.getDeletedAtTime());
         return channel;
     }
 
@@ -205,6 +209,7 @@ public class ChannelService {
             channelDatabaseService.removeMemberFromChannel(clientGroupId, userId);
         }
         return apiResponse.getStatus();
+
     }
 
     public String addMemberToChannelProcess(Integer channelKey, String userId) {
@@ -362,5 +367,62 @@ public class ChannelService {
     public void updateChannelLocalImageURI(Integer channelKey,String localImageURI){
         channelDatabaseService.updateChannelLocalImageURI(channelKey,localImageURI);
     }
+
+    public ApiResponse muteNotifications(MuteNotificationRequest muteNotificationRequest) {
+
+        ApiResponse apiResponse = channelClientService.muteNotification(muteNotificationRequest);
+
+        if (apiResponse == null) {
+            return null;
+        }
+        if (apiResponse.isSuccess()) {
+            channelDatabaseService.updateNotificationAfterTime(muteNotificationRequest.getId(),muteNotificationRequest.getNotificationAfterTime());
+        }
+        return apiResponse;
+    }
+
+    public Channel getChannelByClientGroupId(String clientGroupId){
+        if(TextUtils.isEmpty(clientGroupId)){
+            return null;
+        }
+        return channelDatabaseService.getChannelByClientGroupId(clientGroupId);
+    }
+
+    public ChannelFeedApiResponse createChannelWithResponse(ChannelInfo channelInfo) {
+        ChannelFeedApiResponse channelFeedApiResponse = channelClientService.createChannelWithResponse(channelInfo);
+        if (channelFeedApiResponse == null) {
+            return null;
+        }
+        if (channelFeedApiResponse.isSuccess()) {
+            ChannelFeed channelFeed = channelFeedApiResponse.getResponse();
+            if (channelFeed != null) {
+                ChannelFeed[] channelFeeds = new ChannelFeed[1];
+                channelFeeds[0] = channelFeed;
+                processChannelFeedList(channelFeeds, true);
+            }
+        }
+        return channelFeedApiResponse;
+    }
+
+    public ApiResponse addMemberToChannelWithResponseProcess(Integer channelKey, String userId) {
+        if (channelKey == null && TextUtils.isEmpty(userId)) {
+            return null;
+        }
+        ApiResponse apiResponse = channelClientService.addMemberToChannel(channelKey, userId);
+        if (apiResponse == null) {
+            return null;
+        }
+        if (apiResponse.isSuccess()) {
+            ChannelUserMapper channelUserMapper = new ChannelUserMapper(channelKey, userId);
+            channelDatabaseService.addChannelUserMapper(channelUserMapper);
+        }
+        return apiResponse;
+    }
+
+    public String getGroupOfTwoReceiverUserId(Integer channelKey){
+        return channelDatabaseService.getGroupOfTwoReceiverId(channelKey);
+    }
+
+
 
 }

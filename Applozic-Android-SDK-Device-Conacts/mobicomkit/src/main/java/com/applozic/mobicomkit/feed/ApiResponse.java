@@ -2,15 +2,19 @@ package com.applozic.mobicomkit.feed;
 
 import com.applozic.mobicommons.json.JsonMarker;
 
+import java.util.List;
+
 /**
  * Created by sunil on 23/12/15.
  */
-public class ApiResponse<T> extends JsonMarker {
+public class ApiResponse<T>  extends JsonMarker {
 
     private static final String SUCCESS = "success";
     private String status;
     private Long generatedAt;
     protected T response;
+    private List<ErrorResponseFeed> errorResponse;
+
 
     public String getStatus() {
         return status;
@@ -38,6 +42,14 @@ public class ApiResponse<T> extends JsonMarker {
 
     public boolean isSuccess(){
         return SUCCESS.equals(status);
+    }
+
+    public List<ErrorResponseFeed> getErrorResponse() {
+        return errorResponse;
+    }
+
+    public void setErrorResponse(List<ErrorResponseFeed> errorResponse) {
+        this.errorResponse = errorResponse;
     }
 
     @Override

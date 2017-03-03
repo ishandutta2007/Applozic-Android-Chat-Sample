@@ -2,19 +2,13 @@ package com.applozic.mobicomkit.api.conversation;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.text.TextUtils;
 import android.util.Log;
 
-import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.UserService;
-import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicommons.people.channel.Channel;
 import com.applozic.mobicommons.people.contact.Contact;
 
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by devashish on 15/12/13.
@@ -72,24 +66,8 @@ public class ConversationIntentService extends IntentService {
                         contact = new Contact(message.getContactIds());
                     }
 
-                    mobiComConversationService.getMessages(1L, null, contact, channel, null);
+                    mobiComConversationService.getMessages(1L, null, contact, channel, null,true);
                 }
-
-                Set<String> contactNoSet = new HashSet<String>();
-
-                List<Contact> contacts = new AppContactService(ConversationIntentService.this).getContacts(Contact.ContactType.DEVICE);
-                for (Contact contact: contacts) {
-                    if (!TextUtils.isEmpty(contact.getFormattedContactNumber())) {
-                        contactNoSet.add(contact.getFormattedContactNumber());
-                    }
-                }
-
-                if(!contactNoSet.isEmpty()){
-                    UserService userService = UserService.getInstance(getApplicationContext());
-                    userService.processUserDetailsByContactNos(contactNoSet);
-                }
-                MobiComUserPreference.getInstance(ConversationIntentService.this).setDeviceContactSyncTime(new Date().getTime());
-
             } catch (Exception e) {
                 e.printStackTrace();
             }

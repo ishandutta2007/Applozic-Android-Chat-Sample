@@ -144,10 +144,10 @@ public class UserService {
         }
     }
 
-
     public synchronized void processUser(UserDetail userDetail) {
         processUser(userDetail, Contact.ContactType.APPLOZIC);
     }
+
 
     public synchronized void processUser(UserDetail userDetail, Contact.ContactType contactType) {
         Contact contact = new Contact();
@@ -157,13 +157,15 @@ public class UserService {
         contact.setFullName(userDetail.getDisplayName());
         contact.setLastSeenAt(userDetail.getLastSeenAtTime());
         contact.setStatus(userDetail.getStatusMessage());
-        contact.setUnreadCount(0);
+        contact.setUserTypeId(userDetail.getUserTypeId());
         contact.setContactType(contactType.getValue());
+        contact.setUnreadCount(0);
         if (!TextUtils.isEmpty(userDetail.getImageLink())) {
             contact.setImageURL(userDetail.getImageLink());
         }
         baseContactService.upsert(contact);
     }
+
     public synchronized String[] getOnlineUsers(int numberOfUser) {
         try {
             Map<String, String> userMapList = userClientService.getOnlineUserList(numberOfUser);

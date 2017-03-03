@@ -3,6 +3,7 @@ package com.applozic.mobicomkit.api.conversation;
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.applozic.mobicomkit.api.notification.VideoCallNotificationHelper;
 import com.applozic.mobicommons.json.JsonMarker;
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.attachment.FileMeta;
@@ -575,8 +576,36 @@ public class Message extends JsonMarker {
     }
 
     public boolean isUpdateMessage(){
-        return  !Message.ContentType.HIDDEN.getValue().equals(contentType) && !Message.MetaDataType.ARCHIVE.getValue().equals(getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()));
+        return !Message.ContentType.HIDDEN.getValue().equals(contentType)
+                && !Message.MetaDataType.ARCHIVE.getValue().equals(getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))
+                 && !isVideoNotificationMessage();
+
     }
+    public boolean isVideoNotificationMessage(){
+        return ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue().equals( getContentType());
+    }
+
+    public boolean isVideoCallMessage(){
+        return ContentType.VIDEO_CALL_STATUS_MSG.getValue().equals( getContentType());
+    }
+
+    public boolean isVideoOrAudioCallMessage() {
+        String msgType = getMetaDataValueForKey(VideoCallNotificationHelper.MSG_TYPE);
+        return (VideoCallNotificationHelper.CALL_STARTED.equals(msgType)
+                || VideoCallNotificationHelper.CALL_REJECTED.equals(msgType)
+                || VideoCallNotificationHelper.CALL_CANCELED.equals(msgType)
+                || VideoCallNotificationHelper.CALL_ANSWERED.equals(msgType)
+                || VideoCallNotificationHelper.CALL_END.equals(msgType)
+                || VideoCallNotificationHelper.CALL_DIALED.equals(msgType)
+                || VideoCallNotificationHelper.CALL_ANSWERED.equals(msgType)
+                || VideoCallNotificationHelper.CALL_MISSED.equals(msgType));
+    }
+
+    public boolean  isConsideredForCount(){
+        return ( !Message.ContentType.HIDDEN.getValue().equals(getContentType()) &&
+                !ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue().equals(getContentType()) && !isReadStatus());
+    }
+
 
     @Override
     public String toString() {
@@ -655,7 +684,8 @@ public class Message extends JsonMarker {
 
         DEFAULT(Short.valueOf("0")), ATTACHMENT(Short.valueOf("1")), LOCATION(Short.valueOf("2")),
         TEXT_HTML(Short.valueOf("3")), PRICE(Short.valueOf("4")), TEXT_URL(Short.valueOf("5")),CONTACT_MSG(Short.valueOf("7")),AUDIO_MSG(Short.valueOf("8"))
-        ,VIDEO_MSG(Short.valueOf("9")),CHANNEL_CUSTOM_MESSAGE(Short.valueOf("10")), CUSTOM(Short.valueOf("101")),HIDDEN(Short.valueOf("11"));
+        ,VIDEO_MSG(Short.valueOf("9")),CHANNEL_CUSTOM_MESSAGE(Short.valueOf("10")), CUSTOM(Short.valueOf("101")),HIDDEN(Short.valueOf("11")),VIDEO_CALL_NOTIFICATION_MSG(Short.valueOf("102")),
+        VIDEO_CALL_STATUS_MSG(Short.valueOf("103"));
         private Short value;
 
         ContentType(Short value) {
@@ -701,6 +731,7 @@ public class Message extends JsonMarker {
 
     public enum GroupMessageMetaData {
         KEY("show"),
+        HIDE_KEY("hide"),
         FALSE("false"),
         TRUE("true");
         private String value;

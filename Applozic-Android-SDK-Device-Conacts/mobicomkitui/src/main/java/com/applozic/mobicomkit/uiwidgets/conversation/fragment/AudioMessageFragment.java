@@ -52,6 +52,7 @@ public class AudioMessageFragment extends DialogFragment {
 
         this.getDialog().setTitle("Voice Message");
         this.getDialog().setCancelable(Boolean.TRUE);
+        this.getDialog().setCanceledOnTouchOutside(Boolean.FALSE);
 
         record = (ImageButton) v.findViewById(R.id.audio_mic_imageview);
         send = (Button) v.findViewById(R.id.audio_send);

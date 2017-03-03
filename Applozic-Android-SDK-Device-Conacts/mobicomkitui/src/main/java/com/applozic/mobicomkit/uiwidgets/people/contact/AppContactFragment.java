@@ -70,10 +70,11 @@ import de.hdodenhof.circleimageview.CircleImageView;
  */
 @SuppressLint("ValidFragment")
 public class AppContactFragment extends ListFragment implements SearchListFragment,
-        AdapterView.OnItemClickListener , LoaderManager.LoaderCallbacks<Cursor> {
+        AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
+
     // Defines a tag for identifying log entries
     private static final String TAG = "AppContactFragment";
-    private static final String SHARE_TEXT ="share_text";
+    private static final String SHARE_TEXT = "share_text";
     // Bundle key for saving previously selected search result item
     private static final String STATE_PREVIOUSLY_SELECTED_KEY =
             "net.mobitexter.mobiframework.contact.ui.SELECTED_ITEM";
@@ -99,6 +100,7 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
     private List<Contact> contactList;
     private boolean syncStatus = true;
     private String[] userIdArray;
+    private MobiComUserPreference userPreference;
     private boolean isScrolling = false;
     private int visibleThreshold = 0;
     private int currentPage = 0;
@@ -128,11 +130,11 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        contactDatabase = new ContactDatabase(getContext());
         contactService = new AppContactService(getActivity());
-        contactDatabase =  new ContactDatabase(getActivity());
-        mobiComUserPreference =  MobiComUserPreference.getInstance(getActivity());
         mAdapter = new ContactsAdapter(getActivity().getApplicationContext());
-        inviteMessage = Utils.getMetaDataValue(getActivity().getApplicationContext(),SHARE_TEXT);
+        userPreference = MobiComUserPreference.getInstance(getContext());
+        inviteMessage = Utils.getMetaDataValue(getActivity().getApplicationContext(), SHARE_TEXT);
         if (savedInstanceState != null) {
 
             mSearchTerm = savedInstanceState.getString(SearchManager.QUERY);
@@ -143,6 +145,9 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
         mImageLoader = new ImageLoader(context, getListPreferredItemHeight()) {
             @Override
             protected Bitmap processBitmap(Object data) {
+                if(context == null){
+                    return null;
+                }
                 return contactService.downloadContactImage(context, (Contact) data);
             }
         };
@@ -393,6 +398,7 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
             mAdapter.swapCursor(null);
         }
     }
+
     /**
      * This interface defines constants for the Cursor and CursorLoader, based on constants defined
      * in the {@link android.provider.ContactsContract.Contacts} class.
@@ -407,7 +413,7 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
     /**
      * This is a subclass of CursorAdapter that supports binding Cursor columns to a view layout.
      * If those items are part of search results, the search string is marked by highlighting the
-     * query text. An {@link AlphabetIndexer} is used to allow quicker navigation up and down the
+     * query text. An {@link android.widget.AlphabetIndexer} is used to allow quicker navigation up and down the
      * ListView.
      */
     private class ContactsAdapter extends CursorAdapter implements SectionIndexer {
@@ -415,6 +421,7 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
         private LayoutInflater mInflater; // Stores the layout inflater
         private AlphabetIndexer mAlphabetIndexer; // Stores the AlphabetIndexer instance
         private TextAppearanceSpan highlightTextSpan; // Stores the highlight text appearance style
+
         /**
          * Instantiates a new Contacts Adapter.
          *
@@ -434,7 +441,7 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
 
             // Instantiates a new AlphabetIndexer bound to the column used to sort contact names.
             // The cursor is left null, because it has not yet been retrieved.
-            mAlphabetIndexer = new AlphabetIndexer(null,1 , alphabet);
+            mAlphabetIndexer = new AlphabetIndexer(null, 1, alphabet);
 
             // Defines a span for highlighting the part of a display name that matches the search
             // string
@@ -751,7 +758,7 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
 
             }
         };
-        RegisteredUsersAsyncTask usersAsyncTask = new RegisteredUsersAsyncTask(getActivity(), usersAsyncTaskTaskListener, alCustomizationSettings.getTotalRegisteredUserToFetch(), mobiComUserPreference.getRegisteredUsersLastFetchTime(), null, null, true);
+        RegisteredUsersAsyncTask usersAsyncTask = new RegisteredUsersAsyncTask(getActivity(), usersAsyncTaskTaskListener, alCustomizationSettings.getTotalRegisteredUserToFetch(), userPreference.getRegisteredUsersLastFetchTime(), null, null, true);
         usersAsyncTask.execute((Void) null);
     }
 }

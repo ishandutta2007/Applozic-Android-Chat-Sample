@@ -1,10 +1,16 @@
 package com.applozic.mobicomkit.uiwidgets.conversation.activity;
 
 import android.annotation.TargetApi;
+import android.content.ClipData;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -20,12 +26,15 @@ import android.widget.ProgressBar;
 import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.api.attachment.AttachmentView;
 import com.applozic.mobicomkit.api.conversation.Message;
+import com.applozic.mobicomkit.broadcast.ConnectivityReceiver;
 import com.applozic.mobicomkit.uiwidgets.R;
 
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.file.FileUtils;
 import com.applozic.mobicommons.json.GsonUtils;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Created by devashish on 22/9/14.
@@ -33,6 +42,7 @@ import java.io.File;
 public class FullScreenImageActivity extends AppCompatActivity {
 
     private Message message;
+    private ConnectivityReceiver connectivityReceiver;
 
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -67,6 +77,8 @@ public class FullScreenImageActivity extends AppCompatActivity {
             }
         });
 
+        connectivityReceiver = new ConnectivityReceiver();
+        registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     @Override
@@ -144,12 +156,40 @@ public class FullScreenImageActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int i = item.getItemId();
         if (i == R.id.shareOptions) {
+
             Intent shareIntent = new Intent();
             shareIntent.setAction(Intent.ACTION_SEND);
-            Uri uri = Uri.fromFile(new File(message.getFilePaths().get(0)));
+
+            Uri uri = FileProvider.getUriForFile(this, Utils.getMetaDataValue(this, MobiComKitConstants.PACKAGE_NAME)  + ".provider", new File(message.getFilePaths().get(0)));
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                ClipData clip =
+                        ClipData.newUri(getContentResolver(), "a Photo", uri);
+
+                shareIntent.setClipData(clip);
+                shareIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            } else {
+                List<ResolveInfo> resInfoList =
+                        getPackageManager()
+                                .queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY);
+
+                for (ResolveInfo resolveInfo : resInfoList) {
+                    String packageName = resolveInfo.activityInfo.packageName;
+                    grantUriPermission(packageName, uri,
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    grantUriPermission(packageName, uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+            }
+
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             shareIntent.setType(FileUtils.getMimeType(new File(message.getFilePaths().get(0))));
             startActivity(Intent.createChooser(shareIntent, ""));
+
         } else if (i == R.id.forward) {
             Intent intent = new Intent();
             intent.putExtra(MobiComKitConstants.MESSAGE_JSON_INTENT, GsonUtils.getJsonFromObject(message, Message.class));
@@ -158,6 +198,18 @@ public class FullScreenImageActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try{
+            if(connectivityReceiver != null){
+                unregisterReceiver(connectivityReceiver);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }

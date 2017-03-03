@@ -32,10 +32,8 @@ public class MobiComVCFParser
      * @return
      */
     public static boolean validateData(String data){
-
-        return (data!=null && data.replaceAll("[\n\r]", "").startsWith(BEGIN_VCARD) && data.replaceAll("[\n\r]", "").endsWith(END_VCARD));
+        return (data!=null && data.replaceAll("[\n\r]", "").trim().startsWith(BEGIN_VCARD) && data.replaceAll("[\n\r]", "").trim().endsWith(END_VCARD));
     }
-
     /**
      *
      * @param filePath path of the vcf stored.

@@ -179,6 +179,7 @@ public class RegistrationResponse extends JsonMarker {
                 ", imageLink='" + imageLink + '\'' +
                 ", statusMessage='" + statusMessage + '\'' +
                 ", encryptionKey='" + encryptionKey + '\'' +
+                ", enableEncryption=" + enableEncryption +
                 ", pricingPackage=" + pricingPackage +
                 '}';
     }

@@ -132,13 +132,18 @@ public class RegisterUserClientService extends MobiComKitClientService {
         mobiComUserPreference.setContactSyncTime(new Date().getTime());
         mobiComUserPreference.setPricingPackage(registrationResponse.getPricingPackage());
         mobiComUserPreference.setAuthenticationType(String.valueOf(user.getAuthenticationTypeId()));
-
+        if(user.getUserTypeId() != null){
+            mobiComUserPreference.setUserTypeId(String.valueOf(user.getUserTypeId()));
+        }
         Contact contact=  new Contact();
         contact.setUserId(user.getUserId());
         contact.setContactType(Contact.ContactType.APPLOZIC.getValue());
         contact.setFullName(registrationResponse.getDisplayName());
         contact.setImageURL(registrationResponse.getImageLink());
         contact.setContactNumber(registrationResponse.getContactNumber());
+        if(user.getUserTypeId() != null){
+            contact.setUserTypeId(user.getUserTypeId());
+        }
         contact.setStatus(registrationResponse.getStatusMessage());
         contact.processContactNumbers(context);
         new AppContactService(context).upsert(contact);
@@ -231,11 +236,16 @@ public class RegisterUserClientService extends MobiComKitClientService {
         user.setEnableEncryption(mobiComUserPreference.isEncryptionEnabled());
         user.setAppVersionCode(MOBICOMKIT_VERSION_CODE);
         user.setApplicationId(getApplicationKey(context));
+        user.setAuthenticationTypeId(Short.valueOf(mobiComUserPreference.getAuthenticationType()));
+        if(!TextUtils.isEmpty(mobiComUserPreference.getUserTypeId())){
+            user.setUserTypeId(Short.valueOf(mobiComUserPreference.getUserTypeId()));
+        }
         if(getAppModuleName(context) != null){
             user.setAppModuleName(getAppModuleName(context));
         }
-        user.setRegistrationId(mobiComUserPreference.getDeviceRegistrationId());
-
+        if(!TextUtils.isEmpty(mobiComUserPreference.getDeviceRegistrationId())){
+            user.setRegistrationId(mobiComUserPreference.getDeviceRegistrationId());
+        }
         Log.i(TAG, "Registration update json " + gson.toJson(user));
         String response = httpRequestUtils.postJsonToServer(getUpdateAccountUrl(), gson.toJson(user));
 

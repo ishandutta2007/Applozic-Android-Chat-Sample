@@ -3,6 +3,7 @@ package com.applozic.mobicomkit.uiwidgets.people.fragment;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.app.ProgressDialog;
@@ -16,6 +17,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -29,11 +31,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.applozic.mobicomkit.ApplozicClient;
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.UserClientService;
 import com.applozic.mobicomkit.api.account.user.UserService;
@@ -44,6 +48,9 @@ import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.uiwidgets.ApplozicSetting;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
 import com.applozic.mobicomkit.uiwidgets.conversation.fragment.PictureUploadPopUpFragment;
+import com.applozic.mobicomkit.uiwidgets.instruction.ApplozicPermissions;
+import com.applozic.mobicommons.commons.core.utils.PermissionsUtils;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.commons.image.ImageLoader;
 import com.applozic.mobicommons.commons.image.ImageUtils;
 import com.applozic.mobicommons.people.contact.Contact;
@@ -55,6 +62,7 @@ import java.io.File;
 public class ProfileFragment extends Fragment {
 
     public static final int REQUEST_CODE_ATTACH_PHOTO = 101;
+    public static final int REQUEST_CODE_TAKE_PHOTO = 102;
     public static final int REQUEST_REMOVE_PHOTO = 102;
     private static final String TAG = "ProfileFragment";
     public static final String ProfileFragmentTag = "ProfileFragment";
@@ -73,7 +81,11 @@ public class ProfileFragment extends Fragment {
     Contact userContact;
     private String changedStatusString;
     AlCustomizationSettings alCustomizationSettings;
+    private ApplozicPermissions applozicPermissions;
 
+    public void setApplozicPermissions(ApplozicPermissions applozicPermissions) {
+        this.applozicPermissions = applozicPermissions;
+    }
     public void setAlCustomizationSettings(AlCustomizationSettings alCustomizationSettings) {
         this.alCustomizationSettings = alCustomizationSettings;
     }
@@ -212,29 +224,46 @@ public class ProfileFragment extends Fragment {
     }
 
 
-    public void processPhotoOption() {
+    public void processPhotoOption(){
         try {
-            FragmentManager supportFragmentManager = getActivity().getSupportFragmentManager();
-            DialogFragment fragment = new PictureUploadPopUpFragment();
-            fragment.setTargetFragment(this, REQUEST_CODE_ATTACH_PHOTO);
-            FragmentTransaction fragmentTransaction = supportFragmentManager
-                    .beginTransaction();
-            fragmentTransaction.addToBackStack(null);
-            fragment.show(fragmentTransaction, "PhotosAttachmentFragment");
+        if (PermissionsUtils.isCameraPermissionGranted(getContext()) && !PermissionsUtils.checkSelfForStoragePermission(getActivity())) {
 
+            new Handler().post(new Runnable() {
+                public void run() {
+                    FragmentManager supportFragmentManager = getActivity().getSupportFragmentManager();
+                    DialogFragment fragment = new PictureUploadPopUpFragment();
+                    fragment.setTargetFragment(ProfileFragment.this, REQUEST_CODE_ATTACH_PHOTO);
+                    FragmentTransaction fragmentTransaction = supportFragmentManager
+                            .beginTransaction();
+                    Fragment prev = getFragmentManager().findFragmentByTag("PhotosAttachmentFragment");
+                    if (prev != null) {
+                        fragmentTransaction.remove(prev);
+                    }
+                    fragmentTransaction.addToBackStack(null);
+                    fragment.show(fragmentTransaction, "PhotosAttachmentFragment");
+                }
+            });
 
+        }else {
+            if ( Utils.hasMarshmallow() ) {
+                if(PermissionsUtils.checkSelfForCameraPermission(getActivity())){
+                    applozicPermissions.requestCameraPermissionForProfilePhoto();
+                }else{
+                    applozicPermissions.requestStoragePermissionsForProfilePhoto();
+                }
+            } else {
+                processPhotoOption();
+            }
+        }
         } catch (Exception e) {
 
         }
-
     }
-
-    public void handleProfileimageUpload(Uri imageUri) {
+    public void handleProfileimageUpload(boolean isSaveFile,Uri imageUri,File file) {
         img_profile.setImageDrawable(null);
         img_profile.setImageURI(imageUri);
-        new ProfilePictureUpload(imageUri,getActivity()).execute((Void[]) null);
+        new ProfilePictureUpload(isSaveFile,imageUri,file,getActivity()).execute((Void[]) null);
     }
-
 
 
     class ProfilePictureUpload extends AsyncTask<Void, Void, Boolean> {
@@ -244,14 +273,27 @@ public class ProfileFragment extends Fragment {
         String displayName;
         String status;
         private ProgressDialog progressDialog;
+        File file;
+        FileClientService fileClientService;
+        UserService userService;
+        boolean isSaveFile;
 
-        public ProfilePictureUpload( Uri fileUri ,Context context) {
+
+        public ProfilePictureUpload( boolean isSaveFile,Uri fileUri ,File file,Context context) {
             this.context = context;
             this.fileUri=fileUri;
+            this.isSaveFile = isSaveFile;
+            this.file = file;
+            this.fileClientService = new FileClientService(getActivity());
+            this.userService =  UserService.getInstance(context);
+
         }
         public ProfilePictureUpload( String status ,Context context) {
             this.context = context;
             this.status=status;
+            this.fileClientService = new FileClientService(getActivity());
+            this.userService =  UserService.getInstance(context);
+
         }
         @Override
         protected void onPreExecute() {
@@ -262,16 +304,15 @@ public class ProfileFragment extends Fragment {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-
-            FileClientService fileClientService =new FileClientService(getActivity());
-            UserService userService =  UserService.getInstance(context);
             try {
                 String response =null;
                 String filePath=null;
                 if(fileUri!=null){
-                    File myFile = new File(fileUri.getPath());
-                    response= fileClientService.uploadProfileImage(myFile.getAbsolutePath());
-                    filePath =  myFile.getAbsolutePath();
+                    if(isSaveFile){
+                        fileClientService.writeFile(fileUri,file);
+                    }
+                    response= fileClientService.uploadProfileImage(file.getAbsolutePath());
+                    filePath =  file.getAbsolutePath();
                 }
                 if(TextUtils.isEmpty(displayName)){
                     this.displayName = userContact.getDisplayName();
@@ -306,7 +347,7 @@ public class ProfileFragment extends Fragment {
                 String filePath = ImageUtils.saveImageToInternalStorage(FileClientService.getFilePath(DEFAULT_CONATCT_IMAGE, getActivity().getApplicationContext(), "image", true), bm);
                 file= new File(filePath);
             }
-            handleProfileimageUpload(Uri.fromFile(file));
+            handleProfileimageUpload(false,Uri.parse(file.getAbsolutePath()),file);
         } else {
             Log.i(TAG, "Activity result failed with code: " + resultCode);
         }

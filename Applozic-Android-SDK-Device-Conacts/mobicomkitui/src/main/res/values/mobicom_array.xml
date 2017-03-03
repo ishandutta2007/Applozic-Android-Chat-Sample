@@ -87,6 +87,15 @@
         <item>Contact</item>
     </string-array>
 
+    <string-array name="multimediaOptions_without_price_key">
+        <item>:location</item>
+        <item>:camera</item>
+        <item>:file</item>
+        <item>:audio</item>
+        <item>:video</item>
+        <item>:contact</item>
+    </string-array>
+
     <string-array name="multimediaOptionIcons_without_price">
         <item>&#xf041;</item>
         <item>&#xf030;</item>

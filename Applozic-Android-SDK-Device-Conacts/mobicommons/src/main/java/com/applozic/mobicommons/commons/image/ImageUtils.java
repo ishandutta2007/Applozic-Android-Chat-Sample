@@ -84,8 +84,10 @@ public class ImageUtils {
      * @return
      */
     public static Bitmap getPreview(Context context, Uri uri) {
-        String filePath  = FileUtils.getPath(context, uri);
-
+        if (uri == null) {
+            return null;
+        }
+        String filePath = uri.toString();
         BitmapFactory.Options bounds = new BitmapFactory.Options();
         bounds.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(filePath, bounds);

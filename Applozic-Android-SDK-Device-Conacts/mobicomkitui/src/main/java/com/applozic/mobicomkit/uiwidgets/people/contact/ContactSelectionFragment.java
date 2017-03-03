@@ -37,16 +37,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.applozic.mobicomkit.ApplozicClient;
+import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.RegisteredUsersAsyncTask;
+import com.applozic.mobicomkit.api.people.ChannelInfo;
 import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.database.ContactDatabase;
+import com.applozic.mobicomkit.feed.ChannelFeedApiResponse;
+import com.applozic.mobicomkit.feed.ErrorResponseFeed;
 import com.applozic.mobicomkit.feed.RegisteredUsersApiResponse;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.alphanumbericcolor.AlphaNumberColorUtil;
-import com.applozic.mobicomkit.uiwidgets.async.ApplozicChannelCreateTask;
+import com.applozic.mobicomkit.uiwidgets.async.AlChannelCreateAsyncTask;
 import com.applozic.mobicomkit.uiwidgets.conversation.ConversationUIService;
 import com.applozic.mobicomkit.uiwidgets.conversation.activity.ChannelCreateActivity;
 import com.applozic.mobicomkit.uiwidgets.conversation.activity.ChannelInfoActivity;
@@ -246,7 +250,7 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
                         }
                         if (registeredUsersApiResponse != null) {
                             getLoaderManager().restartLoader(
-                                    ContactsQuery.QUERY_ID, null, ContactSelectionFragment.this);
+                                    ContactSelectionFragment.ContactsQuery.QUERY_ID, null, ContactSelectionFragment.this);
                         }
 
                     } catch (Exception e) {
@@ -320,7 +324,7 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
             } else {
                 final ProgressDialog progressDialog  = ProgressDialog.show(getActivity(), "",
                         getActivity().getString(TextUtils.isEmpty(channelName)?R.string.broadcast_creating_info:R.string.group_creating_info), true);
-                ApplozicChannelCreateTask.ChannelCreateListener channelCreateListener = new ApplozicChannelCreateTask.ChannelCreateListener() {
+                AlChannelCreateAsyncTask.TaskListenerInterface taskListenerInterface = new AlChannelCreateAsyncTask.TaskListenerInterface() {
                     @Override
                     public void onSuccess(Channel channel, Context context) {
                         if (progressDialog != null && progressDialog.isShowing()) {
@@ -345,11 +349,26 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
                     }
 
                     @Override
-                    public void onFailure(Exception e, Context context) {
+                    public void onFailure(ChannelFeedApiResponse channelFeedApiResponse, Context context) {
                         if (progressDialog != null && progressDialog.isShowing()) {
                             progressDialog.dismiss();
                         }
-
+                        if(channelFeedApiResponse != null){
+                            List<ErrorResponseFeed> error = channelFeedApiResponse.getErrorResponse();
+                            if(error !=null  && error.size()>0){
+                                ErrorResponseFeed errorResponseFeed =  error.get(0);
+                                String  errorDescription  = errorResponseFeed.getDescription();
+                                if(!TextUtils.isEmpty(errorDescription)){
+                                    if(MobiComKitConstants.GROUP_USER_LIMIT_EXCEED.equalsIgnoreCase(errorDescription)){
+                                        Toast.makeText(context,R.string.group_members_limit_exceeds,Toast.LENGTH_SHORT).show();
+                                    }else {
+                                        Toast.makeText(context,R.string.applozic_server_error ,Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+                        }else {
+                            Toast.makeText(context,Utils.isInternetAvailable(context) ? R.string.applozic_server_error : R.string.you_dont_have_any_network_access_info,Toast.LENGTH_SHORT).show();
+                        }
                     }
                 };
 
@@ -367,18 +386,21 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
                         int lastIndex = stringBuffer.lastIndexOf(",");
                         channelName = stringBuffer.replace(lastIndex, lastIndex + 1, "").toString();
                     }
-                    ApplozicChannelCreateTask applozicChannelCreateTask = new ApplozicChannelCreateTask(getActivity(), channelCreateListener, channelName, userIdList, imageUrl);
-                    applozicChannelCreateTask.setType(groupType);
-                    applozicChannelCreateTask.execute((Void) null);
-                }
 
+                    ChannelInfo channelInfo = new ChannelInfo(channelName,userIdList);
+                    if(!TextUtils.isEmpty(imageUrl)) {
+                        channelInfo.setImageUrl(imageUrl);
+                    }
+                    channelInfo.setType(groupType);
+                    AlChannelCreateAsyncTask alChannelCreateAsyncTask = new AlChannelCreateAsyncTask(getActivity(),channelInfo,taskListenerInterface);
+                    alChannelCreateAsyncTask.execute((Void) null);
+                }
             }
             return true;
         }
         return false;
 
     }
-
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -419,7 +441,7 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
         mAdapter.indexOfSearchQuery(newFilter);
 
         getLoaderManager().restartLoader(
-                ContactsQuery.QUERY_ID, null, ContactSelectionFragment.this);
+                ContactSelectionFragment.ContactsQuery.QUERY_ID, null, ContactSelectionFragment.this);
 
         return true;
     }

@@ -212,7 +212,7 @@ public class ApplozicMqttService extends MobiComKitClientService implements Mqtt
         if (client != null && client.isConnected()) {
             try {
                 client.disconnect();
-            } catch (MqttException e) {
+            } catch (Exception  e) {
                 e.printStackTrace();
             }
         }
@@ -269,14 +269,14 @@ public class ApplozicMqttService extends MobiComKitClientService implements Mqtt
                                 syncCallService.updateDeliveryStatusForContact(contactId, true);
                             }
 
-                         /*   if (NOTIFICATION_TYPE.CONVERSATION_READ.getValue().equals(mqttMessageResponse.getType())) {
+                            if (NOTIFICATION_TYPE.CONVERSATION_READ.getValue().equals(mqttMessageResponse.getType())) {
                                 syncCallService.updateConversationReadStatus(mqttMessageResponse.getMessage().toString(),false);
                             }
 
                             if (NOTIFICATION_TYPE.GROUP_CONVERSATION_READ.getValue().equals(mqttMessageResponse.getType())) {
                                 InstantMessageResponse instantMessageResponse = (InstantMessageResponse) GsonUtils.getObjectFromJson(mqttMessage.toString(), InstantMessageResponse.class);
                                 syncCallService.updateConversationReadStatus(instantMessageResponse.getMessage(),true);
-                            }*/
+                            }
 
                             if (NOTIFICATION_TYPE.USER_CONNECTED.getValue().equals(mqttMessageResponse.getType())) {
                                 syncCallService.updateConnectedStatus(mqttMessageResponse.getMessage().toString(), new Date(), true);
@@ -350,7 +350,7 @@ public class ApplozicMqttService extends MobiComKitClientService implements Mqtt
             message.setQos(0);
             client.publish("typing" + "-" + applicationId + "-" + userId, message);
             Log.i(TAG, "Published " + new String(message.getPayload()) + " to topic: " + "typing" + "-" + applicationId + "-" + userId);
-        } catch (MqttException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -35,12 +35,12 @@ public class UserBlockTask extends AsyncTask<Void, Void, Boolean> {
     protected Boolean doInBackground(Void... params) {
         try {
             apiResponse = UserService.getInstance(context).processUserBlock(userId, block);
+            return apiResponse != null  && apiResponse.isSuccess();
         } catch (Exception e) {
             e.printStackTrace();
             mException = e;
             return false;
         }
-        return true;
     }
 
     @Override

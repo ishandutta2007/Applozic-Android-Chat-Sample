@@ -17,6 +17,7 @@ import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.attachment.FileClientService;
 import com.applozic.mobicomkit.api.attachment.FileMeta;
 import com.applozic.mobicomkit.api.conversation.Message;
+import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.commons.image.ImageUtils;
@@ -66,17 +67,26 @@ public class NotificationService {
             Log.i(TAG,"Notification is disabled");
             return;
         }
-        String title;
+        String title = null;
         String notificationText;
-        Bitmap notificationIconBitmap;
+        Bitmap notificationIconBitmap=null;
         Contact displayNameContact = null;
         if (message.getGroupId() != null) {
             if(channel == null){
                 return;
             }
-            title = ChannelUtils.getChannelTitleName(channel, MobiComUserPreference.getInstance(context).getUserId());
-            displayNameContact = appContactService.getContactById(message.getTo());
-            notificationIconBitmap = appContactService.downloadGroupImage(context,channel);
+            if (Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())) {
+                String userId = ChannelService.getInstance(context).getGroupOfTwoReceiverUserId(channel.getKey());
+                if (!TextUtils.isEmpty(userId)) {
+                    Contact newContact = appContactService.getContactById(userId);
+                    notificationIconBitmap = appContactService.downloadContactImage(context, newContact);
+                    title = newContact.getDisplayName();
+                }
+            } else {
+                displayNameContact = appContactService.getContactById(message.getTo());
+                title  = ChannelUtils.getChannelTitleName(channel, MobiComUserPreference.getInstance(context).getUserId());
+                notificationIconBitmap = appContactService.downloadGroupImage(context, channel);
+            }
         } else {
             title = contact.getDisplayName();
             notificationIconBitmap = appContactService.downloadContactImage(context,contact);
@@ -119,12 +129,12 @@ public class NotificationService {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(smallIconResourceId)
-                        .setLargeIcon(notificationIconBitmap != null ? notificationIconBitmap : BitmapFactory.decodeResource(context.getResources(), context.getResources().getIdentifier(message.getGroupId() != null ? applozicClient.getDefaultChannelImage() : applozicClient.getDefaultContactImage(), "drawable", context.getPackageName())))
+                        .setLargeIcon(ApplozicClient.getInstance(context).isShowAppIconInNotification()?BitmapFactory.decodeResource(context.getResources(),iconResourceId):notificationIconBitmap != null ? notificationIconBitmap : BitmapFactory.decodeResource(context.getResources(), context.getResources().getIdentifier(channel != null  && !Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType()) ? applozicClient.getDefaultChannelImage() : applozicClient.getDefaultContactImage(), "drawable", context.getPackageName())))
                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setWhen(System.currentTimeMillis())
                         .setContentTitle(title)
-                        .setContentText(channel != null ? displayNameContact.getDisplayName() + ": " + notificationText : notificationText)
+                        .setContentText(channel != null  && !Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())? displayNameContact.getDisplayName() + ": " + notificationText : notificationText)
                         .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setAutoCancel(true);

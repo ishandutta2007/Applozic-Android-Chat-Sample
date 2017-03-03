@@ -128,6 +128,11 @@ public class Utils {
     public static boolean hasMarshmallow() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
+    
+    public static boolean hasNougat() {
+        return Build.VERSION.SDK_INT >= 24;
+    }
+
 
     public static boolean isBetweenGingerBreadAndKitKat() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD &&  Build.VERSION.SDK_INT<Build.VERSION_CODES.KITKAT;
@@ -311,5 +316,22 @@ public class Utils {
         SpannableStringBuilder builder = new SpannableStringBuilder();
         builder.append(message);
         return builder;
+    }
+
+    public static String getTimeDurationInFormat(Long timeInMillis) {
+
+        long timeInSecond = timeInMillis / 1000;
+        String formattedDuration;
+
+        if (timeInSecond < 60) {
+            return (timeInSecond + " Sec");
+        } else {
+            formattedDuration = timeInSecond / 60 + " Min";
+            if (timeInSecond % 60 > 0) {
+                formattedDuration = formattedDuration + " "+ timeInSecond % 60 + " Sec";
+            }
+        }
+
+        return formattedDuration;
     }
 }

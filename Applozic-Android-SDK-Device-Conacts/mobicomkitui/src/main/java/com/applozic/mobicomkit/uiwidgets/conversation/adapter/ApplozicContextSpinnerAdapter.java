@@ -43,7 +43,7 @@ public class ApplozicContextSpinnerAdapter extends BaseAdapter {
             productImageLoader = new ImageLoader(context, ImageUtils.getLargestScreenDimension((Activity) context)) {
                 @Override
                 protected Bitmap processBitmap(Object data) {
-                    return fileClientService.loadMessageImage(context, (String) data);
+                    return fileClientService.loadMessageImage(context, (Conversation) data);
                 }
             };
             productImageLoader.addImageCache(((FragmentActivity) context).getSupportFragmentManager(), 0.1f);
@@ -78,44 +78,48 @@ public class ApplozicContextSpinnerAdapter extends BaseAdapter {
                         .getTag();
             }
 
-            if (conversation != null) {
-                String topicId = conversation.getTopicId();
-                String topicDetailJson = conversation.getTopicDetail();
-                if (!TextUtils.isEmpty(topicDetailJson)) {
-                    TopicDetail topicDetail = (TopicDetail) GsonUtils.getObjectFromJson(topicDetailJson, TopicDetail.class);
-                    if (!TextUtils.isEmpty(topicDetail.getLink())) {
-                        productImageLoader.loadImage(topicDetail.getLink(), viewHolder.productImage);
-                    }
-                    if (!TextUtils.isEmpty(topicDetail.getTitle())) {
-                        viewHolder.titleTextView.setText(topicDetail.getTitle());
-                    }
-                    if (!TextUtils.isEmpty(topicDetail.getSubtitle())) {
-                        viewHolder.subTitleTextView.setText(topicDetail.getSubtitle());
-                    }
-                    if (!TextUtils.isEmpty(topicDetail.getKey1())) {
-                        viewHolder.key1TextView.setText(topicDetail.getKey1());
-                    }
-                    if (!TextUtils.isEmpty(topicDetail.getValue1())) {
-                        viewHolder.value1TextView.setText(":" + topicDetail.getValue1());
-                    }
-                    if (!TextUtils.isEmpty(topicDetail.getKey2())) {
-                        viewHolder.key2TextView.setText(topicDetail.getKey2());
-                    }
-                    if (!TextUtils.isEmpty(topicDetail.getValue2())) {
-                        viewHolder.value2TextView.setText(":" + topicDetail.getValue2());
-                    }
+            try{
+                if (conversation != null) {
+                    String topicId = conversation.getTopicId();
+                    String topicDetailJson = conversation.getTopicDetail();
+                    if (!TextUtils.isEmpty(topicDetailJson)) {
+                        TopicDetail topicDetail = (TopicDetail) GsonUtils.getObjectFromJson(topicDetailJson, TopicDetail.class);
+                        if (!TextUtils.isEmpty(topicDetail.getLink())) {
+                            productImageLoader.loadImage(conversation, viewHolder.productImage);
+                        }
+                        if (!TextUtils.isEmpty(topicDetail.getTitle())) {
+                            viewHolder.titleTextView.setText(topicDetail.getTitle());
+                        }
+                        if (!TextUtils.isEmpty(topicDetail.getSubtitle())) {
+                            viewHolder.subTitleTextView.setText(topicDetail.getSubtitle());
+                        }
+                        if (!TextUtils.isEmpty(topicDetail.getKey1())) {
+                            viewHolder.key1TextView.setText(topicDetail.getKey1());
+                        }
+                        if (!TextUtils.isEmpty(topicDetail.getValue1())) {
+                            viewHolder.value1TextView.setText(":" + topicDetail.getValue1());
+                        }
+                        if (!TextUtils.isEmpty(topicDetail.getKey2())) {
+                            viewHolder.key2TextView.setText(topicDetail.getKey2());
+                        }
+                        if (!TextUtils.isEmpty(topicDetail.getValue2())) {
+                            viewHolder.value2TextView.setText(":" + topicDetail.getValue2());
+                        }
 
-                } else {
-                    viewHolder.productImage.setVisibility(View.GONE);
-                    viewHolder.titleTextView.setVisibility(View.GONE);
-                    viewHolder.subTitleTextView.setVisibility(View.GONE);
-                    viewHolder.key1TextView.setVisibility(View.GONE);
-                    viewHolder.value1TextView.setVisibility(View.GONE);
-                    viewHolder.key2TextView.setVisibility(View.GONE);
-                    viewHolder.value2TextView.setVisibility(View.GONE);
+                    } else {
+                        viewHolder.productImage.setVisibility(View.GONE);
+                        viewHolder.titleTextView.setVisibility(View.GONE);
+                        viewHolder.subTitleTextView.setVisibility(View.GONE);
+                        viewHolder.key1TextView.setVisibility(View.GONE);
+                        viewHolder.value1TextView.setVisibility(View.GONE);
+                        viewHolder.key2TextView.setVisibility(View.GONE);
+                        viewHolder.value2TextView.setVisibility(View.GONE);
+                    }
                 }
-            }
 
+            }catch (Exception e){
+
+            }
             return convertView;
 
         }
