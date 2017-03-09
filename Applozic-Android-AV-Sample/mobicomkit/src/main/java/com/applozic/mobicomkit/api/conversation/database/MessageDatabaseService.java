@@ -121,14 +121,20 @@ public class MessageDatabaseService {
         }
         return message;
     }
-
     public static List<Message> getMessageList(Cursor cursor) {
         List<Message> messageList = new ArrayList<Message>();
         try {
             cursor.moveToFirst();
             if (cursor.getCount() > 0) {
                 do {
-                    messageList.add(getMessage(cursor));
+                    Message message = getMessage(cursor);
+                    if(Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())){
+                        if(!Message.GroupMessageMetaData.TRUE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.HIDE_KEY.getValue()))) {
+                            messageList.add(message);
+                        }
+                    } else {
+                        messageList.add(message);
+                    }
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {

@@ -25,6 +25,7 @@ import com.applozic.mobicomkit.sync.SyncMessageFeed;
 
 import com.applozic.mobicommons.commons.core.utils.Support;
 import com.applozic.mobicommons.commons.core.utils.Utils;
+import com.applozic.mobicommons.people.channel.Channel;
 import com.applozic.mobicommons.people.contact.Contact;
 import com.applozic.mobicommons.personalization.PersonalizedMessage;
 
@@ -92,6 +93,13 @@ public class MobiComMessageService {
             e.printStackTrace();
         }
         Message message = prepareMessage(messageToProcess, tofield);
+        //download contacts in advance.
+        if(message.getGroupId() != null){
+            ChannelService.getInstance(context).getChannelInfo(message.getGroupId());
+        }
+        if(message.getContentType()== Message.ContentType.CONTACT_MSG.getValue()){
+            fileClientService.loadContactsvCard(message);
+        }
 
         if (message.getType().equals(Message.MessageType.MT_INBOX.getValue())) {
             addMTMessage(message);
@@ -145,10 +153,6 @@ public class MobiComMessageService {
         }
 
         messageDatabaseService.createMessage(message);
-        //download contacts in advance.
-        if(message.getContentType()== Message.ContentType.CONTACT_MSG.getValue()){
-            fileClientService.loadContactsvCard(message);
-        }
 
         BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
 
@@ -177,8 +181,13 @@ public class MobiComMessageService {
                     sendNotification(message);
                 }
                 if(message.getGroupId() != null && !Message.GroupMessageMetaData.FALSE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.KEY.getValue()))){
-                    messageDatabaseService.updateChannelUnreadCount(message.getGroupId());
-                    sendNotification(message);
+                   if(!Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())) {
+                       messageDatabaseService.updateChannelUnreadCount(message.getGroupId());
+                   }
+                    Channel currentChannel= ChannelService.getInstance(context).getChannelInfo(message.getGroupId());
+                    if(!currentChannel.isNotificationMuted()) {
+                        sendNotification(message);
+                    }
                 }
                 MobiComUserPreference.getInstance(context).setNewMessageFlag(true);
             }

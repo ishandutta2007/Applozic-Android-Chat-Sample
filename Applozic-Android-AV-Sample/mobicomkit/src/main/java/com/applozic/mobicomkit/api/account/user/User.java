@@ -27,6 +27,7 @@ public class User extends JsonMarker {
     private Short authenticationTypeId = AuthenticationType.CLIENT.getValue();
     private String displayName;
     private String appModuleName;
+    private Short userTypeId;
 
     public List<String> getFeatures() {
         return features;
@@ -181,6 +182,14 @@ public class User extends JsonMarker {
 
     public void setEnableEncryption(boolean enableEncryption) {
         this.enableEncryption = enableEncryption;
+    }
+
+    public Short getUserTypeId() {
+        return userTypeId;
+    }
+
+    public void setUserTypeId(Short userTypeId) {
+        this.userTypeId = userTypeId;
     }
 
     public enum AuthenticationType {

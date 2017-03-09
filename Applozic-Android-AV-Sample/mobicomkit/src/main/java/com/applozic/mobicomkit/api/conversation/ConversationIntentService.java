@@ -66,7 +66,7 @@ public class ConversationIntentService extends IntentService {
                         contact = new Contact(message.getContactIds());
                     }
 
-                    mobiComConversationService.getMessages(1L, null, contact, channel, null);
+                    mobiComConversationService.getMessages(1L, null, contact, channel, null,true);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

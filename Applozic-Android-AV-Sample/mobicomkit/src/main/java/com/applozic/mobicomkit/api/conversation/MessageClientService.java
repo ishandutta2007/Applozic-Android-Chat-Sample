@@ -232,44 +232,48 @@ public class MessageClientService extends MobiComKitClientService {
 
     public void sendPendingMessageToServer(Message message, boolean broadcast) {
 
-
-        if(message.isContactMessage()){
-            try {
-                this.processMessage(message);
-            }catch ( Exception e){
-                Log.e(TAG, "Exception while sending contact message.",e);
+        try {
+            if (message.isContactMessage()) {
+                try {
+                    this.processMessage(message);
+                } catch (Exception e) {
+                    Log.e(TAG, "Exception while sending contact message.", e);
+                }
+                return;
             }
-            return;
-        }
 
-        if (message.hasAttachment()) {
-            return;
-        }
+            if (message.hasAttachment()) {
+                return;
+            }
 
-        MobiComUserPreference mobiComUserPreference = MobiComUserPreference.getInstance(context);
-        message.setDeviceKeyString(mobiComUserPreference.getDeviceKeyString());
-        message.setSuUserKeyString(mobiComUserPreference.getSuUserKeyString());
+            MobiComUserPreference mobiComUserPreference = MobiComUserPreference.getInstance(context);
+            message.setDeviceKeyString(mobiComUserPreference.getDeviceKeyString());
+            message.setSuUserKeyString(mobiComUserPreference.getSuUserKeyString());
 
-        String response = sendMessage(message);
+            String response = sendMessage(message);
 
-        if (TextUtils.isEmpty(response) || response.contains("<html>") || response.equals("error")) {
-            Log.w(TAG, "Error while sending pending messages.");
-            return;
-        }
+            if (TextUtils.isEmpty(response) || response.contains("<html>") || response.equals("error")) {
+                Log.w(TAG, "Error while sending pending messages.");
+                return;
+            }
 
-        MessageResponse messageResponse = (MessageResponse) GsonUtils.getObjectFromJson(response, MessageResponse.class);
-        String keyString = messageResponse.getMessageKey();
-        String createdAt = messageResponse.getCreatedAtTime();
-        message.setSentMessageTimeAtServer(Long.parseLong(createdAt));
-        message.setKeyString(keyString);
+            MessageResponse messageResponse = (MessageResponse) GsonUtils.getObjectFromJson(response, MessageResponse.class);
+            String keyString = messageResponse.getMessageKey();
+            String createdAt = messageResponse.getCreatedAtTime();
+            message.setSentMessageTimeAtServer(Long.parseLong(createdAt));
+            message.setKeyString(keyString);
 
         /*recentMessageSentToServer.add(message);*/
 
-        if (broadcast) {
-            BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.MESSAGE_SYNC_ACK_FROM_SERVER.toString(), message);
+            if (broadcast) {
+                BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.MESSAGE_SYNC_ACK_FROM_SERVER.toString(), message);
+            }
+
+            messageDatabaseService.updateMessageSyncStatus(message, keyString);
+        } catch (Exception e) {
+            Log.w(TAG, "Error while sending pending messages.");
         }
 
-        messageDatabaseService.updateMessageSyncStatus(message, keyString);
     }
 
     public void sendMessageToServer(Message message) throws Exception {
@@ -543,12 +547,15 @@ public class MessageClientService extends MobiComKitClientService {
         }
 
     }
-
     public String getMessages(Contact contact, Channel channel, Long startTime, Long endTime,Integer conversationId) throws UnsupportedEncodingException {
+        return getMessages( contact,  channel,  startTime,  endTime, conversationId,false);
+    }
+
+    public String getMessages(Contact contact, Channel channel, Long startTime, Long endTime,Integer conversationId,boolean isSkipRead) throws UnsupportedEncodingException {
         String contactNumber = (contact != null ? contact.getFormattedContactNumber() : "");
         String params = "";
         if (contact != null || channel != null) {
-            params = "startIndex=0&pageSize=50" + "&";
+            params =  isSkipRead?"skipRead="+isSkipRead+"&startIndex=0&pageSize=50" + "&" :"startIndex=0&pageSize=50&";
         }
         if(contact == null && channel == null){
             params =  "startIndex=0&mainPageSize=60" + "&";
@@ -568,6 +575,8 @@ public class MessageClientService extends MobiComKitClientService {
                 params += "conversationReq=true";
             }
         }
+        params = params + "&"+ "deletedGroupIncluded=true";
+
         return httpRequestUtils.getResponse(getMessageListUrl() + "?" + params
                 , "application/json", "application/json");
     }
@@ -647,6 +656,7 @@ public class MessageClientService extends MobiComKitClientService {
                     contact.setContactNumber(userDetail.getPhoneNumber());
                     contact.setLastSeenAt(userDetail.getLastSeenAtTime());
                     contact.setImageURL(userDetail.getImageLink());
+                    contact.setUserTypeId(userDetail.getUserTypeId());
                     contact.setStatus(userDetail.getStatusMessage());
                     contact.setUnreadCount(0);
                     baseContactService.upsert(contact);

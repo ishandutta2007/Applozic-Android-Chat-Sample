@@ -200,6 +200,7 @@ public class VideoCallNotificationHelper {
         Message notificationMessage = getNotificationMessage(contact);
         notificationMessage.setMetadata(getMissedCallMap());
         notificationMessage.setMessage(videoCallId);
+        Log.i("Callmessaged","@@@@@@"+notificationMessage);
         conversationService.sendMessage(notificationMessage, MessageIntentService.class);
     }
 
@@ -389,7 +390,9 @@ public class VideoCallNotificationHelper {
     public static String getStatus(Map<String, String> metaDataMap) {
 
         String type = metaDataMap.get(MSG_TYPE);
-
+        if(TextUtils.isEmpty(type)){
+            return " ";
+        }
         String audioORVideoCallPrefix = Boolean.valueOf(metaDataMap.get(CALL_AUDIO_ONLY)) ? "Audio call" : "Video call";
         if (type.equals(CALL_STARTED)) {
             return audioORVideoCallPrefix + " started";
@@ -423,9 +426,12 @@ public class VideoCallNotificationHelper {
 
     public static void buildVideoCallNotification(Context context, Message message) {
         Map<String, String> metaDataMap = message.getMetadata();
+        if(metaDataMap == null ){
+            return;
+        }
         Contact contact = new AppContactService(context).getContactById(message.getContactIds());
         String audioORVideoCallPrefix = Boolean.valueOf(metaDataMap.get(CALL_AUDIO_ONLY)) ? "audio call " : "video call ";
-        if (metaDataMap.get(VideoCallNotificationHelper.MSG_TYPE).equals(VideoCallNotificationHelper.CALL_MISSED)) {
+        if (VideoCallNotificationHelper.CALL_MISSED.equals(metaDataMap.get(VideoCallNotificationHelper.MSG_TYPE))) {
             Message message1 = new Message(message);
             message1.setMessage("You missed " + audioORVideoCallPrefix + " from " + contact.getDisplayName());
             BroadcastService.sendNotificationBroadcast(context, message1);

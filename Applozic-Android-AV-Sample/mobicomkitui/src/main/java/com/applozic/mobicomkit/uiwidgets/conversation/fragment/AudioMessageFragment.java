@@ -52,6 +52,7 @@ public class AudioMessageFragment extends DialogFragment {
 
         this.getDialog().setTitle("Voice Message");
         this.getDialog().setCancelable(Boolean.TRUE);
+        this.getDialog().setCanceledOnTouchOutside(Boolean.FALSE);
 
         record = (ImageButton) v.findViewById(R.id.audio_mic_imageview);
         send = (Button) v.findViewById(R.id.audio_send);
@@ -167,8 +168,8 @@ public class AudioMessageFragment extends DialogFragment {
             } catch (RuntimeException stopException) {
                 Log.i("AudioMsgFrag:", "Runtime exception.This is thrown intentionally if stop is called just after start");
             } finally {
-                audioRecorder.release();
-                audioRecorder = null;
+               audioRecorder.release();
+               audioRecorder = null;
                 isRecordring = false;
                 record.setImageResource(R.drawable.applozic_audio_normal);
                 audioRecordingText.setText(getResources().getText(R.string.start_text));

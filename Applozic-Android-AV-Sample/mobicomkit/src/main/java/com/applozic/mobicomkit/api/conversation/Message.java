@@ -731,6 +731,7 @@ public class Message extends JsonMarker {
 
     public enum GroupMessageMetaData {
         KEY("show"),
+        HIDE_KEY("hide"),
         FALSE("false"),
         TRUE("true");
         private String value;

@@ -66,10 +66,8 @@ public class ApplozicMultipartUtility {
         int bytesRead = -1;
         while ((bytesRead = inputStream.read(buffer)) != -1) {
             if (Thread.interrupted()) {
-                  Log.i(TAG,"upload thread is Interrupted..." );
                               throw new InterruptedException();
             }
-            Log.i(TAG,"upload thread is loops..." );
             outputStream.write(buffer, 0, bytesRead);
         }
         outputStream.flush();

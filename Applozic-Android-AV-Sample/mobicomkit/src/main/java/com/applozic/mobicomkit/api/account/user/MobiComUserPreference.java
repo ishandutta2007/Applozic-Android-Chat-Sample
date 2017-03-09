@@ -56,8 +56,8 @@ public class MobiComUserPreference {
     private static String enable_encryption = "enable_encryption";
     private static String enable_auto_download_on_wifi = "enable_auto_download_on_wifi";
     private static String enable_auto_download_on_cellular = "enable_auto_download_on_cellular";
-
     private static String video_call_token= "video_call_token";
+    private static String user_type_id = "user_type_id";
 
     public SharedPreferences sharedPreferences;
     private Context context;
@@ -505,7 +505,14 @@ public class MobiComUserPreference {
 
     public String getVideoCallToken(){
         return sharedPreferences.getString(video_call_token, null);
+    }
 
+    public String getUserTypeId() {
+        return sharedPreferences.getString(user_type_id, null);
+    }
+
+    public void setUserTypeId(String userTypeId) {
+        sharedPreferences.edit().putString(user_type_id, userTypeId).commit();
     }
 
 }

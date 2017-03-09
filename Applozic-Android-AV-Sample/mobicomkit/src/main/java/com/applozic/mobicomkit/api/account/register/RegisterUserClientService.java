@@ -129,12 +129,17 @@ public class RegisterUserClientService extends MobiComKitClientService {
         mobiComUserPreference.setPassword(user.getPassword());
         mobiComUserPreference.setPricingPackage(registrationResponse.getPricingPackage());
         mobiComUserPreference.setAuthenticationType(String.valueOf(user.getAuthenticationTypeId()));
-
+        if(user.getUserTypeId() != null){
+            mobiComUserPreference.setUserTypeId(String.valueOf(user.getUserTypeId()));
+        }
         Contact contact=  new Contact();
         contact.setUserId(user.getUserId());
         contact.setFullName(registrationResponse.getDisplayName());
         contact.setImageURL(registrationResponse.getImageLink());
         contact.setContactNumber(registrationResponse.getContactNumber());
+        if(user.getUserTypeId() != null){
+            contact.setUserTypeId(user.getUserTypeId());
+        }
         contact.setStatus(registrationResponse.getStatusMessage());
         contact.processContactNumbers(context);
         new AppContactService(context).upsert(contact);
@@ -226,6 +231,9 @@ public class RegisterUserClientService extends MobiComKitClientService {
         user.setAppVersionCode(MOBICOMKIT_VERSION_CODE);
         user.setApplicationId(getApplicationKey(context));
         user.setAuthenticationTypeId(Short.valueOf(mobiComUserPreference.getAuthenticationType()));
+        if(!TextUtils.isEmpty(mobiComUserPreference.getUserTypeId())){
+            user.setUserTypeId(Short.valueOf(mobiComUserPreference.getUserTypeId()));
+        }
         if(getAppModuleName(context) != null){
             user.setAppModuleName(getAppModuleName(context));
         }

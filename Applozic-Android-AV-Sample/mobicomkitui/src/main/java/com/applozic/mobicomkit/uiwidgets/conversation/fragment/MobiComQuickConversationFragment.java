@@ -87,6 +87,7 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
     private ProgressBar progressBar;
     ConversationUIService conversationUIService;
     AlCustomizationSettings alCustomizationSettings;
+    String searchString;
 
     public ConversationListView getListView() {
         return listView;
@@ -184,22 +185,28 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
         String[] menuItems = getResources().getStringArray(R.array.conversation_options_menu);
 
         boolean isUserPresentInGroup = false;
+        boolean isChannelDeleted = false;
+        Channel channel = null;
         if (message.getGroupId() != null) {
+            channel = ChannelService.getInstance(getActivity()).getChannelByChannelKey(message.getGroupId());
+            if(channel != null){
+                isChannelDeleted = channel.isDeleted();
+            }
             isUserPresentInGroup =  ChannelService.getInstance(getActivity()).processIsUserPresentInChannel(message.getGroupId());
         }
 
         for (int i = 0; i < menuItems.length; i++) {
 
-            if (message.getGroupId() == null &&  (menuItems[i].equals("Delete group") ||
+            if ((message.getGroupId() == null || channel != null && Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())) &&  (menuItems[i].equals("Delete group") ||
                     menuItems[i].equals("Exit group"))) {
                 continue;
             }
 
-            if (menuItems[i].equals("Exit group") && !isUserPresentInGroup) {
+            if (menuItems[i].equals("Exit group") && (isChannelDeleted  || !isUserPresentInGroup)) {
                 continue;
             }
 
-            if (menuItems[i].equals("Delete group") && isUserPresentInGroup) {
+            if (menuItems[i].equals("Delete group") &&  ( isUserPresentInGroup || !isChannelDeleted)) {
                 continue;
             }
 
@@ -228,7 +235,11 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
 
         switch (item.getItemId()) {
             case 0:
-                conversationUIService.deleteConversationThread(contact, channel);
+                if(channel!=null && channel.isDeleted()){
+                    conversationUIService.deleteGroupConversation(channel);
+                }else{
+                    conversationUIService.deleteConversationThread(contact, channel);
+                }
                 break;
             case 1:
                 conversationUIService.deleteGroupConversation(channel);
@@ -269,6 +280,9 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
     }
 
     public void addMessage(final Message message) {
+        if(getActivity() == null){
+            return;
+        }
         final Context context = getActivity();
         this.getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -405,6 +419,9 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
                     } else {
                         message = latestMessageForEachContact.get(contact.getUserId());
                     }
+                    if(message == null){
+                        return;
+                    }
                     messageList.remove(message);
                     if (channelKey != null && channelKey != 0) {
                         latestMessageForEachContact.remove(ConversationUIService.GROUP + channelKey);
@@ -446,6 +463,9 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
         super.onPause();
         listIndex = listView.getFirstVisiblePosition();
         BroadcastService.currentUserId = null;
+        if(listView != null){
+            BroadcastService.lastIndexForChats = listView.getFirstVisiblePosition();
+        }
         if(conversationAdapter != null){
             conversationAdapter.contactImageLoader.setPauseWork(false);
             conversationAdapter.channelImageLoader.setPauseWork(false);
@@ -462,13 +482,13 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
         latestMessageForEachContact.clear();
         messageList.clear();
         if (listView != null) {
-            if (listView.getCount() > listIndex) {
-                listView.setSelection(listIndex);
+            if (listView.getCount() > BroadcastService.lastIndexForChats) {
+                listView.setSelection(BroadcastService.lastIndexForChats);
             } else {
                 listView.setSelection(0);
             }
         }
-        downloadConversations();
+        downloadConversations(false,searchString);
         swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             public void onRefresh() {
                 SyncMessages syncMessages = new SyncMessages();
@@ -538,6 +558,9 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
     }
 
     public void updateLastSeenStatus(final String userId) {
+        if(getActivity() == null){
+            return;
+        }
         if (!alCustomizationSettings.isOnlineStatusMasterList()) {
             return;
         }
@@ -724,7 +747,14 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
                     emptyTextView.setText(alCustomizationSettings.getNoConversationLabel());
                 }
                 if (!messageList.isEmpty()) {
-                    listView.setSelection(0);
+                    if (listView != null) {
+                        if (listView.getCount() > BroadcastService.lastIndexForChats) {
+                            listView.setSelection(BroadcastService.lastIndexForChats);
+                            BroadcastService.lastIndexForChats = 0;
+                        } else {
+                            listView.setSelection(0);
+                        }
+                    }
                 }
             } else {
                 if(!loadMoreMessages){
@@ -765,6 +795,7 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
 
     @Override
     public boolean onQueryTextChange(String newText) {
+        this.searchString = newText;
         if (TextUtils.isEmpty(newText)) {
             downloadConversations(false,null);
         } else {

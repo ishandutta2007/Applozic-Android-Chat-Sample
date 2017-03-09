@@ -92,6 +92,8 @@ public class ChannelInfo extends JsonMarker {
             metadata.put(ChannelMetadata.JOIN_MEMBER_MESSAGE, channelMetadata.getJoinMemberMessage());
             metadata.put(ChannelMetadata.DELETED_GROUP_MESSAGE, channelMetadata.getDeletedGroupMessage());
             metadata.put(ChannelMetadata.REMOVE_MEMBER_MESSAGE, channelMetadata.getRemoveMemberMessage());
+            metadata.put(ChannelMetadata.HIDE_METADATA_NOTIFICATION, channelMetadata.getHideMetaDataNotification() + "");
+
         }
     }
 

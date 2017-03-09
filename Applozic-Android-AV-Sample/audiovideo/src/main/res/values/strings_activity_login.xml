@@ -15,14 +15,5 @@
     <string name="error_field_required">This field is required</string>
     <string name="text_alert">Alert</string>
     <string name="mobicomkitdemo">Demo App</string>
-    <string-array name="select_url">
-        <item>https://apps.applozic.com</item>
-        <item>https://staging.applozic.com</item>
-        <item>https://test.applozic.com</item>
-        <item>https://applozic.appspot.com</item>
-        <item>http://test.applozic.com</item>
-        <item>https://test.applozic.com</item>
-        <item>https://mobi-com.appspot.com</item>
-        <item>http://dashboard.mobicomkit.com</item>
-    </string-array>
+
 </resources>

@@ -146,6 +146,8 @@ public class UserClientService extends MobiComKitClientService {
         final String userKeyString = mobiComUserPreference.getSuUserKeyString();
         String url = mobiComUserPreference.getUrl();
 
+        Log.i(TAG,"Al Logout call !!");
+
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
         mobiComUserPreference.clearAll();

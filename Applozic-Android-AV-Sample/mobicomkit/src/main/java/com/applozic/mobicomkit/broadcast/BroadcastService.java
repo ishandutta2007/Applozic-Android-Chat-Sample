@@ -28,7 +28,7 @@ public class BroadcastService {
     public static String currentInfoId = null;
     public static boolean videoCallAcitivityOpend = false;
     public static boolean callRinging = false;
-
+    public static int lastIndexForChats = 0;
 
 
     public static void selectMobiComKitAll() {

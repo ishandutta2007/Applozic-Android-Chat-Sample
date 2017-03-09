@@ -54,6 +54,7 @@ public class Contact implements Serializable {
     private boolean blockedBy;
     private String status;
     private short contactType;
+    private Short userTypeId;
 
     public short getContactType() {
         return contactType;
@@ -304,6 +305,14 @@ public class Contact implements Serializable {
                 }
             }
         }
+    }
+
+    public Short getUserTypeId() {
+        return userTypeId;
+    }
+
+    public void setUserTypeId(Short userTypeId) {
+        this.userTypeId = userTypeId;
     }
 
     @Override

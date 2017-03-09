@@ -17,6 +17,7 @@
     <string name="mobicomkitdemo">Demo App</string>
     <string-array name="select_url">
         <item>https://apps.applozic.com</item>
+        <item>https://apps-test.applozic.com</item>
         <item>https://staging.applozic.com</item>
         <item>https://test.applozic.com</item>
         <item>https://applozic.appspot.com</item>

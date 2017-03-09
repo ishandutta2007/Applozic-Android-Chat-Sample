@@ -1,12 +1,16 @@
-package com.applozic.mobicomkit.api.account.user;
+package com.applozic.mobicomkit.api.notification;
 
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.feed.ApiResponse;
 
+/**
+ * Created by Adarsh on 12/30/16.
+ */
 
-public class UserBlockTask extends AsyncTask<Void, Void, Boolean> {
+public class MuteNotificationAsync extends  AsyncTask<Void, Void, Boolean> {
 
     public interface TaskListener {
 
@@ -17,30 +21,28 @@ public class UserBlockTask extends AsyncTask<Void, Void, Boolean> {
         void onCompletion();
     }
 
-    private final TaskListener taskListener;
+    private final MuteNotificationAsync.TaskListener taskListener;
     private final Context context;
     private ApiResponse apiResponse;
-    private String userId;
-    private boolean block;
     private Exception mException;
+    private MuteNotificationRequest muteNotificationRequest;
 
-    public UserBlockTask(Context context, TaskListener listener, String userId, boolean block) {
+    public MuteNotificationAsync(Context context, MuteNotificationAsync.TaskListener listener, MuteNotificationRequest request ) {
         this.context = context;
         this.taskListener = listener;
-        this.userId = userId;
-        this.block = block;
+        this.muteNotificationRequest= request;
     }
 
     @Override
     protected Boolean doInBackground(Void... params) {
         try {
-            apiResponse = UserService.getInstance(context).processUserBlock(userId, block);
-            return apiResponse != null  && apiResponse.isSuccess();
+            apiResponse = ChannelService.getInstance(context).muteNotifications(muteNotificationRequest);
         } catch (Exception e) {
             e.printStackTrace();
             mException = e;
             return false;
         }
+        return true;
     }
 
     @Override

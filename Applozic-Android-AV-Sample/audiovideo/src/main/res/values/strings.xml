@@ -33,10 +33,7 @@
     <string name="ecommerce_chat_button">Chat</string>
     <string name="ecommerce_ad_text">Free Advertise</string>
     <string name="ecommerce_text1">Demo screen to show messaging integration, tap on the Chat button below</string>
-    <string name="application_key">applozic-sample-app</string>
     <string name="support_phone_number">+918042028425</string>
-    <string name="default_server_url">https://staging.applozic.com</string>
-    <string name="default_mqtt_server_url">tcp://staging.applozic.com:1883</string>
     <string name="default_media_location_folder">Applozic</string>
     <string name="order_sample_button">Chat with seller</string>
     <string name="take_order_userid">ApplozicShop</string>

@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
             android:textSize="10sp"
-            android:text="1 min 5 sec"
+            android:text=""
             android:textColor="@color/white"
             android:id="@+id/applozic_call_duration"
             android:paddingRight="10dp"

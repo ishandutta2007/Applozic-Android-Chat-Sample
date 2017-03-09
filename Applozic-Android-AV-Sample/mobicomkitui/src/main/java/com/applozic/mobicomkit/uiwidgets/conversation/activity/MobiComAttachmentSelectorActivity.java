@@ -1,9 +1,14 @@
 package com.applozic.mobicomkit.uiwidgets.conversation.activity;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.support.v7.app.AppCompatActivity;
@@ -15,13 +20,18 @@ import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.applozic.mobicomkit.api.attachment.FileClientService;
+import com.applozic.mobicomkit.broadcast.ConnectivityReceiver;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.conversation.adapter.MobiComAttachmentGridViewAdapter;
 import com.applozic.mobicommons.file.FileUtils;
 import com.applozic.mobicommons.json.GsonUtils;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  *
@@ -35,11 +45,13 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
     private  Button sendAttachment;
     private  Button cancelAttachment;
     private EditText messageEditText;
+    private ConnectivityReceiver connectivityReceiver;
 
 
     private  GridView galleryImagesGridView;
     private  ArrayList<Uri> attachmentFileList = new ArrayList<Uri>();
     AlCustomizationSettings alCustomizationSettings;
+    FileClientService fileClientService;
 
     private MobiComAttachmentGridViewAdapter imagesAdapter;
 
@@ -55,11 +67,14 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
         }
         initViews();
         setUpGridView();
+        fileClientService = new FileClientService(this);
 
         Intent getContentIntent = FileUtils.createGetContentIntent();
         getContentIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
         Intent intentPick = Intent.createChooser(getContentIntent, getString(R.string.select_file));
         startActivityForResult(intentPick, REQUEST_CODE_ATTACH_PHOTO);
+        connectivityReceiver = new ConnectivityReceiver();
+         registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     /**
@@ -121,12 +136,14 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
         imagesAdapter = new MobiComAttachmentGridViewAdapter(MobiComAttachmentSelectorActivity.this, attachmentFileList, alCustomizationSettings);
         galleryImagesGridView.setAdapter(imagesAdapter);
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if(resultCode == Activity.RESULT_OK ){
             Uri selectedFileUri = (intent == null ? null : intent.getData());
             Log.i(TAG, "selectedFileUri :: " + selectedFileUri);
             if(selectedFileUri != null) {
+                String fileName = null;
                 try{
                     int maxFileSize = alCustomizationSettings.getMaxAttachmentSizeAllowed()*1024*1024;
                     Cursor returnCursor =
@@ -135,14 +152,25 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
                         int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
                         returnCursor.moveToFirst();
                         Long fileSize = returnCursor.getLong(sizeIndex);
+                        fileName  = returnCursor.getString(returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
                         returnCursor.close();
                         if (fileSize > maxFileSize) {
                             Toast.makeText(this, R.string.info_attachment_max_allowed_file_size, Toast.LENGTH_LONG).show();
                             return;
                         }
                     }
-                    addUri(selectedFileUri);
-                    imagesAdapter.notifyDataSetChanged();
+                    String mimeType = getContentResolver().getType(selectedFileUri);
+                    if(TextUtils.isEmpty(mimeType)){
+                        return;
+                    }
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    String fileFormat = FileUtils.getFileFormat(fileName);
+                    if(TextUtils.isEmpty(fileFormat)){
+                        return;
+                    }
+                    String fileNameToWrite =  timeStamp + "."+fileFormat;
+                    File mediaFile = FileClientService.getFilePath(fileNameToWrite, getApplicationContext(), mimeType);
+                    new FileTaskAsync(mediaFile,selectedFileUri,this).execute((Void)null);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -151,4 +179,60 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
+
+    public class FileTaskAsync  extends AsyncTask<Void, Integer, Boolean> {
+        Context context;
+        FileClientService fileClientService;
+        File file;
+        Uri uri;
+        ProgressDialog progressDialog;
+
+        public FileTaskAsync(File file, Uri uri, Context context) {
+            this.context = context;
+            this.file = file;
+            this.uri = uri;
+            this.fileClientService = new FileClientService(context);
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = ProgressDialog.show(context, "",
+                    context.getString(R.string.applozic_contacts_loading_info), true);
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            fileClientService.writeFile(uri, file);
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean b) {
+            super.onPostExecute(b);
+            if (progressDialog != null && progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+            if (file == null) {
+                return;
+            }
+            Uri uri = Uri.parse(file.getAbsolutePath());
+            addUri(uri);
+            imagesAdapter.notifyDataSetChanged();
+        }
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try{
+            if(connectivityReceiver != null){
+                unregisterReceiver(connectivityReceiver);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }

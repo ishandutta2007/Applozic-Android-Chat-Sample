@@ -47,7 +47,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 
 /**
@@ -438,6 +440,39 @@ public class FileUtils {
         return sb.toString();
     }
 
+    public static List<String> loadRestrictedWordsFile(Context context) {
+
+        BufferedReader br = null;
+        StringBuffer sb = new StringBuffer();
+
+        try {
+            br = new BufferedReader(new InputStreamReader(context.getAssets().open(
+                    "restrictWords.txt"), "UTF-8"));
+            String line;
+            if (br != null) {
+
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+            }
+        } catch (IOException ioe) {
+            return null;
+        }catch (Exception e){
+            e.printStackTrace();
+        }  finally{
+            try {
+                if (br != null) {
+                    br.close();
+                }
+            } catch (IOException e) {
+            }
+        }
+        String outputString = sb.toString();
+        String [] words = outputString.split(",");
+        List<String> wordList = Arrays.asList(words);
+        return wordList;
+    }
+
     /**
      * Get the file size in a human-readable string.
      *
@@ -752,15 +787,11 @@ public class FileUtils {
      */
     public static String getFileName(Context context, Uri uri) {
 
-        String fileName = null;
-        Cursor returnCursor =
-                context.getContentResolver().query(uri, null, null, null, null);
-        if (returnCursor != null && returnCursor.moveToFirst()) {
-            int columnIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            fileName = returnCursor.getString(columnIndex);
+        if(uri == null){
+            return null;
         }
-
-        return fileName;
+        File file = new File(uri.toString());
+        return file.getName();
     }
 
     public static String getSize(Context context, Uri uri) {

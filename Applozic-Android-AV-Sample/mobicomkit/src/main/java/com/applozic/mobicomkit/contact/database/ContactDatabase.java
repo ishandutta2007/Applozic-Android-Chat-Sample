@@ -66,6 +66,7 @@ public class ContactDatabase {
             Boolean userBlockedBy = (cursor.getInt(cursor.getColumnIndex(MobiComDatabaseHelper.BLOCKED_BY)) == 1);
             contact.setBlockedBy(userBlockedBy);
             contact.setStatus(cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.STATUS)));
+            contact.setUserTypeId(cursor.getShort(cursor.getColumnIndex(MobiComDatabaseHelper.USER_TYPE_ID)));
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -196,9 +197,15 @@ public class ContactDatabase {
     }
 
     public void addContact(Contact contact) {
-        ContentValues contentValues = prepareContactValues(contact);
-        dbHelper.getWritableDatabase().insert(CONTACT, null, contentValues);
-        dbHelper.close();
+        try{
+            ContentValues contentValues = prepareContactValues(contact);
+            dbHelper.getWritableDatabase().insert(CONTACT, null, contentValues);
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            dbHelper.close();
+        }
+
     }
 
     public ContentValues prepareContactValues(Contact contact) {
@@ -243,8 +250,8 @@ public class ContactDatabase {
         }
         if(contact.getContactType() != 0){
             contentValues.put(MobiComDatabaseHelper.CONTACT_TYPE, contact.getContactType());
-
         }
+        contentValues.put(MobiComDatabaseHelper.USER_TYPE_ID, contact.getUserTypeId());
         return contentValues;
     }
 
@@ -350,7 +357,7 @@ public class ContactDatabase {
                 String query = "select userId as _id, fullName, contactNO, " +
                         "displayName,contactImageURL,contactImageLocalURI,email," +
                         "applicationId,connected,lastSeenAt,unreadCount,blocked," +
-                        "blockedBy,status,contactType from " + CONTACT;
+                        "blockedBy,status,contactType,userTypeId from " + CONTACT;
 
                 if (userIdArray != null && userIdArray.length > 0) {
                     String placeHolderString = Utils.makePlaceHolders(userIdArray.length);

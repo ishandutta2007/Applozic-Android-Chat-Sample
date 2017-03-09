@@ -5,7 +5,10 @@ import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by devashish on 5/9/14.
@@ -24,6 +27,9 @@ public class Channel implements Serializable {
     private String localImageUri;
     private Conversation conversationPxy;
     private List<Contact> contacts = new ArrayList<Contact>();
+    private Long notificationAfterTime;
+    private Long deletedAtTime;
+
 
     public Channel() {
 
@@ -138,6 +144,31 @@ public class Channel implements Serializable {
 
     public boolean isBroadcastMessage(){
         return type.equals(GroupType.BROADCAST.getValue()) || type.equals(GroupType.BROADCAST_ONE_BY_ONE.getValue());
+    }
+    public void setNotificationAfterTime(Long notificationAfterTime) {
+        this.notificationAfterTime = notificationAfterTime;
+    }
+
+    public Long getDeletedAtTime() {
+        return deletedAtTime;
+    }
+
+    public void setDeletedAtTime(Long deletedAtTime) {
+        this.deletedAtTime = deletedAtTime;
+    }
+
+    public Long getNotificationAfterTime() {
+        return notificationAfterTime;
+    }
+
+    public boolean isNotificationMuted() {
+        Date date= Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTime();
+        return (getNotificationAfterTime()!=null) && (getNotificationAfterTime()-date.getTime()>0);
+
+    }
+
+    public boolean isDeleted(){
+        return (deletedAtTime!=null && deletedAtTime >0 );
     }
 
     public enum GroupType {

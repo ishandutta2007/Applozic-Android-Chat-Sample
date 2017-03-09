@@ -269,14 +269,14 @@ public class ApplozicMqttService extends MobiComKitClientService implements Mqtt
                                 syncCallService.updateDeliveryStatusForContact(contactId, true);
                             }
 
-                         /*   if (NOTIFICATION_TYPE.CONVERSATION_READ.getValue().equals(mqttMessageResponse.getType())) {
+                            if (NOTIFICATION_TYPE.CONVERSATION_READ.getValue().equals(mqttMessageResponse.getType())) {
                                 syncCallService.updateConversationReadStatus(mqttMessageResponse.getMessage().toString(),false);
                             }
 
                             if (NOTIFICATION_TYPE.GROUP_CONVERSATION_READ.getValue().equals(mqttMessageResponse.getType())) {
                                 InstantMessageResponse instantMessageResponse = (InstantMessageResponse) GsonUtils.getObjectFromJson(mqttMessage.toString(), InstantMessageResponse.class);
                                 syncCallService.updateConversationReadStatus(instantMessageResponse.getMessage(),true);
-                            }*/
+                            }
 
                             if (NOTIFICATION_TYPE.USER_CONNECTED.getValue().equals(mqttMessageResponse.getType())) {
                                 syncCallService.updateConnectedStatus(mqttMessageResponse.getMessage().toString(), new Date(), true);

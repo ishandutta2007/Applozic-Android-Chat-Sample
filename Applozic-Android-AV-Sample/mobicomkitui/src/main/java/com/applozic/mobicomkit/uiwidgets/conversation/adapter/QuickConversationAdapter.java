@@ -24,6 +24,7 @@ import com.applozic.mobicomkit.api.conversation.Message;
 import com.applozic.mobicomkit.api.conversation.database.MessageDatabaseService;
 import com.applozic.mobicomkit.api.notification.VideoCallNotificationHelper;
 import com.applozic.mobicomkit.channel.database.ChannelDatabaseService;
+import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
@@ -81,6 +82,8 @@ public class QuickConversationAdapter extends BaseAdapter implements Filterable 
     private AlCustomizationSettings alCustomizationSettings;
     TextView messageTextView;
      ImageView attachmentIcon;
+    TextView alphabeticTextView;
+    CircleImageView contactImage;
 
     public void setAlCustomizationSettings(AlCustomizationSettings alCustomizationSettings) {
         this.alCustomizationSettings = alCustomizationSettings;
@@ -127,8 +130,8 @@ public class QuickConversationAdapter extends BaseAdapter implements Filterable 
             TextView createdAtTime = (TextView) customView.findViewById(R.id.createdAtTime);
             messageTextView = (TextView) customView.findViewById(R.id.message);
             //ImageView contactImage = (ImageView) customView.findViewById(R.id.contactImage);
-            CircleImageView contactImage = (CircleImageView) customView.findViewById(R.id.contactImage);
-            TextView alphabeticTextView = (TextView) customView.findViewById(R.id.alphabeticImage);
+            contactImage = (CircleImageView) customView.findViewById(R.id.contactImage);
+            alphabeticTextView = (TextView) customView.findViewById(R.id.alphabeticImage);
             TextView onlineTextView = (TextView) customView.findViewById(R.id.onlineTextView);
             ImageView sentOrReceived = (ImageView) customView.findViewById(R.id.sentOrReceivedIcon);
             TextView attachedFile = (TextView) customView.findViewById(R.id.attached_file);
@@ -157,50 +160,36 @@ public class QuickConversationAdapter extends BaseAdapter implements Filterable 
                 }
                 smReceivers.setText(contactInfo);
             }
-            if (message.getGroupId() == null) {
+             if (message.getGroupId() == null) {
                 contactImageLoader.setLoadingImage(R.drawable.applozic_ic_contact_picture_holo_light);
             } else {
-                channelImageLoader.setLoadingImage(R.drawable.applozic_group_icon);
-            }
-            String contactNumber = "";
-            char firstLetter = 0;
-            if (channel != null && message.getGroupId() != null) {
-                smReceivers.setText(ChannelUtils.getChannelTitleName(channel, MobiComUserPreference.getInstance(context).getUserId()));
-                if (!TextUtils.isEmpty(channel.getImageUrl())) {
-                    channelImageLoader.loadImage(channel, contactImage);
-                }else if(channel.isBroadcastMessage()){
-                    contactImage.setImageResource(R.drawable.applozic_ic_applozic_broadcast);
+                if(Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())){
+                    contactImageLoader.setLoadingImage(R.drawable.applozic_ic_contact_picture_holo_light);
                 }else {
                     channelImageLoader.setLoadingImage(R.drawable.applozic_group_icon);
                 }
-            }else if (contactReceiver != null) {
-                contactNumber = contactReceiver.getDisplayName().toUpperCase();
-                firstLetter = contactReceiver.getDisplayName().toUpperCase().charAt(0);
-
-                if (contactReceiver != null) {
-                    if (firstLetter != '+') {
-                        alphabeticTextView.setText(String.valueOf(firstLetter));
-                    } else if (contactNumber.length() >= 2) {
-                        alphabeticTextView.setText(String.valueOf(contactNumber.charAt(1)));
-                    }
-                    Character colorKey = AlphaNumberColorUtil.alphabetBackgroundColorMap.containsKey(firstLetter) ? firstLetter : null;
-                /*alphabeticTextView.setTextColor(context.getResources().getColor(AlphaNumberColorUtil.alphabetTextColorMap.get(colorKey)));
-                alphabeticTextView.setBackgroundResource(AlphaNumberColorUtil.alphabetBackgroundColorMap.get(colorKey));*/
-                    GradientDrawable bgShape = (GradientDrawable) alphabeticTextView.getBackground();
-                    bgShape.setColor(context.getResources().getColor(AlphaNumberColorUtil.alphabetBackgroundColorMap.get(colorKey)));
-                }
-                if (contactReceiver.isDrawableResources()) {
-                    int drawableResourceId = context.getResources().getIdentifier(contactReceiver.getrDrawableName(), "drawable", context.getPackageName());
-                    contactImage.setImageResource(drawableResourceId);
-                } else {
-                    if(TextUtils.isEmpty(contactReceiver.getImageURL())){
-                        alphabeticTextView.setVisibility(View.VISIBLE);
-                        contactImage.setVisibility(View.GONE);
-                    }else {
-                        contactImageLoader.loadImage(contactReceiver, contactImage, alphabeticTextView);
-                    }
-                }
             }
+            if (channel != null && message.getGroupId() != null) {
+                if(Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())){
+                    Contact withUserContact = contactService.getContactById(ChannelService.getInstance(context).getGroupOfTwoReceiverUserId(channel.getKey()));
+                    if(withUserContact != null){
+                        smReceivers.setText(withUserContact.getDisplayName());
+                        processContactImage(withUserContact);
+                    }
+                }else {
+                    smReceivers.setText(ChannelUtils.getChannelTitleName(channel,MobiComUserPreference.getInstance(context).getUserId()));
+                    if (!TextUtils.isEmpty(channel.getImageUrl())) {
+                        channelImageLoader.loadImage(channel, contactImage);
+                    }else if(channel.isBroadcastMessage()){
+                        contactImage.setImageResource(R.drawable.applozic_ic_applozic_broadcast);
+                    }else {
+                        channelImageLoader.setLoadingImage(R.drawable.applozic_group_icon);
+                    }
+                }
+            }else if (contactReceiver != null) {
+                processContactImage(contactReceiver);
+            }
+
             if (alCustomizationSettings.isOnlineStatusMasterList()) {
                 onlineTextView.setVisibility(contactReceiver != null && contactReceiver.isOnline() ? View.VISIBLE : View.GONE);
             }
@@ -379,6 +368,39 @@ public class QuickConversationAdapter extends BaseAdapter implements Filterable 
             attachmentIcon.setColorFilter(R.color.applozic_green_color);
         }
 
+    }
+
+    private void processContactImage(Contact contact){
+        try{
+            String contactNumber = "";
+            char firstLetter = 0;
+            contactNumber = contact.getDisplayName().toUpperCase();
+            firstLetter = contact.getDisplayName().toUpperCase().charAt(0);
+
+            if (contact != null) {
+                if (firstLetter != '+') {
+                    alphabeticTextView.setText(String.valueOf(firstLetter));
+                } else if (contactNumber.length() >= 2) {
+                    alphabeticTextView.setText(String.valueOf(contactNumber.charAt(1)));
+                }
+                Character colorKey = AlphaNumberColorUtil.alphabetBackgroundColorMap.containsKey(firstLetter) ? firstLetter : null;
+                GradientDrawable bgShape = (GradientDrawable) alphabeticTextView.getBackground();
+                bgShape.setColor(context.getResources().getColor(AlphaNumberColorUtil.alphabetBackgroundColorMap.get(colorKey)));
+            }
+            if (contact.isDrawableResources()) {
+                int drawableResourceId = context.getResources().getIdentifier(contact.getrDrawableName(), "drawable", context.getPackageName());
+                contactImage.setImageResource(drawableResourceId);
+            } else {
+                if(TextUtils.isEmpty(contact.getImageURL())){
+                    alphabeticTextView.setVisibility(View.VISIBLE);
+                    contactImage.setVisibility(View.GONE);
+                }else {
+                    contactImageLoader.loadImage(contact, contactImage, alphabeticTextView);
+                }
+            }
+        }catch (Exception e){
+
+        }
     }
 
 }

@@ -310,7 +310,7 @@ public class MobiComPushReceiver {
                 SyncCallService.getInstance(context).syncBlockUsers();
             }
 
-       /*    if (!TextUtils.isEmpty(conversationReadForContact)) {
+           if (!TextUtils.isEmpty(conversationReadForContact)) {
                 MqttMessageResponse conversationReadForContactResponse = (MqttMessageResponse) GsonUtils.getObjectFromJson(conversationReadForContact, MqttMessageResponse.class);
                     if (processPushNotificationId(conversationReadForContactResponse.getId())) {
                         return;
@@ -326,7 +326,7 @@ public class MobiComPushReceiver {
                     }
                     addPushNotificationId(conversationReadForChannelResponse.getId());
                     syncCallService.updateConversationReadStatus(conversationReadForChannelResponse.getMessage(),true);
-            }*/
+            }
 
 
         } catch (Exception e) {

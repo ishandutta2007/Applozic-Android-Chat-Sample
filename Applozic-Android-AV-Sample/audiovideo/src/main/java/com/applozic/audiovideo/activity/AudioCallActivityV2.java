@@ -60,8 +60,8 @@ import com.twilio.video.Media;
 import com.twilio.video.Participant;
 import com.twilio.video.Room;
 import com.twilio.video.RoomState;
+import com.twilio.video.TwilioException;
 import com.twilio.video.VideoClient;
-import com.twilio.video.VideoException;
 import com.twilio.video.VideoTrack;
 import com.twilio.video.VideoView;
 
@@ -432,7 +432,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             }
 
             @Override
-            public void onConnectFailure(Room room, VideoException e) {
+            public void onConnectFailure(Room room, TwilioException e) {
                 inviteSent=false;
                 videoStatusTextView.setText("Failed to connect");
                 hideProgress();
@@ -440,7 +440,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             }
 
             @Override
-            public void onDisconnected(Room room, VideoException e) {
+            public void onDisconnected(Room room, TwilioException e) {
                 videoStatusTextView.setText("Disconnected from " + room.getName());
                 AudioCallActivityV2.this.room = null;
                 setAudioFocus(false);
@@ -475,6 +475,16 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             public void onParticipantDisconnected(Room room, Participant participant) {
                 removeParticipant(participant);
                 disconnectAndExit();
+            }
+
+            @Override
+            public void onRecordingStarted(Room room) {
+
+            }
+
+            @Override
+            public void onRecordingStopped(Room room) {
+
             }
         };
     }

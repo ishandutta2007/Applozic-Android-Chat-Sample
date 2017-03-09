@@ -142,6 +142,7 @@ public class UserService {
         contact.setStatus(userDetail.getStatusMessage());
         contact.setFullName(userDetail.getDisplayName());
         contact.setLastSeenAt(userDetail.getLastSeenAtTime());
+        contact.setUserTypeId(userDetail.getUserTypeId());
         contact.setUnreadCount(0);
         if (!TextUtils.isEmpty(userDetail.getImageLink())) {
             contact.setImageURL(userDetail.getImageLink());

@@ -110,5 +110,20 @@
         android:title="@string/new_broadcast_name_info"
         mobicomkit:showAsAction="collapseActionView" />
 
+    <item
+        android:id="@+id/muteGroup"
+        android:orderInCategory="9"
+        android:visible="false"
+        android:title="@string/mute_Group"
+        android:showAsAction="collapseActionView"
+        mobicomkit:showAsAction="collapseActionView"/>
+    <item
+        android:id="@+id/unmuteGroup"
+        android:orderInCategory="9"
+        android:visible="false"
+        android:title="@string/unmute_Group"
+        android:showAsAction="collapseActionView"
+        mobicomkit:showAsAction="collapseActionView"/>
+
 
 </menu>
