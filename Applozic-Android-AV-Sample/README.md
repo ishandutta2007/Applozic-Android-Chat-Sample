@@ -23,16 +23,12 @@ Documentation: [Applozic Android Chat & Messaging SDK Documentation](https://www
 
 
 
-**Step 1: Add the following in your Top-level/Proejct level build.gradle file change the version according to your app**:   
+**Step 1: Add the following in your build.gradle dependency**:  
 
 ```
-ext.googlePlayServicesVersion = '9.0.2'
-ext.supportLibraryVersion = '23.1.1'
+compile 'com.applozic.communication.uiwidget:audiovideo:1.1'
 ```
 
-**Step 2: Add the following in your build.gradle dependency**:      
-
-`compile 'com.applozic.communication.uiwidget:mobicomkitui:4.63' `
 
 
 Add the following in gradle android target:      
@@ -54,7 +50,7 @@ android {
 ```
 
 
-**Step 3: Addition of Permissions,Activities, Services and Receivers in androidmanifest.xml**:
+**Step 2: Addition of Permissions,Activities, Services and Receivers in androidmanifest.xml**:
         
 **Note**: Add meta-data, Activities, Services and Receivers within application Tag ``` <application> </application> ```
 
@@ -80,6 +76,14 @@ To disable the location sharing via map add this line ApplozicSetting.getInstanc
             
 <meta-data android:name="com.package.name" 
            android:value="${applicationId}" /> <!-- NOTE: Do NOT change this, it should remain same i.e 'com.package.name' -->
+           
+ <provider android:name="android.support.v4.content.FileProvider"
+           android:authorities="${applicationId}.provider"
+           android:exported="false"
+           android:grantUriPermissions="true">
+<meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+           android:resource="@xml/provider_paths"/>
+ </provider>           
          
 ```
    **Note**: If you are **not using gradle build** you need to replace ${applicationId}  with your Android app package name
@@ -91,6 +95,17 @@ To disable the location sharing via map add this line ApplozicSetting.getInstanc
 <string name="default_media_location_folder">YOUR_APP_NAME</string> 
 ```
 
+Adding  File Provider path in your app 
+
+1.Create a android resorce directory as xml directory  
+2.Create a XML resource file in xml directory as provider_paths and paste the below code
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-path name="files" path="."/>
+</paths>
+```
 
 
 Permissions:          
@@ -142,7 +157,7 @@ Paste the following in your androidmanifest.xml:
    
 ```
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
-           android:configChanges="keyboardHidden|orientation|screenSize"
+           android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
            android:label="@string/app_name"
            android:parentActivityName="<APP_PARENT_ACTIVITY>"
            android:theme="@style/ApplozicTheme"
@@ -154,7 +169,7 @@ Paste the following in your androidmanifest.xml:
  </activity>
                    
 <activity android:name="com.applozic.mobicomkit.uiwidgets.people.activity.MobiComKitPeopleActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
           android:label="@string/activity_contacts_list"
           android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
           android:theme="@style/ApplozicTheme"
@@ -172,7 +187,7 @@ Paste the following in your androidmanifest.xml:
 </activity>
 
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.FullScreenImageActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
           android:label="Image"
  android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
           android:theme="@style/Applozic_FullScreen_Theme">
@@ -183,7 +198,7 @@ Paste the following in your androidmanifest.xml:
 </activity>
 
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.ContactSelectionActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
           android:launchMode="singleTop"
           android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
           android:theme="@style/ApplozicTheme">
@@ -193,7 +208,7 @@ Paste the following in your androidmanifest.xml:
 </activity>
 
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.ChannelCreateActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
           android:launchMode="singleTop"
           android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
           android:theme="@style/ApplozicTheme">
@@ -203,14 +218,14 @@ Paste the following in your androidmanifest.xml:
 </activity>
 
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.ChannelNameActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
           android:launchMode="singleTop"
           android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
           android:theme="@style/ApplozicTheme">
 </activity>
 
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.ChannelInfoActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
           android:launchMode="singleTop"
           android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
           android:theme="@style/ApplozicTheme">
@@ -220,7 +235,7 @@ Paste the following in your androidmanifest.xml:
  </activity>
 
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.MobiComAttachmentSelectorActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
           android:launchMode="singleTop"
           android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
           android:theme="@style/ApplozicTheme"
@@ -231,14 +246,34 @@ Paste the following in your androidmanifest.xml:
 </activity>
   
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.MobicomLocationActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
           android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
           android:theme="@style/ApplozicTheme"
           android:windowSoftInputMode="adjustResize">
  </activity>
  
-<activity android:name="com.soundcloud.android.crop.CropImageActivity" />
+<activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+           android:theme="@style/Base.Theme.AppCompat"/>
+                 
+<activity android:name="com.applozic.audiovideo.activity.AudioCallActivityV2"
+          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:exported="true"
+          android:launchMode="singleTop"
+          android:theme="@style/Applozic_FullScreen_Theme"/>
 
+ <activity android:name="com.applozic.audiovideo.activity.CallActivity"
+           android:configChanges="orientation|keyboardHidden|screenSize"
+           android:label="@string/app_name"
+           android:launchMode="singleTop"
+           android:theme="@style/Applozic_FullScreen_Theme"/>
+
+<activity android:name="com.applozic.audiovideo.activity.VideoActivity"
+          android:launchMode="singleTop"
+          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:exported="true"
+          android:theme="@style/Applozic_FullScreen_Theme">
+</activity>
+           
 <service android:name="com.applozic.mobicomkit.api.conversation.MessageIntentService"
          android:exported="false" />
               
@@ -270,7 +305,6 @@ Paste the following in your androidmanifest.xml:
           android:exported="true" android:enabled="true">
           <intent-filter>
               <action android:name="android.intent.action.BOOT_COMPLETED" />
-              <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
           </intent-filter>
 </receiver>                 
 ```
@@ -282,7 +316,7 @@ Paste the following in your androidmanifest.xml:
 
 Replace APP_PARENT_ACTIVITY with your app's parent activity.        
 
-**Step 4: Register user account**:     
+**Step 3: Register user account**:     
 
 
 
@@ -304,6 +338,8 @@ User user = new User();
 user.setUserId(userId); //userId it can be any unique user identifier
 user.setDisplayName(displayName); //displayName is the name of the user which will be shown in chat messages
 user.setEmail(email); //optional  
+user.setAuthenticationTypeId(User.AuthenticationType.APPLOZIC.getValue());  //User.AuthenticationType.APPLOZIC.getValue() for password verification from Applozic server and User.AuthenticationType.CLIENT.getValue() for access Token verification from your server set access token as password
+user.setPassword(""); //optional, leave it blank for testing purpose, read this if you want to add additional security by verifying password from your server https://www.applozic.com/docs/configuration.html#access-token-url
 user.setImageLink("");//optional,pass your image link
 new UserLoginTask(user, listener, this).execute((Void) null);                                       
 ```
@@ -312,7 +348,7 @@ If it is a new user, new user account will get created else existing user will b
 
 
 
-####Step 5: Push Notification Setup
+####Step 4: Push Notification Setup
 
 ***Go to Applozic Dashboard, Edit Application. 
 Under Module section, update the GCM Server Key.***
@@ -368,26 +404,39 @@ Add the following in your FcmListenerService  in onMessageReceived(RemoteMessage
 
 #### GCM is already enabled in my app
 
-If you already have GCM enabled in your app, then paste PushNotificationTask code at the place where you are getting the GCM registration id in your app.       
-     
+If you already have GCM enabled in your app, add the below code and pass the GCM registration token:
+  
+ **1.** In UserLoginTask "onSuccess" (refer Step 3)
+  
+
 ```
+if(MobiComUserPreference.getInstance(context).isRegistered()) {
+
 PushNotificationTask pushNotificationTask = null;         
 PushNotificationTask.TaskListener listener = new PushNotificationTask.TaskListener() {                  
 @Override           
-public void onSuccess(RegistrationResponse registrationResponse) {  
+public void onSuccess(RegistrationResponse registrationResponse) {   
 
 }            
 @Override          
-public void onFailure(RegistrationResponse registrationResponse, Exception exception) {     
+public void onFailure(RegistrationResponse registrationResponse, Exception exception) {
 
 } 
 
 };                    
 
-pushNotificationTask = new PushNotificationTask(pushnotificationId, listener, mActivity);            
-pushNotificationTask.execute((Void) null);                          
+pushNotificationTask = new PushNotificationTask(registrationToken, listener, mActivity);            
+pushNotificationTask.execute((Void) null);  
+}
 ```
 
+ **2.** At the place where you are getting the GCM registration token in your app.       
+
+ ```
+ if (MobiComUserPreference.getInstance(this).isRegistered()) {
+      new RegisterUserClientService(this).updatePushNotificationId(registrationToken);
+ }
+```
 
 ##### For Receiving Notifications In GCM
 
@@ -407,7 +456,7 @@ if(MobiComPushReceiver.isMobiComPushNotification(data)) {
 #### Don't have Android Push Notification code ?
 
 To Enable Android Push Notification using Firebase Cloud Messaging (FCM) visit the [Firebase console](https://console.firebase.google.com) and create new project, add the google service json to your app, configure the build.gradle files in your app ,finally get server key from project settings and update in  
-***[Applozic Dashboard](https://www.applozic.com/views/applozic/page/admin/dashboard.jsp) under Edit Application. 
+***[Applozic Dashboard](https://dashboard.applozic.com/views/applozic/page/admin/dashboard.jsp) under Edit Application. 
 Under Module section, update the GCM Server Key.***
 
 
@@ -432,7 +481,7 @@ And add below code in your androidmanifest.xml file
        </intent-filter>
 </service>
   ``` 
-####Setup PushNotificationTask in UserLoginTask "onSuccess" (refer Step 4).
+####Setup PushNotificationTask in UserLoginTask "onSuccess" (refer Step 3).
 
 ```
  PushNotificationTask pushNotificationTask = null;
@@ -452,7 +501,7 @@ And add below code in your androidmanifest.xml file
 ```
 
 
-**Step 6: For starting the messaging activity**:        
+**Step 5: For starting the messaging activity**:        
 
       
 ```
@@ -466,25 +515,47 @@ startActivity(intent);
            
 ```
 Intent intent = new Intent(this, ConversationActivity.class);            
-intent.putExtra(ConversationUIService.USER_ID, "devashish@applozic.com");             
-intent.putExtra(ConversationUIService.DISPLAY_NAME, "Devashish Mamgain"); //put it for displaying the title.             
+intent.putExtra(ConversationUIService.USER_ID, "receiveruserid123");             
+intent.putExtra(ConversationUIService.DISPLAY_NAME, "Receiver display name"); //put it for displaying the title.             
 startActivity(intent);                              
 ```
 
-**Step 7: On logout, call the following**:       
+**Step 6: On logout, call the following**:       
 
 
 
-
+```
  new UserClientService(this).logout();      
+ ```
  
+ **Step 7:You need to follow below steps to enable audio/video call**
+
+a) Enable audio/video feature: 
+
+while doing user registration, you should set audio/video feature in user detail.
+
+```
+List<String> featureList =  new ArrayList<>();
+featureList.add(User.Features.IP_AUDIO_CALL.getValue());// FOR AUDIO
+featureList.add(User.Features.IP_VIDEO_CALL.getValue());// FOR VIDEO
+user.setFeatures(featureList); // ADD FEATURES
+```
+
+b) Add setting for audio/video handler class:
+
+onSuccess of UserLoginTask, you need to set below handlers in settings.
+
+```
+  ApplozicClient.getInstance(context).setContextBasedChat(true).setHandleDial(true).setIPCallEnabled(true);
+  Map<ApplozicSetting.RequestCode, String> activityCallbacks = new HashMap<ApplozicSetting.RequestCode, String>();
+  activityCallbacks.put(ApplozicSetting.RequestCode.AUDIO_CALL, AudioCallActivityV2.class.getName());
+  activityCallbacks.put(ApplozicSetting.RequestCode.VIDEO_CALL, VideoActivity.class.getName());
+  ApplozicSetting.getInstance(context).setActivityCallbacks(activityCallbacks);
+  
+```
  
  
  Note: If you are running ProGuard, please add following lines:        
- 
- 
- 
- 
  
 ```
  #keep json classes                
@@ -503,7 +574,9 @@ startActivity(intent);
 -keep class android.support.** { *; }
 -keep interface android.support.** { *; }
  ``` 
-   
+  
+
+
 **Trying out the demo app:**
 
 Open project in Android Studio to run the sample app in your device. Send messages between multiple devices. 
@@ -528,6 +601,8 @@ For advanced options and customization, visit [Applozic Android Chat & Messaging
 
 
  One to one and Group Chat
+ 
+ Audio Video call
  
  Image capture
  
@@ -567,7 +642,7 @@ For advanced options and customization, visit [Applozic Android Chat & Messaging
 
 
 ###Sample code to build messenger and chat app
-https://github.com/AppLozic/Applozic-Android-SDK/tree/master/app
+https://github.com/AppLozic/Applozic-Android-Chat-Sample/tree/master/Applozic-Android-AV-Sample
 
 
 ##Help
