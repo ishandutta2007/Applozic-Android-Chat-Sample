@@ -25,25 +25,16 @@ import java.net.URL;
  */
 public class HttpRequestUtils {
 
-    private Context context;
-
     private static final String TAG = "HttpRequestUtils";
-
-    private static String SOURCE_HEADER = "Source";
-
-    private static String SOURCE_HEADER_VALUE = "1";
-
     public static String APPLICATION_KEY_HEADER = "Application-Key";
-
     public static String USERID_HEADER = "UserId-Enabled";
-
     public static String USERID_HEADER_VALUE = "true";
-
     public static String DEVICE_KEY_HEADER = "Device-Key";
-
     public static String APP_MODULE_NAME_KEY_HEADER = "App-Module-Name";
-
     public static String ACCESS_TOKEN = "Access-Token";
+    private static String SOURCE_HEADER = "Source";
+    private static String SOURCE_HEADER_VALUE = "1";
+    private Context context;
 
 
     public HttpRequestUtils(Context context) {
@@ -59,8 +50,8 @@ public class HttpRequestUtils {
         HttpURLConnection connection;
         URL url;
         try {
-            if(!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getEncryptionKey())){
-                data = EncryptionUtils.encrypt(MobiComUserPreference.getInstance(context).getEncryptionKey(),data);
+            if (!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getEncryptionKey())) {
+                data = EncryptionUtils.encrypt(MobiComUserPreference.getInstance(context).getEncryptionKey(), data);
             }
             url = new URL(urlString);
             connection = (HttpURLConnection) url.openConnection();
@@ -80,20 +71,22 @@ public class HttpRequestUtils {
             if (connection == null) {
                 return null;
             }
-
-            byte[] dataBytes = data.getBytes("UTF-8");
-            DataOutputStream os = new DataOutputStream(connection.getOutputStream());
-            os.write(dataBytes);
-            os.flush();
-            os.close();
+            if (data != null) {
+                byte[] dataBytes = data.getBytes("UTF-8");
+                DataOutputStream os = new DataOutputStream(connection.getOutputStream());
+                os.write(dataBytes);
+                os.flush();
+                os.close();
+            }
             BufferedReader br = null;
-            if(connection.getResponseCode() == 200){
+            if (connection.getResponseCode() == 200) {
                 InputStream inputStream = connection.getInputStream();
                 br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             }
             StringBuilder sb = new StringBuilder();
             try {
-                String line;if(br != null){
+                String line;
+                if (br != null) {
                     while ((line = br.readLine()) != null) {
                         sb.append(line);
                     }
@@ -104,9 +97,9 @@ public class HttpRequestUtils {
                 e.printStackTrace();
             }
             Log.i(TAG, "Response : " + sb.toString());
-            if(!TextUtils.isEmpty(sb.toString())){
-                if(!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getEncryptionKey())){
-                    return EncryptionUtils.decrypt(MobiComUserPreference.getInstance(context).getEncryptionKey(),sb.toString());
+            if (!TextUtils.isEmpty(sb.toString())) {
+                if (!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getEncryptionKey())) {
+                    return EncryptionUtils.decrypt(MobiComUserPreference.getInstance(context).getEncryptionKey(), sb.toString());
                 }
             }
             return sb.toString();
@@ -125,7 +118,7 @@ public class HttpRequestUtils {
         connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
-        if(!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getDeviceKeyString())){
+        if (!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getDeviceKeyString())) {
             connection.setRequestProperty(DEVICE_KEY_HEADER, MobiComUserPreference.getInstance(context).getDeviceKeyString());
         }
         connection.setDoInput(true);
@@ -138,16 +131,16 @@ public class HttpRequestUtils {
         os.flush();
         os.close();
         BufferedReader br = null;
-        if(connection.getResponseCode() == HttpURLConnection.HTTP_OK){
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
             InputStream inputStream = connection.getInputStream();
             br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-        }else {
-            Log.i(TAG,"Response code for post json is :"+connection.getResponseCode());
+        } else {
+            Log.i(TAG, "Response code for post json is :" + connection.getResponseCode());
         }
         StringBuilder sb = new StringBuilder();
         try {
             String line;
-            if(br != null){
+            if (br != null) {
                 while ((line = br.readLine()) != null) {
                     sb.append(line);
                 }
@@ -158,11 +151,12 @@ public class HttpRequestUtils {
         Log.i(TAG, "Response: " + sb.toString());
         return sb.toString();
     }
-    public String getResponse(String urlString, String contentType, String accept){
-        return getResponse(urlString, contentType, accept,false);
+
+    public String getResponse(String urlString, String contentType, String accept) {
+        return getResponse(urlString, contentType, accept, false);
     }
 
-    public String getResponse(String urlString, String contentType, String accept,boolean isFileUpload) {
+    public String getResponse(String urlString, String contentType, String accept, boolean isFileUpload) {
         Log.i(TAG, "Calling url: " + urlString);
 
         HttpURLConnection connection = null;
@@ -189,17 +183,17 @@ public class HttpRequestUtils {
                 return null;
             }
             BufferedReader br = null;
-            if(connection.getResponseCode() == HttpURLConnection.HTTP_OK){
+            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 InputStream inputStream = connection.getInputStream();
                 br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-            }else {
-                Log.i(TAG,"Response code for getResponse is  :"+connection.getResponseCode());
+            } else {
+                Log.i(TAG, "Response code for getResponse is  :" + connection.getResponseCode());
             }
 
             StringBuilder sb = new StringBuilder();
             try {
                 String line;
-                if (br != null){
+                if (br != null) {
                     while ((line = br.readLine()) != null) {
                         sb.append(line);
                     }
@@ -207,11 +201,11 @@ public class HttpRequestUtils {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i(TAG,"Response :"+sb.toString());
+            Log.i(TAG, "Response :" + sb.toString());
 
-            if(!TextUtils.isEmpty(sb.toString())){
-                if(!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getEncryptionKey())){
-                    return isFileUpload?sb.toString(): EncryptionUtils.decrypt(MobiComUserPreference.getInstance(context).getEncryptionKey(),sb.toString());
+            if (!TextUtils.isEmpty(sb.toString())) {
+                if (!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getEncryptionKey())) {
+                    return isFileUpload ? sb.toString() : EncryptionUtils.decrypt(MobiComUserPreference.getInstance(context).getEncryptionKey(), sb.toString());
                 }
             }
             return sb.toString();
@@ -238,17 +232,17 @@ public class HttpRequestUtils {
             connection.setRequestProperty(USERID_HEADER, USERID_HEADER_VALUE);
             connection.setRequestProperty(DEVICE_KEY_HEADER, MobiComUserPreference.getInstance(context).getDeviceKeyString());
             Short authenticationType = Short.valueOf(MobiComUserPreference.getInstance(context).getAuthenticationType());
-            if(User.AuthenticationType.APPLOZIC.getValue() == authenticationType ){
+            if (User.AuthenticationType.APPLOZIC.getValue() == authenticationType) {
                 connection.setRequestProperty(ACCESS_TOKEN, MobiComUserPreference.getInstance(context).getPassword());
             }
 
-            if(MobiComKitClientService.getAppModuleName(context)!=null){
-                connection.setRequestProperty(APP_MODULE_NAME_KEY_HEADER,MobiComKitClientService.getAppModuleName(context));
+            if (MobiComKitClientService.getAppModuleName(context) != null) {
+                connection.setRequestProperty(APP_MODULE_NAME_KEY_HEADER, MobiComKitClientService.getAppModuleName(context));
             }
 
             MobiComUserPreference userPreferences = MobiComUserPreference.getInstance(context);
             if (userPreferences.isRegistered()) {
-                String userCredentials = getCredentials().getUserName() + ":" +String.valueOf(getCredentials().getPassword());
+                String userCredentials = getCredentials().getUserName() + ":" + String.valueOf(getCredentials().getPassword());
                 String basicAuth = "Basic " + Base64.encodeToString(userCredentials.getBytes(), Base64.NO_WRAP);
                 connection.setRequestProperty("Authorization", basicAuth);
             }

@@ -193,7 +193,7 @@ public class AttachmentView extends ImageView {
     }
 
     public String getImageUrl() {
-        if (message == null || message.getFileMetas() == null ) {
+        if (message == null || message.getFileMetas() == null) {
             return null;
         }
         return new MobiComKitClientService(getContext().getApplicationContext()).getFileUrl() + message.getFileMetas().getBlobKeyString();
@@ -226,8 +226,9 @@ public class AttachmentView extends ImageView {
     public void cancelDownload() {
         AttachmentManager.removeDownload(mDownloadThread);
         getDownloadProgressLayout().setVisibility(GONE);
-        mIsDrawn= false;
+        mIsDrawn = false;
     }
+
     public void setMCacheFlag(boolean cacheFlag) {
         this.mCacheFlag = cacheFlag;
     }

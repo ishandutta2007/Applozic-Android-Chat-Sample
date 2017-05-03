@@ -13,13 +13,14 @@ import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 public class TokenGenClientService extends MobiComKitClientService {
 
     private static final String TAG = "TokenGenClientService";
-    //Todo: Take url based on env.
-    public String getUrl() {
-        return getBaseUrl() + "/twilio/token";
-    }
 
     public TokenGenClientService(Context context) {
         super.context = context;
+    }
+
+    //Todo: Take url based on env.
+    public String getUrl() {
+        return getBaseUrl() + "/twilio/token";
     }
 
     public String getGeneratedToken() {

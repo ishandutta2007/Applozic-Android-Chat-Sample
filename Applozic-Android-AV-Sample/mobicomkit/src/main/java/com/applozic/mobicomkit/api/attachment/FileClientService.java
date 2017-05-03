@@ -44,29 +44,20 @@ public class FileClientService extends MobiComKitClientService {
     //Todo: Make the base folder configurable using either strings.xml or properties file
     public static final String MOBI_COM_IMAGES_FOLDER = "/image";
     public static final String MOBI_COM_VIDEOS_FOLDER = "/video";
-    public static final String MOBI_COM_CONTACT_FOLDER= "/contact";
+    public static final String MOBI_COM_CONTACT_FOLDER = "/contact";
     public static final String MOBI_COM_OTHER_FILES_FOLDER = "/other";
     public static final String MOBI_COM_THUMBNAIL_SUFIX = "/.Thumbnail";
     public static final String FILE_UPLOAD_URL = "/rest/ws/aws/file/url";
     public static final String IMAGE_DIR = "image";
+    public static final String AL_UPLOAD_FILE_URL = "/rest/ws/upload/file";
     private static final int MARK = 1024;
     private static final String TAG = "FileClientService";
-    private HttpRequestUtils httpRequestUtils;
-    public static final String AL_UPLOAD_FILE_URL = "/rest/ws/upload/file";
-
     private static final String MAIN_FOLDER_META_DATA = "main_folder_name";
+    private HttpRequestUtils httpRequestUtils;
 
     public FileClientService(Context context) {
         super(context);
         this.httpRequestUtils = new HttpRequestUtils(context);
-    }
-
-    public String profileImageUploadURL(){
-        return getBaseUrl() + AL_UPLOAD_FILE_URL;
-    }
-
-    public String getFileUploadUrl() {
-        return FILE_BASE_URL + FILE_UPLOAD_URL;
     }
 
     public static File getFilePath(String fileName, Context context, String contentType, boolean isThumbnail) {
@@ -79,7 +70,7 @@ public class FileClientService extends MobiComKitClientService {
                 folder = "/" + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + MOBI_COM_IMAGES_FOLDER;
             } else if (contentType.startsWith("video")) {
                 folder = "/" + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + MOBI_COM_VIDEOS_FOLDER;
-            } else if(contentType.equalsIgnoreCase("text/x-vCard")){
+            } else if (contentType.equalsIgnoreCase("text/x-vCard")) {
                 folder = "/" + Utils.getMetaDataValue(context, MAIN_FOLDER_META_DATA) + MOBI_COM_CONTACT_FOLDER;
             }
             if (isThumbnail) {
@@ -100,20 +91,28 @@ public class FileClientService extends MobiComKitClientService {
         return filePath;
     }
 
-
     public static File getFilePath(String fileName, Context context, String contentType) {
         return getFilePath(fileName, context, contentType, false);
     }
 
-    public Bitmap loadThumbnailImage(Context context, FileMeta fileMeta, int reqWidth, int reqHeight) {
+    public String profileImageUploadURL() {
+        return getBaseUrl() + AL_UPLOAD_FILE_URL;
+    }
+
+    public String getFileUploadUrl() {
+        return FILE_BASE_URL + FILE_UPLOAD_URL;
+    }
+
+    public Bitmap loadThumbnailImage(Context context, Message message, int reqWidth, int reqHeight) {
         try {
             Bitmap attachedImage = null;
+            FileMeta fileMeta = message.getFileMetas();
             String thumbnailUrl = fileMeta.getThumbnailUrl();
             String contentType = fileMeta.getContentType();
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
             // Todo get the file format from server and append
-            String imageName = fileMeta.getBlobKeyString() + "." + FileUtils.getFileFormat(fileMeta.getName());
+            String imageName = FileUtils.getName(fileMeta.getName()) + message.getCreatedAtTime() + "." + FileUtils.getFileFormat(fileMeta.getName());
             String imageLocalPath = getFilePath(imageName, context, fileMeta.getContentType(), true).getAbsolutePath();
             if (imageLocalPath != null) {
                 try {
@@ -152,7 +151,6 @@ public class FileClientService extends MobiComKitClientService {
     }
 
     /**
-     *
      * @param message
      */
 
@@ -177,7 +175,7 @@ public class FileClientService extends MobiComKitClientService {
 
                 OutputStream output = new FileOutputStream(file);
                 byte data[] = new byte[1024];
-                int count=0;
+                int count = 0;
                 while ((count = inputStream.read(data)) != -1) {
                     output.write(data, 0, count);
                 }
@@ -230,18 +228,18 @@ public class FileClientService extends MobiComKitClientService {
     }
 
     public String uploadBlobImage(String path) throws UnsupportedEncodingException {
-        try{
-            ApplozicMultipartUtility multipart = new ApplozicMultipartUtility(getUploadKey(),"UTF-8",context);
+        try {
+            ApplozicMultipartUtility multipart = new ApplozicMultipartUtility(getUploadKey(), "UTF-8", context);
             multipart.addFilePart("files[]", new File(path));
             return multipart.getResponse();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
     public String getUploadKey() {
-        return httpRequestUtils.getResponse(getFileUploadUrl() + "?" + new Date().getTime(), "text/plain", "text/plain",true);
+        return httpRequestUtils.getResponse(getFileUploadUrl() + "?" + new Date().getTime(), "text/plain", "text/plain", true);
     }
 
     public Bitmap downloadBitmap(Contact contact, Channel channel) {
@@ -334,19 +332,19 @@ public class FileClientService extends MobiComKitClientService {
     }
 
     public String uploadProfileImage(String path) throws UnsupportedEncodingException {
-        try{
-            ApplozicMultipartUtility multipart = new ApplozicMultipartUtility(profileImageUploadURL(),"UTF-8",context);
+        try {
+            ApplozicMultipartUtility multipart = new ApplozicMultipartUtility(profileImageUploadURL(), "UTF-8", context);
             multipart.addFilePart("file", new File(path));
             return multipart.getResponse();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
     public Bitmap loadMessageImage(Context context, Conversation conversation) {
-        try{
-            if(conversation == null){
+        try {
+            if (conversation == null) {
                 return null;
             }
             Bitmap attachedImage = ImageUtils.getBitMapFromLocalPath(conversation.getTopicLocalImageUri());
@@ -355,24 +353,24 @@ public class FileClientService extends MobiComKitClientService {
             }
             Bitmap bitmap = downloadProductImage(conversation);
             if (bitmap != null) {
-                File file = FileClientService.getFilePath("topic_"+conversation.getId(), context.getApplicationContext(), "image", true);
+                File file = FileClientService.getFilePath("topic_" + conversation.getId(), context.getApplicationContext(), "image", true);
                 String imageLocalPath = ImageUtils.saveImageToInternalStorage(file, bitmap);
                 conversation.setTopicLocalImageUri(imageLocalPath);
             }
             if (!TextUtils.isEmpty(conversation.getTopicLocalImageUri())) {
-                ConversationService.getInstance(context).updateTopicLocalImageUri(conversation.getTopicLocalImageUri(),conversation.getId());
+                ConversationService.getInstance(context).updateTopicLocalImageUri(conversation.getTopicLocalImageUri(), conversation.getId());
             }
             return bitmap;
 
-        }catch (Exception e){
+        } catch (Exception e) {
 
         }
-        return  null;
+        return null;
     }
 
-    public  Bitmap downloadProductImage(Conversation conversation){
-        TopicDetail topicDetail = (TopicDetail) GsonUtils.getObjectFromJson(conversation.getTopicDetail(),TopicDetail.class);
-        if(TextUtils.isEmpty(topicDetail.getLink())){
+    public Bitmap downloadProductImage(Conversation conversation) {
+        TopicDetail topicDetail = (TopicDetail) GsonUtils.getObjectFromJson(conversation.getTopicDetail(), TopicDetail.class);
+        if (TextUtils.isEmpty(topicDetail.getLink())) {
             return null;
         }
         HttpURLConnection connection = null;
@@ -420,7 +418,7 @@ public class FileClientService extends MobiComKitClientService {
         return null;
     }
 
-    public  void writeFile(Uri uri,File file) {
+    public void writeFile(Uri uri, File file) {
         InputStream in = null;
         OutputStream out = null;
         try {

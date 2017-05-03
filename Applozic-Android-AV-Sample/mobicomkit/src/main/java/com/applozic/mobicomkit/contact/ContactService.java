@@ -49,7 +49,7 @@ public class ContactService {
         StringBuilder sb = new StringBuilder();
         try {
             String line;
-            if (br != null){
+            if (br != null) {
                 while ((line = br.readLine()) != null) {
                     sb.append(line).append('\n');
                 }

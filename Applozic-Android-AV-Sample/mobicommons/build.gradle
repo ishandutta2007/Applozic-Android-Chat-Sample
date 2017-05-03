@@ -5,10 +5,10 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 10
         targetSdkVersion 25
         versionCode 1
-        versionName "4.79"
+        versionName "4.84"
     }
     buildTypes {
         release {
@@ -30,6 +30,7 @@ dependencies {
     //compile 'com.googlecode.libphonenumber:libphonenumber:7.0.1'
 }
 
+
 /*
 
 ext {
@@ -46,7 +47,7 @@ ext {
     artifact = 'mobicommons'
 
     libraryDescription = 'Applozic MobiFramekwork mobicommons library for utilities'
-    libraryVersion = '4.79'
+    libraryVersion = '4.84'
     developerId = 'devashish'
     developerName = 'Applozic'
     developerEmail = 'devashish.mamgain@gmail.com'
@@ -56,5 +57,7 @@ ext {
 apply from: 'https://raw.githubusercontent.com/attwellBrian/JCenter/master/installv1.gradle'
 apply from: 'https://raw.githubusercontent.com/attwellBrian/JCenter/master/bintrayv1.gradle'
 */
+
+
 
 

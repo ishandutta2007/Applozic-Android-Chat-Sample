@@ -48,12 +48,12 @@ public class CallActivity extends Activity {
     MobiComMessageService messageService;
     ImageLoader mImageLoader;
     boolean responded;
-    private BroadcastReceiver applozicBroadCastReceiver;
     Contact contact;
     String inComingCallId;
     boolean isAudioOnly;
     Vibrator vibrator;
     Ringtone r;
+    private BroadcastReceiver applozicBroadCastReceiver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -134,12 +134,12 @@ public class CallActivity extends Activity {
                 try {
                     if (!responded) {
                         Log.i(TAG, "Rejecting call due to responded being false.");
-                            responded=true;
-                            vibrator.cancel();
-                            if (r.isPlaying()) {
-                                r.stop();
-                            }
-                            finish();
+                        responded = true;
+                        vibrator.cancel();
+                        if (r.isPlaying()) {
+                            r.stop();
+                        }
+                        finish();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -164,10 +164,10 @@ public class CallActivity extends Activity {
 
                 String callId = intent.getStringExtra(VideoCallNotificationHelper.CALL_ID);
                 boolean isNotificationForSameId = (inComingCallId.equals(callId));
-                if ( (CALL_MISSED.equals(intent.getAction()) ||
+                if ((CALL_MISSED.equals(intent.getAction()) ||
                         MobiComKitConstants.APPLOZIC_VIDEO_CALL_REJECTED.equals(intent.getAction()) ||
                         MobiComKitConstants.APPLOZIC_VIDEO_CALL_ANSWER.equals(intent.getAction()))
-                        && isNotificationForSameId ) {
+                        && isNotificationForSameId) {
                     responded = true;
                     vibrator.cancel();
                     if (r.isPlaying()) {
@@ -221,8 +221,7 @@ public class CallActivity extends Activity {
     }
 
 
-
-    public  void setRinging(boolean ringing) {
+    public void setRinging(boolean ringing) {
         BroadcastService.callRinging = ringing;
     }
 

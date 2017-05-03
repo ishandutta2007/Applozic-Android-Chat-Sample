@@ -31,9 +31,9 @@ public class AudioMessageFragment extends DialogFragment {
     Button cancel, send;
     TextView txtcount, audioRecordingText;
     ImageButton record;
+    CountDownTimer t;
     private MediaRecorder audioRecorder;
     private String outputFile = null;
-    CountDownTimer t;
     private int cnt;
     private boolean isRecordring;
 
@@ -127,8 +127,8 @@ public class AudioMessageFragment extends DialogFragment {
                     stopRecording();
                 }
                 //FILE CHECK ....
-                if(!(new File(outputFile).exists())){
-                    Toast.makeText(getContext(),R.string.audio_recording_send_text,Toast.LENGTH_SHORT).show();
+                if (!(new File(outputFile).exists())) {
+                    Toast.makeText(getContext(), R.string.audio_recording_send_text, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 ConversationUIService conversationUIService = new ConversationUIService(getActivity());
@@ -168,8 +168,8 @@ public class AudioMessageFragment extends DialogFragment {
             } catch (RuntimeException stopException) {
                 Log.i("AudioMsgFrag:", "Runtime exception.This is thrown intentionally if stop is called just after start");
             } finally {
-               audioRecorder.release();
-               audioRecorder = null;
+                audioRecorder.release();
+                audioRecorder = null;
                 isRecordring = false;
                 record.setImageResource(R.drawable.applozic_audio_normal);
                 audioRecordingText.setText(getResources().getText(R.string.start_text));

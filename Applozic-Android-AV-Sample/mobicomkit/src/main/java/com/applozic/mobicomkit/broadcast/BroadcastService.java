@@ -24,12 +24,11 @@ public class BroadcastService {
     public static String currentUserId = null;
     public static Integer currentConversationId = null;
     public static boolean mobiTexterBroadcastReceiverActivated;
-    private static boolean contextBasedChatEnabled = false;
     public static String currentInfoId = null;
     public static boolean videoCallAcitivityOpend = false;
     public static boolean callRinging = false;
     public static int lastIndexForChats = 0;
-
+    private static boolean contextBasedChatEnabled = false;
 
     public static void selectMobiComKitAll() {
         currentUserId = MOBICOMKIT_ALL;
@@ -38,6 +37,7 @@ public class BroadcastService {
     public static boolean isQuick() {
         return currentUserId != null && currentUserId.equals(MOBICOMKIT_ALL);
     }
+
     public static boolean isChannelInfo() {
         return currentInfoId != null;
     }
@@ -99,7 +99,7 @@ public class BroadcastService {
         sendBroadcast(context, intentDelete);
     }
 
-    public static void sendConversationDeleteBroadcast(Context context, String action, String contactNumber, Integer channelKey,String response) {
+    public static void sendConversationDeleteBroadcast(Context context, String action, String contactNumber, Integer channelKey, String response) {
         Log.i(TAG, "Sending conversation delete broadcast for " + action);
         Intent intentDelete = new Intent();
         intentDelete.setAction(action);
@@ -118,7 +118,7 @@ public class BroadcastService {
         context.sendBroadcast(notificationIntent);
     }
 
-    public static void sendUpdateLastSeenAtTimeBroadcast(Context context, String action, String contactId){
+    public static void sendUpdateLastSeenAtTimeBroadcast(Context context, String action, String contactId) {
         Log.i(TAG, "Sending lastSeenAt broadcast....");
         Intent intent = new Intent();
         intent.setAction(action);
@@ -127,33 +127,33 @@ public class BroadcastService {
         sendBroadcast(context, intent);
     }
 
-    public static void sendUpdateTypingBroadcast(Context context, String action, String applicationId, String userId, String isTyping){
+    public static void sendUpdateTypingBroadcast(Context context, String action, String applicationId, String userId, String isTyping) {
         Log.i(TAG, "Sending typing Broadcast.......");
         Intent intentTyping = new Intent();
         intentTyping.setAction(action);
         intentTyping.putExtra("applicationId", applicationId);
         intentTyping.putExtra("userId", userId);
-        intentTyping.putExtra("isTyping",isTyping);
+        intentTyping.putExtra("isTyping", isTyping);
         intentTyping.addCategory(Intent.CATEGORY_DEFAULT);
         sendBroadcast(context, intentTyping);
     }
 
 
-    public static void sendUpdate(Context context,String action){
-        Log.i(TAG,action);
-        Intent intent=new Intent();
+    public static void sendUpdate(Context context, String action) {
+        Log.i(TAG, action);
+        Intent intent = new Intent();
         intent.setAction(action);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
-        sendBroadcast(context,intent);
+        sendBroadcast(context, intent);
     }
 
 
-    public static void sendConversationReadBroadcast(Context context,String action,String currentId,boolean isGroup){
+    public static void sendConversationReadBroadcast(Context context, String action, String currentId, boolean isGroup) {
         Log.i(TAG, "Sending  Broadcast for conversation read ......");
         Intent intent = new Intent();
         intent.setAction(action);
         intent.putExtra("currentId", currentId);
-        intent.putExtra("isGroup",isGroup);
+        intent.putExtra("isGroup", isGroup);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         sendBroadcast(context, intent);
     }
@@ -185,15 +185,15 @@ public class BroadcastService {
         return intentFilter;
     }
 
+    public static void sendBroadcast(Context context, Intent intent) {
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
     public enum INTENT_ACTIONS {
         LOAD_MORE, FIRST_TIME_SYNC_COMPLETE, MESSAGE_SYNC_ACK_FROM_SERVER,
         SYNC_MESSAGE, DELETE_MESSAGE, DELETE_CONVERSATION, MESSAGE_DELIVERY, MESSAGE_DELIVERY_FOR_CONTACT, INSTRUCTION,
         UPLOAD_ATTACHMENT_FAILED, MESSAGE_ATTACHMENT_DOWNLOAD_DONE, MESSAGE_ATTACHMENT_DOWNLOAD_FAILD,
-        UPDATE_LAST_SEEN_AT_TIME,UPDATE_TYPING_STATUS, MESSAGE_READ_AND_DELIVERED, MESSAGE_READ_AND_DELIVERED_FOR_CONTECT,CHANNEL_SYNC,
-        CONTACT_VERIFIED, NOTIFY_USER, MQTT_DISCONNECTED, UPDATE_CHANNEL_NAME,UPDATE_TITLE_SUBTITLE,CONVERSATION_READ
-    }
-
-    public static void sendBroadcast(Context context, Intent intent) {
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        UPDATE_LAST_SEEN_AT_TIME, UPDATE_TYPING_STATUS, MESSAGE_READ_AND_DELIVERED, MESSAGE_READ_AND_DELIVERED_FOR_CONTECT, CHANNEL_SYNC,
+        CONTACT_VERIFIED, NOTIFY_USER, MQTT_DISCONNECTED, UPDATE_CHANNEL_NAME, UPDATE_TITLE_SUBTITLE, CONVERSATION_READ
     }
 }

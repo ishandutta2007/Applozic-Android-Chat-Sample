@@ -48,12 +48,12 @@
 
 
     <LinearLayout
+        android:id="@+id/video_call_option"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:gravity="center"
-        android:id="@+id/video_call_option"
         android:animateLayoutChanges="true"
+        android:gravity="center"
         android:orientation="vertical">
 
         <android.support.design.widget.FloatingActionButton
@@ -73,7 +73,6 @@
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_volume_down_green_24px"
             app:fabSize="mini" />
-
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/local_video_action_fab"

@@ -87,7 +87,7 @@ public class MobiComPushReceiver {
         }
     }
 
-    public static boolean isMobiComPushNotification(Map<String,String> data) {
+    public static boolean isMobiComPushNotification(Map<String, String> data) {
 
         //This is to identify collapse key sent in notification..
         String payLoad = data.toString();
@@ -97,7 +97,7 @@ public class MobiComPushReceiver {
             return true;
         } else {
             for (String key : notificationKeyList) {
-                if(data.containsKey(key)){
+                if (data.containsKey(key)) {
                     return true;
                 }
             }
@@ -139,9 +139,9 @@ public class MobiComPushReceiver {
         try {
             String payloadForDelivered = null, userConnected = null,
                     userDisconnected = null, payloadDeliveredAndRead = null, messageKey = null,
-                    messageSent = null, deleteConversationForContact = null,deleteConversationForChannel = null,
+                    messageSent = null, deleteConversationForContact = null, deleteConversationForChannel = null,
                     deleteMessage = null, conversationReadResponse = null,
-                    userBlockedResponse = null, userUnBlockedResponse = null,conversationReadForContact = null,conversationReadForChannel = null,conversationReadForSingleMessage = null;
+                    userBlockedResponse = null, userUnBlockedResponse = null, conversationReadForContact = null, conversationReadForChannel = null, conversationReadForSingleMessage = null;
             SyncCallService syncCallService = SyncCallService.getInstance(context);
 
             if (bundle != null) {
@@ -310,22 +310,22 @@ public class MobiComPushReceiver {
                 SyncCallService.getInstance(context).syncBlockUsers();
             }
 
-           if (!TextUtils.isEmpty(conversationReadForContact)) {
+            if (!TextUtils.isEmpty(conversationReadForContact)) {
                 MqttMessageResponse conversationReadForContactResponse = (MqttMessageResponse) GsonUtils.getObjectFromJson(conversationReadForContact, MqttMessageResponse.class);
-                    if (processPushNotificationId(conversationReadForContactResponse.getId())) {
-                        return;
-                    }
-                    addPushNotificationId(conversationReadForContactResponse.getId());
-                    syncCallService.updateConversationReadStatus(conversationReadForContactResponse.getMessage().toString(),false);
+                if (processPushNotificationId(conversationReadForContactResponse.getId())) {
+                    return;
+                }
+                addPushNotificationId(conversationReadForContactResponse.getId());
+                syncCallService.updateConversationReadStatus(conversationReadForContactResponse.getMessage().toString(), false);
             }
 
             if (!TextUtils.isEmpty(conversationReadForChannel)) {
                 InstantMessageResponse conversationReadForChannelResponse = (InstantMessageResponse) GsonUtils.getObjectFromJson(conversationReadForChannel, InstantMessageResponse.class);
-                    if (processPushNotificationId(conversationReadForChannelResponse.getId())) {
-                        return;
-                    }
-                    addPushNotificationId(conversationReadForChannelResponse.getId());
-                    syncCallService.updateConversationReadStatus(conversationReadForChannelResponse.getMessage(),true);
+                if (processPushNotificationId(conversationReadForChannelResponse.getId())) {
+                    return;
+                }
+                addPushNotificationId(conversationReadForChannelResponse.getId());
+                syncCallService.updateConversationReadStatus(conversationReadForChannelResponse.getMessage(), true);
             }
 
 

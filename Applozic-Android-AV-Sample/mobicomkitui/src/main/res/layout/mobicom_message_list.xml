@@ -228,10 +228,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:layout_marginBottom="8dp"
-            android:background="@drawable/input"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="8dp"
             android:layout_weight="1"
+            android:background="@drawable/input"
             android:orientation="horizontal">
 
             <ImageButton
@@ -251,11 +251,11 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|left"
                 android:background="@color/apploizc_transparent_color"
-                android:paddingLeft="10dp"
                 android:gravity="center"
                 android:minHeight="48dp"
-                android:scaleType="center"
+                android:paddingLeft="10dp"
                 android:paddingRight="20dp"
+                android:scaleType="center"
                 android:src="@drawable/applozic_ic_action_attachment"
                 android:visibility="visible" />
 
@@ -279,6 +279,7 @@
                 android:background="@color/apploizc_transparent_color"
                 android:cursorVisible="true"
                 android:hint="@string/enter_message_hint"
+                android:inputType="textCapSentences"
                 android:maxLines="6"
                 android:minHeight="50dp"
                 android:minLines="2"

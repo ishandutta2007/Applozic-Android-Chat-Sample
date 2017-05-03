@@ -43,6 +43,23 @@ android {
 
     }
 
+    // Specify that we want to split up the APK based on ABI
+    splits {
+        abi {
+            // Enable ABI split
+            enable true
+
+            // Clear list of ABIs
+            reset()
+
+            // Specify each architecture currently supported by the Video SDK
+            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+
+            // Specify that we do not want an additional universal SDK
+            universalApk false
+        }
+    }
+
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/DEPENDENCIES'
@@ -57,9 +74,8 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    compile project(':audiovideo')//should be enabled only for ui modications
-  // compile 'com.applozic.communication.uiwidget:audiovideo:1.1'
+    compile project(':audiovideo')//should be enabled only for ui modifications
+   //compile 'com.applozic.communication.uiwidget:audiovideo:1.2'
 
     compile 'com.android.support:support-v4:25.1.1'
     compile 'com.android.support:appcompat-v7:25.1.1'

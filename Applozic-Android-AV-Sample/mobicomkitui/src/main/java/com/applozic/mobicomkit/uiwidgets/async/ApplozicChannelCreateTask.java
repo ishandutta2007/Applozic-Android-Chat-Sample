@@ -27,6 +27,15 @@ public class ApplozicChannelCreateTask extends AsyncTask<Void, Void, Boolean> {
     int type = Channel.GroupType.PUBLIC.getValue().intValue();
 
 
+    public ApplozicChannelCreateTask(Context context, ChannelCreateListener channelCreateListener, String groupName, List<String> groupMemberList, String groupImageLink) {
+        this.context = context;
+        this.groupName = groupName;
+        this.groupMemberList = groupMemberList;
+        this.groupImageLink = groupImageLink;
+        this.channelCreateListener = channelCreateListener;
+        this.channelService = ChannelService.getInstance(context);
+    }
+
     public String getClientGroupId() {
         return clientGroupId;
     }
@@ -41,15 +50,6 @@ public class ApplozicChannelCreateTask extends AsyncTask<Void, Void, Boolean> {
 
     public void setType(int type) {
         this.type = type;
-    }
-
-    public ApplozicChannelCreateTask(Context context, ChannelCreateListener channelCreateListener, String groupName, List<String> groupMemberList, String groupImageLink) {
-        this.context = context;
-        this.groupName = groupName;
-        this.groupMemberList = groupMemberList;
-        this.groupImageLink = groupImageLink;
-        this.channelCreateListener = channelCreateListener;
-        this.channelService = ChannelService.getInstance(context);
     }
 
     @Override

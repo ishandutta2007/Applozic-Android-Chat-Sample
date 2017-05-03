@@ -52,7 +52,7 @@ public class ApplozicChannelAddMemberTask extends AsyncTask<Void, Void, Boolean>
     protected void onPostExecute(Boolean resultBoolean) {
         super.onPostExecute(resultBoolean);
 
-        if (resultBoolean  && channelAddMemberListener != null) {
+        if (resultBoolean && channelAddMemberListener != null) {
             channelAddMemberListener.onSuccess(addResponse, context);
         } else if (!resultBoolean && exception != null && channelAddMemberListener != null) {
             channelAddMemberListener.onFailure(addResponse, exception, context);

@@ -48,7 +48,7 @@ public class ContactDatabase {
      */
     public Contact getContact(Cursor cursor, String primaryKeyAliash) {
         Contact contact = new Contact();
-        try{
+        try {
             contact.setFullName(cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.FULL_NAME)));
             contact.setUserId(cursor.getString(cursor.getColumnIndex(primaryKeyAliash == null ? MobiComDatabaseHelper.USERID : primaryKeyAliash)));
             contact.setLocalImageUrl(cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.CONTACT_IMAGE_LOCAL_URI)));
@@ -67,7 +67,7 @@ public class ContactDatabase {
             contact.setBlockedBy(userBlockedBy);
             contact.setStatus(cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.STATUS)));
             contact.setUserTypeId(cursor.getShort(cursor.getColumnIndex(MobiComDatabaseHelper.USER_TYPE_ID)));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return contact;
@@ -93,7 +93,7 @@ public class ContactDatabase {
 
     public List<Contact> getAllContactListExcludingLoggedInUser() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        if(TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getUserId())){
+        if (TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getUserId())) {
             return new ArrayList<Contact>();
         }
         String structuredNameWhere = MobiComDatabaseHelper.USERID + " != ?";
@@ -114,7 +114,7 @@ public class ContactDatabase {
     }
 
     public Contact getContactById(String id) {
-        if(TextUtils.isEmpty(id)){
+        if (TextUtils.isEmpty(id)) {
             return null;
         }
         String structuredNameWhere = MobiComDatabaseHelper.USERID + " =?";
@@ -139,10 +139,10 @@ public class ContactDatabase {
         dbHelper.close();
     }
 
-    public void updateLocalImageUri(Contact contact){
-        ContentValues contentValues =  new ContentValues();
-        contentValues.put(MobiComDatabaseHelper.CONTACT_IMAGE_LOCAL_URI,contact.getLocalImageUrl());
-        int updatedRow =  dbHelper.getWritableDatabase().update(CONTACT,contentValues, MobiComDatabaseHelper.USERID + "=?", new String[]{contact.getUserId()});
+    public void updateLocalImageUri(Contact contact) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MobiComDatabaseHelper.CONTACT_IMAGE_LOCAL_URI, contact.getLocalImageUrl());
+        int updatedRow = dbHelper.getWritableDatabase().update(CONTACT, contentValues, MobiComDatabaseHelper.USERID + "=?", new String[]{contact.getUserId()});
     }
 
     public void updateConnectedOrDisconnectedStatus(String userId, Date date, boolean connected) {
@@ -197,12 +197,12 @@ public class ContactDatabase {
     }
 
     public void addContact(Contact contact) {
-        try{
+        try {
             ContentValues contentValues = prepareContactValues(contact);
             dbHelper.getWritableDatabase().insert(CONTACT, null, contentValues);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             dbHelper.close();
         }
 
@@ -219,7 +219,7 @@ public class ContactDatabase {
             contentValues.put(MobiComDatabaseHelper.CONTACT_IMAGE_URL, contact.getImageURL());
             contactImage = getContactById(contact.getUserId());
         }
-        if(contactImage != null && !TextUtils.isEmpty(contactImage.getImageURL()) && !TextUtils.isEmpty(contact.getImageURL()) && !contact.getImageURL().equals(contactImage.getImageURL())){
+        if (contactImage != null && !TextUtils.isEmpty(contactImage.getImageURL()) && !TextUtils.isEmpty(contact.getImageURL()) && !contact.getImageURL().equals(contactImage.getImageURL())) {
             updateContactLocalImageURIToNull(contact.getUserId());
         }
 
@@ -248,7 +248,7 @@ public class ContactDatabase {
         if (contact.isBlockedBy()) {
             contentValues.put(MobiComDatabaseHelper.BLOCKED_BY, contact.isBlockedBy());
         }
-        if(contact.getContactType() != 0){
+        if (contact.getContactType() != 0) {
             contentValues.put(MobiComDatabaseHelper.CONTACT_TYPE, contact.getContactType());
         }
         contentValues.put(MobiComDatabaseHelper.USER_TYPE_ID, contact.getUserTypeId());
@@ -309,7 +309,7 @@ public class ContactDatabase {
         }
     }
 
-    public int getChatUnreadCount(){
+    public int getChatUnreadCount() {
         try {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             final Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT (userId)) FROM contact WHERE unreadCount > 0 ", null);
@@ -326,7 +326,7 @@ public class ContactDatabase {
         return 0;
     }
 
-    public int getGroupUnreadCount(){
+    public int getGroupUnreadCount() {
         try {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             final Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT (channelKey)) FROM channel WHERE unreadCount > 0 ", null);
@@ -349,7 +349,7 @@ public class ContactDatabase {
             @Override
             public Cursor loadInBackground() {
 
-                if(TextUtils.isEmpty(userPreferences.getUserId())){
+                if (TextUtils.isEmpty(userPreferences.getUserId())) {
                     return null;
                 }
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -362,7 +362,7 @@ public class ContactDatabase {
                 if (userIdArray != null && userIdArray.length > 0) {
                     String placeHolderString = Utils.makePlaceHolders(userIdArray.length);
                     if (!TextUtils.isEmpty(searchString)) {
-                        query = query + " where fullName like '%" + searchString.replaceAll("'","''") + "%' and  userId  IN (" + placeHolderString + ")";
+                        query = query + " where fullName like '%" + searchString.replaceAll("'", "''") + "%' and  userId  IN (" + placeHolderString + ")";
                     } else {
                         query = query + " where userId IN (" + placeHolderString + ")";
                     }
@@ -370,15 +370,15 @@ public class ContactDatabase {
 
                     cursor = db.rawQuery(query, userIdArray);
                 } else {
-                    if(ApplozicClient.getInstance(context).isShowMyContacts()){
+                    if (ApplozicClient.getInstance(context).isShowMyContacts()) {
                         if (!TextUtils.isEmpty(searchString)) {
-                            query = query + " where fullName like '%" + searchString.replaceAll("'","''") + "%' AND contactType != 0 AND userId NOT IN ('" + userPreferences.getUserId().replaceAll("'","''") + "')";
+                            query = query + " where fullName like '%" + searchString.replaceAll("'", "''") + "%' AND contactType != 0 AND userId NOT IN ('" + userPreferences.getUserId().replaceAll("'", "''") + "')";
                         } else {
                             query = query + " where contactType != 0 AND userId != '" + userPreferences.getUserId() + "'";
                         }
-                    }else {
+                    } else {
                         if (!TextUtils.isEmpty(searchString)) {
-                            query = query + " where fullName like '%" + searchString.replaceAll("'","''") + "%' AND userId NOT IN ('" + userPreferences.getUserId().replaceAll("'","''") + "')";
+                            query = query + " where fullName like '%" + searchString.replaceAll("'", "''") + "%' AND userId NOT IN ('" + userPreferences.getUserId().replaceAll("'", "''") + "')";
                         } else {
                             query = query + " where userId != '" + userPreferences.getUserId() + "'";
                         }
@@ -393,9 +393,9 @@ public class ContactDatabase {
         };
     }
 
-    public void updateContactLocalImageURIToNull(String userId ){
-        ContentValues contentValues =  new ContentValues();
+    public void updateContactLocalImageURIToNull(String userId) {
+        ContentValues contentValues = new ContentValues();
         contentValues.putNull(MobiComDatabaseHelper.CONTACT_IMAGE_LOCAL_URI);
-        int updatedRow =  dbHelper.getWritableDatabase().update(CONTACT,contentValues, MobiComDatabaseHelper.USERID + "=?", new String[]{userId});
+        int updatedRow = dbHelper.getWritableDatabase().update(CONTACT, contentValues, MobiComDatabaseHelper.USERID + "=?", new String[]{userId});
     }
 }

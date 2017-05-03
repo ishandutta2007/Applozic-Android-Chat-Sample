@@ -36,23 +36,20 @@ import java.util.Date;
 /**
  *
  */
-public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
+public class MobiComAttachmentSelectorActivity extends AppCompatActivity {
 
     public static final String MULTISELECT_SELECTED_FILES = "multiselect.selectedFiles";
     public static final String MULTISELECT_MESSAGE = "multiselect.message";
-    private String TAG = "MultiAttActivity";
-    private static int REQUEST_CODE_ATTACH_PHOTO =10;
-    private  Button sendAttachment;
-    private  Button cancelAttachment;
-    private EditText messageEditText;
-    private ConnectivityReceiver connectivityReceiver;
-
-
-    private  GridView galleryImagesGridView;
-    private  ArrayList<Uri> attachmentFileList = new ArrayList<Uri>();
+    private static int REQUEST_CODE_ATTACH_PHOTO = 10;
     AlCustomizationSettings alCustomizationSettings;
     FileClientService fileClientService;
-
+    private String TAG = "MultiAttActivity";
+    private Button sendAttachment;
+    private Button cancelAttachment;
+    private EditText messageEditText;
+    private ConnectivityReceiver connectivityReceiver;
+    private GridView galleryImagesGridView;
+    private ArrayList<Uri> attachmentFileList = new ArrayList<Uri>();
     private MobiComAttachmentGridViewAdapter imagesAdapter;
 
     @Override
@@ -60,10 +57,10 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.mobicom_multi_attachment_activity);
         String jsonString = FileUtils.loadSettingsJsonFile(getApplicationContext());
-        if(!TextUtils.isEmpty(jsonString)){
-            alCustomizationSettings = (AlCustomizationSettings) GsonUtils.getObjectFromJson(jsonString,AlCustomizationSettings.class);
-        }else {
-            alCustomizationSettings =  new AlCustomizationSettings();
+        if (!TextUtils.isEmpty(jsonString)) {
+            alCustomizationSettings = (AlCustomizationSettings) GsonUtils.getObjectFromJson(jsonString, AlCustomizationSettings.class);
+        } else {
+            alCustomizationSettings = new AlCustomizationSettings();
         }
         initViews();
         setUpGridView();
@@ -74,7 +71,7 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
         Intent intentPick = Intent.createChooser(getContentIntent, getString(R.string.select_file));
         startActivityForResult(intentPick, REQUEST_CODE_ATTACH_PHOTO);
         connectivityReceiver = new ConnectivityReceiver();
-         registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     /**
@@ -83,7 +80,7 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
     private void initViews() {
 
         sendAttachment = (Button) findViewById(R.id.mobicom_attachment_send_btn);
-        cancelAttachment=  (Button) findViewById(R.id.mobicom_attachment_cancel_btn);
+        cancelAttachment = (Button) findViewById(R.id.mobicom_attachment_cancel_btn);
         galleryImagesGridView = (GridView) findViewById(R.id.mobicom_attachment_grid_View);
         messageEditText = (EditText) findViewById(R.id.mobicom_attachment_edit_text);
 
@@ -102,8 +99,8 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
             @Override
             public void onClick(View v) {
 
-                if(attachmentFileList.isEmpty()){
-                    Toast.makeText(getApplicationContext(),R.string.mobicom_select_attachment_text, Toast.LENGTH_SHORT).show();
+                if (attachmentFileList.isEmpty()) {
+                    Toast.makeText(getApplicationContext(), R.string.mobicom_select_attachment_text, Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -118,7 +115,6 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
     }
 
     /**
-     *
      * @param uri
      */
     private void addUri(Uri uri) {
@@ -139,39 +135,39 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if(resultCode == Activity.RESULT_OK ){
+        if (resultCode == Activity.RESULT_OK) {
             Uri selectedFileUri = (intent == null ? null : intent.getData());
             Log.i(TAG, "selectedFileUri :: " + selectedFileUri);
-            if(selectedFileUri != null) {
+            if (selectedFileUri != null) {
                 String fileName = null;
-                try{
-                    int maxFileSize = alCustomizationSettings.getMaxAttachmentSizeAllowed()*1024*1024;
+                try {
+                    int maxFileSize = alCustomizationSettings.getMaxAttachmentSizeAllowed() * 1024 * 1024;
                     Cursor returnCursor =
                             getContentResolver().query(selectedFileUri, null, null, null, null);
                     if (returnCursor != null) {
                         int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
                         returnCursor.moveToFirst();
                         Long fileSize = returnCursor.getLong(sizeIndex);
-                        fileName  = returnCursor.getString(returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
                         returnCursor.close();
                         if (fileSize > maxFileSize) {
                             Toast.makeText(this, R.string.info_attachment_max_allowed_file_size, Toast.LENGTH_LONG).show();
                             return;
                         }
                     }
-                    String mimeType = getContentResolver().getType(selectedFileUri);
-                    if(TextUtils.isEmpty(mimeType)){
+                    String mimeType = FileUtils.getMimeTypeByContentUriOrOther(this, selectedFileUri);
+                    if (TextUtils.isEmpty(mimeType)) {
                         return;
                     }
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    fileName = FileUtils.getFileName(this, selectedFileUri);
                     String fileFormat = FileUtils.getFileFormat(fileName);
-                    if(TextUtils.isEmpty(fileFormat)){
+                    if (TextUtils.isEmpty(fileFormat)) {
                         return;
                     }
-                    String fileNameToWrite =  timeStamp + "."+fileFormat;
+                    String fileNameToWrite = timeStamp + "." + fileFormat;
                     File mediaFile = FileClientService.getFilePath(fileNameToWrite, getApplicationContext(), mimeType);
-                    new FileTaskAsync(mediaFile,selectedFileUri,this).execute((Void)null);
-                }catch (Exception e){
+                    new FileTaskAsync(mediaFile, selectedFileUri, this).execute((Void) null);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -179,8 +175,19 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
         super.onActivityResult(requestCode, resultCode, intent);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            if (connectivityReceiver != null) {
+                unregisterReceiver(connectivityReceiver);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-    public class FileTaskAsync  extends AsyncTask<Void, Integer, Boolean> {
+    public class FileTaskAsync extends AsyncTask<Void, Integer, Boolean> {
         Context context;
         FileClientService fileClientService;
         File file;
@@ -222,17 +229,5 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity  {
             imagesAdapter.notifyDataSetChanged();
         }
 
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        try{
-            if(connectivityReceiver != null){
-                unregisterReceiver(connectivityReceiver);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
     }
 }

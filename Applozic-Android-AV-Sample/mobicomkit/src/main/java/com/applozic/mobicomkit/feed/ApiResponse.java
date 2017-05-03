@@ -40,7 +40,7 @@ public class ApiResponse extends JsonMarker {
         this.response = response;
     }
 
-    public boolean isSuccess(){
+    public boolean isSuccess() {
         return SUCCESS.equals(status);
     }
 

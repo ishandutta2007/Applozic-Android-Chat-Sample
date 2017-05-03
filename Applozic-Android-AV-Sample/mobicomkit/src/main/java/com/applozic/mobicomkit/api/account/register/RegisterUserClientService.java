@@ -107,8 +107,8 @@ public class RegisterUserClientService extends MobiComKitClientService {
 
         }
         Log.i("Registration response ", "is " + registrationResponse);
-        if(registrationResponse.getNotificationResponse() != null){
-            Log.e("Registration response ",""+registrationResponse.getNotificationResponse());
+        if (registrationResponse.getNotificationResponse() != null) {
+            Log.e("Registration response ", "" + registrationResponse.getNotificationResponse());
         }
         mobiComUserPreference.setEncryptionKey(registrationResponse.getEncryptionKey());
         mobiComUserPreference.enableEncryption(user.isEnableEncryption());
@@ -129,30 +129,25 @@ public class RegisterUserClientService extends MobiComKitClientService {
         mobiComUserPreference.setPassword(user.getPassword());
         mobiComUserPreference.setPricingPackage(registrationResponse.getPricingPackage());
         mobiComUserPreference.setAuthenticationType(String.valueOf(user.getAuthenticationTypeId()));
-        if(user.getUserTypeId() != null){
+        if (user.getUserTypeId() != null) {
             mobiComUserPreference.setUserTypeId(String.valueOf(user.getUserTypeId()));
         }
-        Contact contact=  new Contact();
+        Contact contact = new Contact();
         contact.setUserId(user.getUserId());
         contact.setFullName(registrationResponse.getDisplayName());
         contact.setImageURL(registrationResponse.getImageLink());
         contact.setContactNumber(registrationResponse.getContactNumber());
-        if(user.getUserTypeId() != null){
+        if (user.getUserTypeId() != null) {
             contact.setUserTypeId(user.getUserTypeId());
         }
         contact.setStatus(registrationResponse.getStatusMessage());
         contact.processContactNumbers(context);
         new AppContactService(context).upsert(contact);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SyncCallService.getInstance(context).getLatestMessagesGroupByPeople(null);
-                Intent intent = new Intent(context, ConversationIntentService.class);
-                intent.putExtra(ConversationIntentService.SYNC,false);
-                context.startService(intent);
-            }
-        }).start();
+        Intent conversationIntentService = new Intent(context, ConversationIntentService.class);
+        conversationIntentService.putExtra(ConversationIntentService.SYNC, false);
+        context.startService(conversationIntentService);
+
         Intent intent = new Intent(context, ApplozicMqttIntentService.class);
         intent.putExtra(ApplozicMqttIntentService.CONNECTED_PUBLISH, true);
         context.startService(intent);
@@ -231,13 +226,13 @@ public class RegisterUserClientService extends MobiComKitClientService {
         user.setAppVersionCode(MOBICOMKIT_VERSION_CODE);
         user.setApplicationId(getApplicationKey(context));
         user.setAuthenticationTypeId(Short.valueOf(mobiComUserPreference.getAuthenticationType()));
-        if(!TextUtils.isEmpty(mobiComUserPreference.getUserTypeId())){
+        if (!TextUtils.isEmpty(mobiComUserPreference.getUserTypeId())) {
             user.setUserTypeId(Short.valueOf(mobiComUserPreference.getUserTypeId()));
         }
-        if(getAppModuleName(context) != null){
+        if (getAppModuleName(context) != null) {
             user.setAppModuleName(getAppModuleName(context));
         }
-        if(!TextUtils.isEmpty(mobiComUserPreference.getDeviceRegistrationId())){
+        if (!TextUtils.isEmpty(mobiComUserPreference.getDeviceRegistrationId())) {
             user.setRegistrationId(mobiComUserPreference.getDeviceRegistrationId());
         }
         Log.i(TAG, "Registration update json " + gson.toJson(user));
@@ -250,7 +245,7 @@ public class RegisterUserClientService extends MobiComKitClientService {
             throw new InvalidApplicationException("Invalid Application Id");
         }
 
-        registrationResponse  = gson.fromJson(response, RegistrationResponse.class);
+        registrationResponse = gson.fromJson(response, RegistrationResponse.class);
 
         if (registrationResponse.isPasswordInvalid()) {
             throw new UnAuthoriseException("Invalid uername/password");
@@ -258,8 +253,8 @@ public class RegisterUserClientService extends MobiComKitClientService {
 
         Log.i(TAG, "Registration update response: " + registrationResponse);
         mobiComUserPreference.setPricingPackage(registrationResponse.getPricingPackage());
-        if(registrationResponse.getNotificationResponse() != null){
-            Log.e(TAG,"Notification response: "+registrationResponse.getNotificationResponse());
+        if (registrationResponse.getNotificationResponse() != null) {
+            Log.e(TAG, "Notification response: " + registrationResponse.getNotificationResponse());
         }
 
         return registrationResponse;

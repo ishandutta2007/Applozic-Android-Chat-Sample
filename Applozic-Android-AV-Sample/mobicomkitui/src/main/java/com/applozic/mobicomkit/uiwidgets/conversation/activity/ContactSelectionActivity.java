@@ -33,21 +33,37 @@ public class ContactSelectionActivity extends AppCompatActivity implements Searc
     public static final String CHECK_BOX = "CHECK_BOX";
     public static final String IMAGE_LINK = "IMAGE_LINK";
     public static final String GROUP_TYPE = "GROUP_TYPE";
+    public static boolean isSearching = false;
+    protected SearchView searchView;
     Channel channel;
+    boolean disableCheckBox;
+    int groupType;
+    ContactDatabase contactDatabase;
+    ContactSelectionFragment contactSelectionFragment;
     private String name;
     private String imageUrl;
     private ActionBar mActionBar;
-    boolean disableCheckBox;
-    protected SearchView searchView;
     private SearchListFragment searchListFragment;
     private boolean isSearchResultView = false;
-    int groupType;
     private String mSearchTerm;
-    ContactDatabase contactDatabase;
-    public static boolean isSearching = false;
-    ContactSelectionFragment contactSelectionFragment;
     private AppContactService contactService;
     private ConnectivityReceiver connectivityReceiver;
+
+    public static void addFragment(FragmentActivity fragmentActivity, Fragment fragmentToAdd, String fragmentTag) {
+        FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
+
+        FragmentTransaction fragmentTransaction = supportFragmentManager
+                .beginTransaction();
+        fragmentTransaction.replace(R.id.layout_child_activity, fragmentToAdd,
+                fragmentTag);
+
+        if (supportFragmentManager.getBackStackEntryCount() > 1) {
+            supportFragmentManager.popBackStack();
+        }
+        fragmentTransaction.addToBackStack(fragmentTag);
+        fragmentTransaction.commitAllowingStateLoss();
+        supportFragmentManager.executePendingTransactions();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,38 +84,21 @@ public class ContactSelectionActivity extends AppCompatActivity implements Searc
             mActionBar.setTitle(R.string.channel_member_title);
             name = getIntent().getStringExtra(CHANNEL);
             imageUrl = getIntent().getStringExtra(IMAGE_LINK);
-            groupType =  getIntent().getIntExtra(GROUP_TYPE,Channel.GroupType.PUBLIC.getValue().intValue());
+            groupType = getIntent().getIntExtra(GROUP_TYPE, Channel.GroupType.PUBLIC.getValue().intValue());
         } else {
             mActionBar.setTitle(R.string.channel_members_title);
         }
         Bundle bundle = new Bundle();
         bundle.putSerializable(CHANNEL_OBJECT, channel);
         bundle.putBoolean(CHECK_BOX, disableCheckBox);
-        bundle.putString(CHANNEL,name);
-        bundle.putString(IMAGE_LINK,imageUrl);
-        bundle.putInt(GROUP_TYPE,groupType);
+        bundle.putString(CHANNEL, name);
+        bundle.putString(IMAGE_LINK, imageUrl);
+        bundle.putInt(GROUP_TYPE, groupType);
         contactSelectionFragment.setArguments(bundle);
         addFragment(this, contactSelectionFragment, "ContactSelectionFragment");
         connectivityReceiver = new ConnectivityReceiver();
         registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
-
-    public static void addFragment(FragmentActivity fragmentActivity, Fragment fragmentToAdd, String fragmentTag) {
-        FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
-
-        FragmentTransaction fragmentTransaction = supportFragmentManager
-                .beginTransaction();
-        fragmentTransaction.replace(R.id.layout_child_activity, fragmentToAdd,
-                fragmentTag);
-
-        if (supportFragmentManager.getBackStackEntryCount() > 1) {
-            supportFragmentManager.popBackStack();
-        }
-        fragmentTransaction.addToBackStack(fragmentTag);
-        fragmentTransaction.commitAllowingStateLoss();
-        supportFragmentManager.executePendingTransactions();
-    }
-
 
     @Override
     public void onBackPressed() {
@@ -180,11 +179,11 @@ public class ContactSelectionActivity extends AppCompatActivity implements Searc
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        try{
-            if(connectivityReceiver != null){
+        try {
+            if (connectivityReceiver != null) {
                 unregisterReceiver(connectivityReceiver);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

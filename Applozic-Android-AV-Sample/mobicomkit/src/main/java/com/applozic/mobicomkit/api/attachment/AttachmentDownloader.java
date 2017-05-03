@@ -154,11 +154,11 @@ class AttachmentDownloader implements Runnable {
             String contentType = fileMeta.getContentType();
             String fileKey = fileMeta.getKeyString();
             HttpURLConnection connection = null;
-            String fileName=null;
-            if( message.getContentType()== Message.ContentType.AUDIO_MSG.getValue() ) {
+            String fileName = null;
+            if (message.getContentType() == Message.ContentType.AUDIO_MSG.getValue()) {
                 fileName = fileMeta.getName();
-            }else{
-                fileName = fileMeta.getBlobKeyString() + "." + FileUtils.getFileFormat(fileMeta.getName());
+            } else {
+                fileName = FileUtils.getName(fileMeta.getName()) + message.getCreatedAtTime() + "." + FileUtils.getFileFormat(fileMeta.getName());
             }
 
             file = FileClientService.getFilePath(fileName, context.getApplicationContext(), contentType);

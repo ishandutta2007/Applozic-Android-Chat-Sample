@@ -81,7 +81,7 @@ public class VideoActivity extends AudioCallActivityV2 {
         if (!checkPermissionForCameraAndMicrophone()) {
             requestPermissionForCameraAndMicrophone();
         } else {
-            createLocalMedia();
+            createAudioAndVideoTracks();
             intializeUI();
             initializeApplozic();
         }
@@ -91,35 +91,35 @@ public class VideoActivity extends AudioCallActivityV2 {
     private void hideShowWithAnimation() {
 
         //Camera Actions
-        if(switchCameraActionFab.isShown()){
+        if (switchCameraActionFab.isShown()) {
             switchCameraActionFab.hide();
-        }else{
+        } else {
             switchCameraActionFab.show();
 
         }
         //Mute Actions
-        if(muteActionFab.isShown()){
+        if (muteActionFab.isShown()) {
             muteActionFab.hide();
-        }else{
+        } else {
             muteActionFab.show();
 
         }
 
-        if(localVideoActionFab.isShown()){
+        if (localVideoActionFab.isShown()) {
             localVideoActionFab.hide();
-        }else{
+        } else {
             localVideoActionFab.show();
         }
 
-        if(speakerActionFab.isShown()){
+        if (speakerActionFab.isShown()) {
             speakerActionFab.hide();
-        }else{
+        } else {
             speakerActionFab.show();
         }
     }
 
     @Override
-    public void initializeApplozic(){
+    public void initializeApplozic() {
         super.initializeApplozic();
 
     }
@@ -167,10 +167,13 @@ public class VideoActivity extends AudioCallActivityV2 {
             @Override
             public void onClick(View v) {
                 if (cameraCapturer != null) {
+                    CameraCapturer.CameraSource cameraSource = cameraCapturer.getCameraSource();
                     cameraCapturer.switchCamera();
-                    localVideoView.setMirror(
-                            cameraCapturer.getCameraSource() ==
-                                    CameraCapturer.CameraSource.FRONT_CAMERA);
+                    if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
+                        thumbnailVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                    } else {
+                        primaryVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                    }
                 }
             }
         };

@@ -62,8 +62,7 @@ public class MobiComKitBroadcastReceiver extends BroadcastReceiver {
             InstructionUtil.showInstruction(context, intent.getIntExtra("resId", -1), intent.getBooleanExtra("actionable", false), R.color.instruction_color);
         } else if (BroadcastService.INTENT_ACTIONS.UPDATE_CHANNEL_NAME.toString().equals(action)) {
             conversationUIService.updateChannelName();
-        }
-        else if (BroadcastService.INTENT_ACTIONS.FIRST_TIME_SYNC_COMPLETE.toString().equals(action)) {
+        } else if (BroadcastService.INTENT_ACTIONS.FIRST_TIME_SYNC_COMPLETE.toString().equals(action)) {
             conversationUIService.downloadConversations(true);
         } else if (BroadcastService.INTENT_ACTIONS.LOAD_MORE.toString().equals(action)) {
             conversationUIService.setLoadMore(intent.getBooleanExtra("loadMore", true));
@@ -86,7 +85,7 @@ public class MobiComKitBroadcastReceiver extends BroadcastReceiver {
             Integer channelKey = intent.getIntExtra("channelKey", 0);
             String response = intent.getStringExtra("response");
             Contact contact = null;
-            if(contactNumber != null){
+            if (contactNumber != null) {
                 contact = baseContactService.getContactById(contactNumber);
             }
             conversationUIService.deleteConversation(contact, channelKey, response);
@@ -104,14 +103,14 @@ public class MobiComKitBroadcastReceiver extends BroadcastReceiver {
             conversationUIService.updateLastSeenStatus(intent.getStringExtra("contactId"));
         } else if (BroadcastService.INTENT_ACTIONS.MQTT_DISCONNECTED.toString().equals(action)) {
             conversationUIService.reconnectMQTT();
-        } else if(BroadcastService.INTENT_ACTIONS.CHANNEL_SYNC.toString().equals(action)){
+        } else if (BroadcastService.INTENT_ACTIONS.CHANNEL_SYNC.toString().equals(action)) {
             conversationUIService.updateChannelSync();
-        }else  if(BroadcastService.INTENT_ACTIONS.UPDATE_TITLE_SUBTITLE.toString().equals(action)){
+        } else if (BroadcastService.INTENT_ACTIONS.UPDATE_TITLE_SUBTITLE.toString().equals(action)) {
             conversationUIService.updateTitleAndSubtitle();
-        } else if(BroadcastService.INTENT_ACTIONS.CONVERSATION_READ.toString().equals(action)){
+        } else if (BroadcastService.INTENT_ACTIONS.CONVERSATION_READ.toString().equals(action)) {
             String currentId = intent.getStringExtra("currentId");
-            boolean isGroup = intent.getBooleanExtra("isGroup",false);
-            conversationUIService.updateConversationRead(currentId,isGroup);
+            boolean isGroup = intent.getBooleanExtra("isGroup", false);
+            conversationUIService.updateConversationRead(currentId, isGroup);
         }
     }
 }
