@@ -527,7 +527,33 @@ startActivity(intent);
 
 
 ```
- new UserClientService(this).logout();      
+1)Async task call for logout:
+
+ UserLogoutTask.TaskListener userLogoutTaskListener = new UserLogoutTask.TaskListener() {
+ @Override
+ public void onSuccess(Context context) {
+   //Logout success
+ } 
+  @Override
+ public void onFailure(Exception exception) {
+  //Logout failure
+ }
+ };
+
+ UserLogoutTask userLogoutTask = new UserLogoutTask(userLogoutTaskListener, context);
+ userLogoutTask.execute((Void) null);     
+ 
+ 2)Logout Method call  
+ 
+ ApiResponse apiResponse =  new UserClientService(this).logout();
+ 
+ if(apiResponse != null && apiResponse.isSuccess()){
+      //Logout success
+    }else {
+       //Logout failure 
+  }
+Note :Use async task or thread to call this logout method       
+       
  ```
  
  **Step 7:You need to follow below steps to enable audio/video call**
