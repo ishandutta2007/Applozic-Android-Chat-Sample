@@ -26,7 +26,7 @@ Documentation: [Applozic Android Chat & Messaging SDK Documentation](https://www
 **Step 1: Add the following in your build.gradle dependency**:  
 
 ```
-compile 'com.applozic.communication.uiwidget:audiovideo:1.1'
+compile 'com.applozic.communication.uiwidget:audiovideo:1.2'
 ```
 
 
@@ -293,6 +293,9 @@ Paste the following in your androidmanifest.xml:
             
 <service android:name="com.applozic.mobicomkit.api.conversation.ConversationReadService"
          android:exported="false" />
+         
+<service android:name="com.applozic.mobicomkit.uiwidgets.notification.NotificationIntentService"
+         android:exported="false" />
 
 <receiver android:name="com.applozic.mobicomkit.broadcast.TimeChangeBroadcastReceiver">
          <intent-filter>
@@ -348,10 +351,10 @@ If it is a new user, new user account will get created else existing user will b
 
 
 
-####Step 4: Push Notification Setup
+#### Step 4: Push Notification Setup
 
-***Go to Applozic Dashboard, Edit Application. 
-Under Module section, update the GCM Server Key.***
+
+***Go to Applozic Dashboard, Edit Application -> Push Notification -> Android -> GCM/FCM Server Key.***
 
 #### Firebase Cloud Messaging (FCM)  is already enabled in my app
 
@@ -456,8 +459,7 @@ if(MobiComPushReceiver.isMobiComPushNotification(data)) {
 #### Don't have Android Push Notification code ?
 
 To Enable Android Push Notification using Firebase Cloud Messaging (FCM) visit the [Firebase console](https://console.firebase.google.com) and create new project, add the google service json to your app, configure the build.gradle files in your app ,finally get server key from project settings and update in  
-***[Applozic Dashboard](https://dashboard.applozic.com/views/applozic/page/admin/dashboard.jsp) under Edit Application. 
-Under Module section, update the GCM Server Key.***
+***[Applozic Dashboard](https://dashboard.applozic.com/views/applozic/page/admin/dashboard.jsp) under Edit Application -> Push Notification -> Android -> GCM/FCM Server Key.***
 
 
 In case, if you don't have the existing FCM related code, then copy the push notification related files from Applozic sample app to your project from the below github link
@@ -481,7 +483,7 @@ And add below code in your androidmanifest.xml file
        </intent-filter>
 </service>
   ``` 
-####Setup PushNotificationTask in UserLoginTask "onSuccess" (refer Step 3).
+#### Setup PushNotificationTask in UserLoginTask "onSuccess" (refer Step 3).
 
 ```
  PushNotificationTask pushNotificationTask = null;
@@ -573,6 +575,10 @@ onSuccess of UserLoginTask, you need to set below handlers in settings.
 -keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; } 
 -keep class android.support.** { *; }
 -keep interface android.support.** { *; }
+-dontwarn android.support.v4.**
+-keep public class com.google.android.gms.* { public *; }
+-dontwarn com.google.android.gms.**
+-keep class com.google.gson.** { *; }
  ``` 
   
 
@@ -589,15 +595,15 @@ ApplozicClient.getInstance(this).setHandleDisplayName(false);
 By default, the display name feature is enabled.
 
 
-###Documentation:
+### Documentation:
 For advanced options and customization, visit [Applozic Android Chat & Messaging SDK Documentation](https://www.applozic.com/docs/android-chat-sdk.html?utm_source=github&utm_medium=readme&utm_campaign=android)
 
 
-###Changelog
+### Changelog
 [Changelog](https://github.com/AppLozic/Applozic-Android-SDK/blob/master/CHANGELOG.md)
 
 
-####Features:
+#### Features:
 
 
  One to one and Group Chat
@@ -641,22 +647,22 @@ For advanced options and customization, visit [Applozic Android Chat & Messaging
  Cross Platform Support (iOS, Android & Web)
 
 
-###Sample code to build messenger and chat app
+### Sample code to build messenger and chat app
 https://github.com/AppLozic/Applozic-Android-Chat-Sample/tree/master/Applozic-Android-AV-Sample
 
 
-##Help
+## Help
 
 We provide support over at [StackOverflow] (http://stackoverflow.com/questions/tagged/applozic) when you tag using applozic, ask us anything.
 
 Applozic is the best android chat sdk for instant messaging, still not convinced? Write to us at github@applozic.com and we will be happy to schedule a demo for you.
 
 
-###Free Android Chat SDK
+### Free Android Chat SDK
 Special plans for startup and open source contributors, write to us at github@applozic.com 
 
 
-##Github projects
+## Github projects
 
 Android Chat SDK https://github.com/AppLozic/Applozic-Android-SDK
 
