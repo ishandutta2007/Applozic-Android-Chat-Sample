@@ -44,17 +44,17 @@ import com.applozic.mobicomkit.uiwidgets.instruction.ApplozicPermissions;
 
 public class MobicomLocationActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, ActivityCompat.OnRequestPermissionsResultCallback {
 
-    SupportMapFragment mapFragment;
-    LatLng position;
-    RelativeLayout sendLocation;
-    private LinearLayout layout;
-    public Snackbar snackbar;
-    Location mCurrentLocation;
-    protected GoogleApiClient googleApiClient;
-    private LocationRequest locationRequest;
     public static final int LOCATION_SERVICE_ENABLE = 1001;
     protected static final long UPDATE_INTERVAL = 5;
     protected static final long FASTEST_INTERVAL = 1;
+    public Snackbar snackbar;
+    protected GoogleApiClient googleApiClient;
+    SupportMapFragment mapFragment;
+    LatLng position;
+    RelativeLayout sendLocation;
+    Location mCurrentLocation;
+    private LinearLayout layout;
+    private LocationRequest locationRequest;
     private ConnectivityReceiver connectivityReceiver;
 
     @Override
@@ -156,7 +156,7 @@ public class MobicomLocationActivity extends AppCompatActivity implements OnMapR
     @Override
     protected void onStart() {
         super.onStart();
-        if(googleApiClient != null){
+        if (googleApiClient != null) {
             googleApiClient.connect();
         }
     }
@@ -165,7 +165,7 @@ public class MobicomLocationActivity extends AppCompatActivity implements OnMapR
     @Override
     protected void onStop() {
         super.onStop();
-        if(googleApiClient != null){
+        if (googleApiClient != null) {
             googleApiClient.disconnect();
         }
     }
@@ -233,11 +233,11 @@ public class MobicomLocationActivity extends AppCompatActivity implements OnMapR
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        try{
-            if(connectivityReceiver != null){
+        try {
+            if (connectivityReceiver != null) {
                 unregisterReceiver(connectivityReceiver);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

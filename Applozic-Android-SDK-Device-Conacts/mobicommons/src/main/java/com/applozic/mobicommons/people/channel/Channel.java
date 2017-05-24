@@ -1,5 +1,6 @@
 package com.applozic.mobicommons.people.channel;
 
+import com.applozic.mobicommons.json.JsonMarker;
 import com.applozic.mobicommons.people.contact.Contact;
 import com.google.gson.annotations.Expose;
 
@@ -7,14 +8,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 /**
  * Created by devashish on 5/9/14.
  */
-public class Channel implements Serializable {
+public class Channel extends JsonMarker {
 
+    private Map<String, String> metadata = new HashMap<>();
     private Integer key;
     private String clientGroupId;
     private String name;
@@ -35,7 +39,7 @@ public class Channel implements Serializable {
 
     }
 
-    public Channel(Integer key, String name, String adminKey, Short type,int unreadCount,String imageUrl) {
+    public Channel(Integer key, String name, String adminKey, Short type, int unreadCount, String imageUrl) {
         this.key = key;
         this.name = name;
         this.adminKey = adminKey;
@@ -142,11 +146,8 @@ public class Channel implements Serializable {
         this.clientGroupId = clientGroupId;
     }
 
-    public boolean isBroadcastMessage(){
+    public boolean isBroadcastMessage() {
         return type.equals(GroupType.BROADCAST.getValue()) || type.equals(GroupType.BROADCAST_ONE_BY_ONE.getValue());
-    }
-    public void setNotificationAfterTime(Long notificationAfterTime) {
-        this.notificationAfterTime = notificationAfterTime;
     }
 
     public Long getDeletedAtTime() {
@@ -161,14 +162,42 @@ public class Channel implements Serializable {
         return notificationAfterTime;
     }
 
+    public void setNotificationAfterTime(Long notificationAfterTime) {
+        this.notificationAfterTime = notificationAfterTime;
+    }
+
     public boolean isNotificationMuted() {
-        Date date= Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTime();
-        return (getNotificationAfterTime()!=null) && (getNotificationAfterTime()-date.getTime()>0);
+        Date date = Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTime();
+        return (getNotificationAfterTime() != null) && (getNotificationAfterTime() - date.getTime() > 0);
 
     }
 
-    public boolean isDeleted(){
-        return (deletedAtTime!=null && deletedAtTime >0 );
+    public boolean isDeleted() {
+        return (deletedAtTime != null && deletedAtTime > 0);
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    @Override
+    public String toString() {
+        return "Channel{" +
+                "key=" + key +
+                ", name='" + name + '\'' +
+                ", adminKey='" + adminKey + '\'' +
+                ", type=" + type +
+                ", unreadCount=" + unreadCount +
+                ", userCount=" + userCount +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", localImageUri='" + localImageUri + '\'' +
+                ", conversationPxy=" + conversationPxy +
+                ", contacts=" + contacts +
+                '}';
     }
 
     public enum GroupType {
@@ -192,21 +221,5 @@ public class Channel implements Serializable {
         public Short getValue() {
             return value.shortValue();
         }
-    }
-
-    @Override
-    public String toString() {
-        return "Channel{" +
-                "key=" + key +
-                ", name='" + name + '\'' +
-                ", adminKey='" + adminKey + '\'' +
-                ", type=" + type +
-                ", unreadCount=" + unreadCount +
-                ", userCount=" + userCount +
-                ", imageUrl='" + imageUrl + '\'' +
-                ", localImageUri='" + localImageUri + '\'' +
-                ", conversationPxy=" + conversationPxy +
-                ", contacts=" + contacts +
-                '}';
     }
 }

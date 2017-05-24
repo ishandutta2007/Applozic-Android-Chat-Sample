@@ -58,6 +58,9 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
     compile project(':mobicomkitui') //Note: use this for customization
     //compile 'com.applozic.communication.uiwidget:mobicomkitui:4.64' //Note:use this in case customization is not required
     compile 'com.android.support:support-v4:25.1.1'

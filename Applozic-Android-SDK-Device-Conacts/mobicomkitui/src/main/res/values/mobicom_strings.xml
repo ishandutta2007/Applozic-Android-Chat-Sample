@@ -115,7 +115,7 @@
     <string name="edit">Edit</string>
     <string name="confirm">Confirm</string>
     <string name="skip">Skip</string>
-    <string name ="you_string">You</string>
+    <string name="you_string">You</string>
 
     <string name="view_option_string">View</string>
     <string name="message_option_string">Message</string>
@@ -124,8 +124,8 @@
     <string name="applozic_free_version_not_allowed_on_release_build">Please contact Applozic to activate chat in your app</string>
     <string name="quick_conversation_loading">loading conversation..</string>
     <string name="alert_for_empty_message">Do you want to send a message without text?</string>
-    <string name ="yes_alert">Yes</string>
-    <string name ="subtitle_last_seen_at_time">Last seen</string>
+    <string name="yes_alert">Yes</string>
+    <string name="subtitle_last_seen_at_time">Last seen</string>
     <string name="is_typing">is typing...</string>
     <string name="user_online">Online</string>
     <string name="removing_channel_user">Removing....</string>
@@ -173,5 +173,6 @@
     <string name="applozic_channel_error_info_in_logs">Please check group name is Null or Empty or it has at least one member to be added in group</string>
     <string name="applozic_add_user_to_multiple_channel_error_info_in_logs">UserId can not be null or empty and Channel key list should not be null</string>
     <string name="video_string">Video</string>
+    <string name="user_logout_info">Logout successful</string>
 
 </resources>

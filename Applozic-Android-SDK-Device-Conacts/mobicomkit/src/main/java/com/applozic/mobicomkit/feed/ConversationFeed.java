@@ -1,17 +1,21 @@
 package com.applozic.mobicomkit.feed;
 
 import com.applozic.mobicommons.json.JsonMarker;
-import com.applozic.mobicomkit.sync.SyncUserBlockListFeed;
+import com.applozic.mobicommons.people.channel.Conversation;
+
+import java.util.List;
 
 /**
- * Created by sunil on 17/3/16.
+ * Created by ninu on 27/04/17.
  */
-public class SyncBlockUserApiResponse extends JsonMarker {
 
-    public static final String SUCCESS = "success";
+public class ConversationFeed extends JsonMarker {
+
+    private static final String SUCCESS = "success";
     private String status;
     private String generatedAt;
-    private SyncUserBlockListFeed response;
+    private Conversation response;
+    private List<ErrorResponseFeed> errorResponse;
 
     public String getStatus() {
         return status;
@@ -29,27 +33,33 @@ public class SyncBlockUserApiResponse extends JsonMarker {
         this.generatedAt = generatedAt;
     }
 
-    public SyncUserBlockListFeed getResponse() {
+    public Object getResponse() {
         return response;
     }
 
-    public void setResponse(SyncUserBlockListFeed response) {
+    public void setResponse(Conversation response) {
         this.response = response;
     }
-
 
     public boolean isSuccess() {
         return SUCCESS.equals(status);
     }
 
+    public List<ErrorResponseFeed> getErrorResponse() {
+        return errorResponse;
+    }
+
+    public void setErrorResponse(List<ErrorResponseFeed> errorResponse) {
+        this.errorResponse = errorResponse;
+    }
 
     @Override
     public String toString() {
-        return "ApiResponse{" +
+        return "ConversationFeed{" +
                 "status='" + status + '\'' +
                 ", generatedAt='" + generatedAt + '\'' +
-                ", response='" + response + '\'' +
+                ", response=" + response +
+                ", errorResponse=" + errorResponse +
                 '}';
     }
-
 }

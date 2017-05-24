@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicommons.commons.image.ImageUtils;
@@ -25,17 +26,16 @@ import java.util.ArrayList;
 public class MobiComAttachmentGridViewAdapter extends BaseAdapter {
 
     public static final int REQUEST_CODE = 100;
-    private Context context;
-    private ArrayList<Uri> uris;
-
     ImageButton deleteButton;
     ImageView galleryImageView;
     TextView fileSize;
     ImageView attachmentImageView;
     TextView fileName;
     AlCustomizationSettings alCustomizationSettings;
+    private Context context;
+    private ArrayList<Uri> uris;
 
-    public MobiComAttachmentGridViewAdapter(Context context, ArrayList<Uri> uris,AlCustomizationSettings alCustomizationSettings) {
+    public MobiComAttachmentGridViewAdapter(Context context, ArrayList<Uri> uris, AlCustomizationSettings alCustomizationSettings) {
         this.context = context;
         this.alCustomizationSettings = alCustomizationSettings;
         this.uris = uris;
@@ -73,12 +73,12 @@ public class MobiComAttachmentGridViewAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
 
-                if(position<getCount()-1){
+                if (position < getCount() - 1) {
                     return;
                 }
 
-                if( getCount()> alCustomizationSettings.getMaxAttachmentAllowed()){
-                    Toast.makeText(context,R.string.mobicom_max_attachment_warning,Toast.LENGTH_LONG).show();
+                if (getCount() > alCustomizationSettings.getMaxAttachmentAllowed()) {
+                    Toast.makeText(context, R.string.mobicom_max_attachment_warning, Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -104,17 +104,17 @@ public class MobiComAttachmentGridViewAdapter extends BaseAdapter {
             deleteButton.setVisibility(View.VISIBLE);
 
         }
-        try{
+        try {
             Uri uri = (Uri) getItem(position);
-            Bitmap previewBitmap = ImageUtils.getPreview(context,uri);
+            Bitmap previewBitmap = ImageUtils.getPreview(context, uri);
             if (previewBitmap != null) {
                 setGalleryView(previewBitmap);
             } else {
                 setAttachmentView(uri);
             }
-            fileSize.setText(FileUtils.getSize(context,uri));
+            fileSize.setText(FileUtils.getSize(context, uri));
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -125,7 +125,7 @@ public class MobiComAttachmentGridViewAdapter extends BaseAdapter {
     private void setAttachmentView(Uri uri) {
         attachmentImageView.setVisibility(View.VISIBLE);
         fileName.setVisibility(View.VISIBLE);
-        fileName.setText(FileUtils.getFileName(context,uri));
+        fileName.setText(FileUtils.getFileName(uri));
         galleryImageView.setImageBitmap(null);
     }
 

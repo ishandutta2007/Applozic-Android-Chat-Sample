@@ -141,15 +141,15 @@ public class ChannelClientService extends MobiComKitClientService {
 
 
     public ApiResponse muteNotification(MuteNotificationRequest muteNotificationRequest) {
-        ApiResponse apiResponse=null;
+        ApiResponse apiResponse = null;
 
         try {
             if (muteNotificationRequest.isRequestValid()) {
                 String requestJson = GsonUtils.getJsonFromObject(muteNotificationRequest, MuteNotificationRequest.class);
-                String response = httpRequestUtils.postData(getMuteChannelUrl() , "application/json", "application/json", requestJson);
+                String response = httpRequestUtils.postData(getMuteChannelUrl(), "application/json", "application/json", requestJson);
                 apiResponse = (ApiResponse) GsonUtils.getObjectFromJson(response, ApiResponse.class);
 
-                if(apiResponse != null){
+                if (apiResponse != null) {
                     Log.i(TAG, "Mute notification response: " + apiResponse.getStatus());
                 }
 
@@ -197,7 +197,8 @@ public class ChannelClientService extends MobiComKitClientService {
     public List<ChannelFeed> createMultipleChannels(List<ChannelInfo> channels) {
         List<ChannelFeed> channelFeeds = null;
         try {
-            String jsonFromObject = GsonUtils.getJsonFromObject(channels, new TypeToken<List<ChannelInfo>>() {}.getType());
+            String jsonFromObject = GsonUtils.getJsonFromObject(channels, new TypeToken<List<ChannelInfo>>() {
+            }.getType());
             String createChannelResponse = httpRequestUtils.postData(getCreateMultipleChannelUrl(), "application/json", "application/json", jsonFromObject);
             Log.i(TAG, "Create Multiple channel Response :" + createChannelResponse);
             MultipleChannelFeedApiResponse channelFeedApiResponse = (MultipleChannelFeedApiResponse) GsonUtils.getObjectFromJson(createChannelResponse, MultipleChannelFeedApiResponse.class);
@@ -213,29 +214,29 @@ public class ChannelClientService extends MobiComKitClientService {
         return channelFeeds;
     }
 
-    public ApiResponse removeMembersFromMultipleChannelsByChannelKeys(Set<Integer> channelKeys, Set<String> userIds){
-        return removeMembersFromMultipleChannels(null,channelKeys, userIds);
+    public ApiResponse removeMembersFromMultipleChannelsByChannelKeys(Set<Integer> channelKeys, Set<String> userIds) {
+        return removeMembersFromMultipleChannels(null, channelKeys, userIds);
     }
 
-    public ApiResponse removeMembersFromMultipleChannelsByClientGroupIds(Set<String> clientGroupIds, Set<String> userIds){
-        return removeMembersFromMultipleChannels(clientGroupIds,null, userIds);
+    public ApiResponse removeMembersFromMultipleChannelsByClientGroupIds(Set<String> clientGroupIds, Set<String> userIds) {
+        return removeMembersFromMultipleChannels(clientGroupIds, null, userIds);
     }
 
-    private  ApiResponse removeMembersFromMultipleChannels(Set<String> clientGroupIds, Set<Integer> channelKeys, Set<String> userIds) {
+    private ApiResponse removeMembersFromMultipleChannels(Set<String> clientGroupIds, Set<Integer> channelKeys, Set<String> userIds) {
         ApiResponse apiResponse = null;
         try {
-            if (userIds != null && userIds.size()>0) {
+            if (userIds != null && userIds.size() > 0) {
                 String parameters = "";
-                if(clientGroupIds != null && clientGroupIds.size()>0){
+                if (clientGroupIds != null && clientGroupIds.size() > 0) {
                     for (String clientGroupId : clientGroupIds) {
                         parameters += CLIENT_GROUPIDs + "=" + URLEncoder.encode(clientGroupId, "UTF-8") + "&";
                     }
-                } else if(channelKeys != null && channelKeys.size()>0){
+                } else if (channelKeys != null && channelKeys.size() > 0) {
                     for (Integer channelKey : channelKeys) {
                         parameters += GROUPIDS + "=" + channelKey + "&";
                     }
                 }
-                for(String userId:userIds){
+                for (String userId : userIds) {
                     parameters += USER_ID + "=" + URLEncoder.encode(userId, "UTF-8") + "&";
                 }
                 String url = getRemoveMembersFromMultipChannels() + "?" + parameters;
@@ -257,11 +258,11 @@ public class ChannelClientService extends MobiComKitClientService {
         try {
             if (!TextUtils.isEmpty(userId)) {
                 String parameters = "";
-                if(clientGroupIds != null && clientGroupIds.size()>0){
+                if (clientGroupIds != null && clientGroupIds.size() > 0) {
                     for (String clientGroupId : clientGroupIds) {
                         parameters += CLIENT_GROUPIDs + "=" + URLEncoder.encode(clientGroupId, "UTF-8") + "&";
                     }
-                }else {
+                } else {
                     for (Integer channelKey : channelKeys) {
                         parameters += GROUPIDS + "=" + channelKey + "&";
                     }
@@ -295,12 +296,12 @@ public class ChannelClientService extends MobiComKitClientService {
             } else {
                 parameters = GROUP_ID + "=" + channelKey;
             }
-            if (!TextUtils.isEmpty(parameters) && !TextUtils.isEmpty(userId) ) {
+            if (!TextUtils.isEmpty(parameters) && !TextUtils.isEmpty(userId)) {
                 String url = getAddMemberToGroup() + "?" +
                         parameters + "&" + USER_ID + "=" + URLEncoder.encode(userId, "UTF-8");
                 String response = httpRequestUtils.getResponse(url, "application/json", "application/json");
                 ApiResponse apiResponse = (ApiResponse) GsonUtils.getObjectFromJson(response, ApiResponse.class);
-                if(apiResponse != null){
+                if (apiResponse != null) {
                     Log.i(TAG, "Channel add member call response: " + apiResponse.getStatus());
                 }
                 return apiResponse;
@@ -328,12 +329,12 @@ public class ChannelClientService extends MobiComKitClientService {
             } else {
                 parameters = GROUP_ID + "=" + channelKey;
             }
-            if (!TextUtils.isEmpty(parameters) &&  !TextUtils.isEmpty(userId) ) {
+            if (!TextUtils.isEmpty(parameters) && !TextUtils.isEmpty(userId)) {
                 String url = getRemoveMemberUrl() + "?" +
                         parameters + "&" + USER_ID + "=" + URLEncoder.encode(userId, "UTF-8");
                 String response = httpRequestUtils.getResponse(url, "application/json", "application/json");
                 apiResponse = (ApiResponse) GsonUtils.getObjectFromJson(response, ApiResponse.class);
-                if(apiResponse != null){
+                if (apiResponse != null) {
                     Log.i(TAG, "Channel remove member response: " + apiResponse.getStatus());
                 }
             }
@@ -356,9 +357,9 @@ public class ChannelClientService extends MobiComKitClientService {
         try {
             if (groupInfoUpdate != null && (!TextUtils.isEmpty(groupInfoUpdate.getClientGroupId()) || groupInfoUpdate.getGroupId() != null) && (!TextUtils.isEmpty(groupInfoUpdate.getNewName()) || TextUtils.isEmpty(groupInfoUpdate.getImageUrl()) || !TextUtils.isEmpty(groupInfoUpdate.getImageUrl()))) {
                 String channelNameUpdateJson = GsonUtils.getJsonFromObject(groupInfoUpdate, GroupInfoUpdate.class);
-                String response = httpRequestUtils.postData(getChannelUpdateUrl() , "application/json", "application/json", channelNameUpdateJson);
+                String response = httpRequestUtils.postData(getChannelUpdateUrl(), "application/json", "application/json", channelNameUpdateJson);
                 apiResponse = (ApiResponse) GsonUtils.getObjectFromJson(response, ApiResponse.class);
-                if(apiResponse != null){
+                if (apiResponse != null) {
                     Log.i(TAG, "Update Channel response: " + apiResponse.getStatus());
                 }
             }
@@ -390,7 +391,7 @@ public class ChannelClientService extends MobiComKitClientService {
                 String url = getChannelLeftUrl() + "?" + parameters;
                 String response = httpRequestUtils.getResponse(url, "application/json", "application/json");
                 apiResponse = (ApiResponse) GsonUtils.getObjectFromJson(response, ApiResponse.class);
-                if(apiResponse != null){
+                if (apiResponse != null) {
                     Log.i(TAG, "Channel leave member call response: " + apiResponse.getStatus());
                 }
             }
@@ -408,7 +409,7 @@ public class ChannelClientService extends MobiComKitClientService {
                         + "=" + URLEncoder.encode(String.valueOf(channelKey), "UTF-8");
                 String response = httpRequestUtils.getResponse(url, "application/json", "application/json");
                 ApiResponse apiResponse = (ApiResponse) GsonUtils.getObjectFromJson(response, ApiResponse.class);
-                if(apiResponse != null){
+                if (apiResponse != null) {
                     Log.i(TAG, "Channel delete call response: " + apiResponse.getStatus());
                 }
                 return apiResponse;
@@ -425,14 +426,14 @@ public class ChannelClientService extends MobiComKitClientService {
             String jsonFromObject = GsonUtils.getJsonFromObject(channelInfo, channelInfo.getClass());
             String createChannelResponse = httpRequestUtils.postData(getCreateChannelUrl(), "application/json", "application/json", jsonFromObject);
             Log.i(TAG, "Create channel Response :" + createChannelResponse);
-            if(TextUtils.isEmpty(createChannelResponse)){
+            if (TextUtils.isEmpty(createChannelResponse)) {
                 return null;
             }
             return (ChannelFeedApiResponse) GsonUtils.getObjectFromJson(createChannelResponse, ChannelFeedApiResponse.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return  null;
+        return null;
     }
 
 }

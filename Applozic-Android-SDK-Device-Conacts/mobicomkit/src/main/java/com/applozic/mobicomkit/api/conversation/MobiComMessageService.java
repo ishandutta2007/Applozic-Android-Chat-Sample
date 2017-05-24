@@ -67,24 +67,24 @@ public class MobiComMessageService {
         this.messageIntentServiceClass = messageIntentServiceClass;
         //Todo: this can be changed to DeviceContactService for device contacts usage.
         this.baseContactService = new AppContactService(context);
-        fileClientService =  new FileClientService(context);;
+        fileClientService = new FileClientService(context);
         this.userService = UserService.getInstance(context);
     }
 
     public Message processMessage(final Message messageToProcess, String tofield) {
         try {
-            if(!TextUtils.isEmpty(ApplozicClient.getInstance(context).getMessageMetaDataServiceName())){
+            if (!TextUtils.isEmpty(ApplozicClient.getInstance(context).getMessageMetaDataServiceName())) {
                 Class serviceName = Class.forName(ApplozicClient.getInstance(context).getMessageMetaDataServiceName());
-                Intent intentService = new Intent(context,serviceName);
-                if(Message.MetaDataType.HIDDEN.getValue().equals(messageToProcess.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
-                    intentService.putExtra(MobiComKitConstants.MESSAGE,messageToProcess);
-                    intentService.putExtra(MobiComKitConstants.HIDDEN,true);
+                Intent intentService = new Intent(context, serviceName);
+                if (Message.MetaDataType.HIDDEN.getValue().equals(messageToProcess.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))) {
+                    intentService.putExtra(MobiComKitConstants.MESSAGE, messageToProcess);
+                    intentService.putExtra(MobiComKitConstants.HIDDEN, true);
                     context.startService(intentService);
                     return null;
-                }else if(Message.MetaDataType.PUSHNOTIFICATION.getValue().equals(messageToProcess.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
+                } else if (Message.MetaDataType.PUSHNOTIFICATION.getValue().equals(messageToProcess.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))) {
                     BroadcastService.sendNotificationBroadcast(context, messageToProcess);
-                    intentService.putExtra(MobiComKitConstants.MESSAGE,messageToProcess);
-                    intentService.putExtra(MobiComKitConstants.PUSH_NOTIFICATION,true);
+                    intentService.putExtra(MobiComKitConstants.MESSAGE, messageToProcess);
+                    intentService.putExtra(MobiComKitConstants.PUSH_NOTIFICATION, true);
                     context.startService(intentService);
                     return null;
                 }
@@ -94,22 +94,25 @@ public class MobiComMessageService {
         }
         Message message = prepareMessage(messageToProcess, tofield);
         //download contacts in advance.
-        if(message.getGroupId() != null){
-            ChannelService.getInstance(context).getChannelInfo(message.getGroupId());
+        if (message.getGroupId() != null) {
+            Channel channel = ChannelService.getInstance(context).getChannelInfo(message.getGroupId());
+            if (channel == null) {
+                return null;
+            }
         }
-        if(message.getContentType()== Message.ContentType.CONTACT_MSG.getValue()){
+        if (message.getContentType() == Message.ContentType.CONTACT_MSG.getValue()) {
             fileClientService.loadContactsvCard(message);
         }
 
         if (message.getType().equals(Message.MessageType.MT_INBOX.getValue())) {
             addMTMessage(message);
-        }  else if (message.getType().equals(Message.MessageType.MT_OUTBOX.getValue())) {
+        } else if (message.getType().equals(Message.MessageType.MT_OUTBOX.getValue())) {
             BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
             messageDatabaseService.createMessage(message);
             if (!message.getCurrentId().equals(BroadcastService.currentUserId)) {
                 MobiComUserPreference.getInstance(context).setNewMessageFlag(true);
             }
-            if(message.isVideoNotificationMessage()) {
+            if (message.isVideoNotificationMessage()) {
                 Log.i(TAG, "Got notifications for Video call...");
                 VideoCallNotificationHelper helper = new VideoCallNotificationHelper(context);
                 helper.handleVideoCallNotificationMessages(message);
@@ -128,7 +131,7 @@ public class MobiComMessageService {
 
         if (message.getMessage() != null && PersonalizedMessage.isPersonalized(message.getMessage())) {
             Contact contact = null;
-            if(message.getGroupId() == null){
+            if (message.getGroupId() == null) {
                 contact = baseContactService.getContactById(tofield);
             }
             if (contact != null) {
@@ -144,7 +147,7 @@ public class MobiComMessageService {
         message.processContactIds(context);
 
         String currentId = message.getCurrentId();
-        if(message.getGroupId() == null){
+        if (message.getGroupId() == null) {
             receiverContact = baseContactService.getContactById(message.getContactIds());
         }
 
@@ -154,43 +157,49 @@ public class MobiComMessageService {
 
         messageDatabaseService.createMessage(message);
 
-        BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
-
         //Check if we are........container is already opened...don't send broadcast
         boolean isContainerOpened;
-        if(message.getConversationId() != null && BroadcastService.isContextBasedChatEnabled()){
-            if(BroadcastService.currentConversationId == null){
+        if (message.getConversationId() != null && BroadcastService.isContextBasedChatEnabled()) {
+            if (BroadcastService.currentConversationId == null) {
                 BroadcastService.currentConversationId = message.getConversationId();
             }
             isContainerOpened = (currentId.equals(BroadcastService.currentUserId) && message.getConversationId().equals(BroadcastService.currentConversationId));
-        }else {
+        } else {
             isContainerOpened = currentId.equals(BroadcastService.currentUserId);
         }
-        if(message.isVideoNotificationMessage()) {
+        if (message.isVideoNotificationMessage()) {
             Log.i(TAG, "Got notifications for Video call...");
+            BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
 
             VideoCallNotificationHelper helper = new VideoCallNotificationHelper(context);
             helper.handleVideoCallNotificationMessages(message);
 
-        }else if(message.isVideoCallMessage()) {
-            VideoCallNotificationHelper.buildVideoCallNotification(context,message);
-        }else if (!isContainerOpened) {
-            if(message.isConsideredForCount()){
-                if(message.getTo() != null && message.getGroupId() == null){
+        } else if (message.isVideoCallMessage()) {
+            BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
+            VideoCallNotificationHelper.buildVideoCallNotification(context, message);
+        } else if (!isContainerOpened) {
+            if (message.isConsideredForCount()) {
+                if (message.getTo() != null && message.getGroupId() == null) {
                     messageDatabaseService.updateContactUnreadCount(message.getTo());
+                    BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
                     sendNotification(message);
                 }
-                if(message.getGroupId() != null && !Message.GroupMessageMetaData.FALSE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.KEY.getValue()))){
-                    if(!Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())) {
+                if (message.getGroupId() != null && !Message.GroupMessageMetaData.FALSE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.KEY.getValue()))) {
+                    if (!Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())) {
                         messageDatabaseService.updateChannelUnreadCount(message.getGroupId());
                     }
-                    Channel currentChannel= ChannelService.getInstance(context).getChannelInfo(message.getGroupId());
-                    if(!currentChannel.isNotificationMuted()) {
+                    BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
+                    Channel currentChannel = ChannelService.getInstance(context).getChannelInfo(message.getGroupId());
+                    if (currentChannel != null && !currentChannel.isNotificationMuted()) {
                         sendNotification(message);
                     }
                 }
                 MobiComUserPreference.getInstance(context).setNewMessageFlag(true);
+            } else {
+                BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
             }
+        } else {
+            BroadcastService.sendMessageUpdateBroadcast(context, BroadcastService.INTENT_ACTIONS.SYNC_MESSAGE.toString(), message);
         }
 
         Log.i(TAG, "Updating delivery status: " + message.getPairedMessageKeyString() + ", " + userPreferences.getUserId() + ", " + userPreferences.getContactNumber());
@@ -198,7 +207,7 @@ public class MobiComMessageService {
         return receiverContact;
     }
 
-    public void sendNotification(Message message){
+    public void sendNotification(Message message) {
         BroadcastService.sendNotificationBroadcast(context, message);
         Intent intent = new Intent(MobiComKitConstants.APPLOZIC_UNREAD_COUNT);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
@@ -208,7 +217,7 @@ public class MobiComMessageService {
         final MobiComUserPreference userpref = MobiComUserPreference.getInstance(context);
         Log.i(TAG, "Starting syncMessages for lastSyncTime: " + userpref.getLastSyncTime());
         SyncMessageFeed syncMessageFeed = messageClientService.getMessageFeed(userpref.getLastSyncTime());
-        if(syncMessageFeed == null){
+        if (syncMessageFeed == null) {
             return;
         }
         if (syncMessageFeed != null && syncMessageFeed.getMessages() != null) {
@@ -227,17 +236,13 @@ public class MobiComMessageService {
             List<Message> messageList = syncMessageFeed.getMessages();
 
             for (final Message message : messageList) {
-                String[] toList = message.getTo().trim().replace("undefined,", "").split(",");
-
-                if(Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())){
+                if (Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())) {
                     ChannelService.getInstance(context).syncChannels();
                     //Todo: fix this, what if there are mulitple messages.
                     ChannelService.isUpdateTitle = true;
                 }
-                for (String tofield : toList) {
-                    processMessage(message, tofield);
-                    MobiComUserPreference.getInstance(context).setLastInboxSyncTime(message.getCreatedAtTime());
-                }
+                processMessage(message, message.getTo());
+                MobiComUserPreference.getInstance(context).setLastInboxSyncTime(message.getCreatedAtTime());
             }
 
             updateDeliveredStatus(syncMessageFeed.getDeliveredMessageKeys());
@@ -245,8 +250,8 @@ public class MobiComMessageService {
         }
     }
 
-    public MessageInfoResponse getMessageInfoResponse(String messageKey){
-        MessageInfoResponse messageInfoResponse =  messageClientService.getMessageInfoList(messageKey);
+    public MessageInfoResponse getMessageInfoResponse(String messageKey) {
+        MessageInfoResponse messageInfoResponse = messageClientService.getMessageInfoList(messageKey);
         return messageInfoResponse;
 
     }
@@ -255,7 +260,7 @@ public class MobiComMessageService {
         if (deliveredMessageKeys == null) {
             return;
         }
-        for (String messageKey: deliveredMessageKeys) {
+        for (String messageKey : deliveredMessageKeys) {
             messageDatabaseService.updateMessageDeliveryReportForContact(messageKey, false);
             Message message = messageDatabaseService.getMessage(messageKey);
             if (message != null) {
@@ -281,7 +286,7 @@ public class MobiComMessageService {
     public void processContactFromMessages(List<Message> messages) {
         try {
 
-            if(!ApplozicClient.getInstance(context).isHandleDisplayName()){
+            if (!ApplozicClient.getInstance(context).isHandleDisplayName()) {
                 return;
             }
             Set<String> userIds = new HashSet<String>();
@@ -319,7 +324,7 @@ public class MobiComMessageService {
 
     public void processUserDetailFromMessages(List<Message> messages) {
         try {
-            if(!ApplozicClient.getInstance(context).isHandleDisplayName()){
+            if (!ApplozicClient.getInstance(context).isHandleDisplayName()) {
                 return;
             }
             Set<String> userIds = new HashSet<String>();
@@ -414,8 +419,8 @@ public class MobiComMessageService {
         conversationService.sendMessage(message, messageIntentServiceClass);
     }
 
-    public synchronized void updateDeliveryStatusForContact(String contactId,boolean markRead) {
-        int rows = messageDatabaseService.updateMessageDeliveryReportForContact(contactId,markRead);
+    public synchronized void updateDeliveryStatusForContact(String contactId, boolean markRead) {
+        int rows = messageDatabaseService.updateMessageDeliveryReportForContact(contactId, markRead);
         Log.i(TAG, "Updated delivery report of " + rows + " messages for contactId: " + contactId);
 
         if (rows > 0) {
@@ -425,17 +430,17 @@ public class MobiComMessageService {
         }
     }
 
-    public synchronized void updateDeliveryStatus(String key,boolean markRead) {
+    public synchronized void updateDeliveryStatus(String key, boolean markRead) {
         //Todo: Check if this is possible? In case the delivery report reaches before the sms is reached, then wait for the sms.
         Log.i(TAG, "Got the delivery report for key: " + key);
         String keyParts[] = key.split((","));
         Message message = messageDatabaseService.getMessage(keyParts[0]);
-        if (message != null && (message.getStatus()!= Message.Status.DELIVERED_AND_READ.getValue())) {
+        if (message != null && (message.getStatus() != Message.Status.DELIVERED_AND_READ.getValue())) {
             message.setDelivered(Boolean.TRUE);
 
-            if(markRead){
+            if (markRead) {
                 message.setStatus(Message.Status.DELIVERED_AND_READ.getValue());
-            }else{
+            } else {
                 message.setStatus(Message.Status.DELIVERED.getValue());
             }
             //Todo: Server need to send the contactNumber of the receiver in case of group messaging and update

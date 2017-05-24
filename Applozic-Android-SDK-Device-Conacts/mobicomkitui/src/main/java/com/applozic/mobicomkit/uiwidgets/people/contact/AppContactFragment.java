@@ -72,6 +72,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class AppContactFragment extends ListFragment implements SearchListFragment,
         AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
+    static final String AL_CUSTOMIZATION_SETTINGS = "alCustomizationSettings";
     // Defines a tag for identifying log entries
     private static final String TAG = "AppContactFragment";
     private static final String SHARE_TEXT = "share_text";
@@ -82,11 +83,9 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
     private ContactsAdapter mAdapter; // The main query adapter
     private ImageLoader mImageLoader; // Handles loading the contact image in a background thread
     private String mSearchTerm; // Stores the current search query term
-
     // Contact selected listener that allows the activity holding this fragment to be notified of
 // a contact being selected
     private OnContactsInteractionListener mOnContactSelectedListener;
-
     // Stores the previously selected search item so that on a configuration change the same item
 // can be reselected again
     private int mPreviouslySelectedSearchItem = 0;
@@ -136,10 +135,10 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
         userPreference = MobiComUserPreference.getInstance(getContext());
         inviteMessage = Utils.getMetaDataValue(getActivity().getApplicationContext(), SHARE_TEXT);
         if (savedInstanceState != null) {
-
             mSearchTerm = savedInstanceState.getString(SearchManager.QUERY);
             mPreviouslySelectedSearchItem =
                     savedInstanceState.getInt(STATE_PREVIOUSLY_SELECTED_KEY, 0);
+            alCustomizationSettings = (AlCustomizationSettings) savedInstanceState.getSerializable(AL_CUSTOMIZATION_SETTINGS);
         }
         final Context context = getActivity().getApplicationContext();
         mImageLoader = new ImageLoader(context, getListPreferredItemHeight()) {
@@ -222,12 +221,14 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
             @Override
             public void onScroll(AbsListView absListView, int firstVisibleItem, int visibleItemCount, int totalItemsCount) {
                 if (alCustomizationSettings.isRegisteredUserContactListCall() && Utils.isInternetAvailable(getActivity().getApplicationContext())) {
-
                     if (totalItemsCount < previousTotalItemCount) {
                         currentPage = startingPageIndex;
                         previousTotalItemCount = totalItemsCount;
                         if (totalItemsCount == 0) {
                             loading = true;
+                        } else {
+                            loading = false;
+
                         }
                     }
 
@@ -235,6 +236,14 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
                         loading = false;
                         previousTotalItemCount = totalItemsCount;
                         currentPage++;
+                    }
+
+                    if (totalItemsCount - visibleItemCount == 0) {
+                        return;
+                    }
+
+                    if (totalItemsCount <= 5) {
+                        return;
                     }
 
                     if (!loading && (totalItemsCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
@@ -329,6 +338,9 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
             // Saves the current search string
             outState.putString(SearchManager.QUERY, mSearchTerm);
         }
+        if (alCustomizationSettings != null) {
+            outState.putSerializable(AL_CUSTOMIZATION_SETTINGS, alCustomizationSettings);
+        }
     }
 
     @Override
@@ -345,7 +357,7 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
         mAdapter.indexOfSearchQuery(newFilter);
 
         getLoaderManager().restartLoader(
-                ContactsQuery.QUERY_ID, null, AppContactFragment.this);
+                AppContactFragment.ContactsQuery.QUERY_ID, null, AppContactFragment.this);
 
         return true;
     }
@@ -408,7 +420,6 @@ public class AppContactFragment extends ListFragment implements SearchListFragme
         int QUERY_ID = 1;
 
     }
-
 
     /**
      * This is a subclass of CursorAdapter that supports binding Cursor columns to a view layout.

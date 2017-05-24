@@ -24,9 +24,8 @@ import java.io.FileOutputStream;
  */
 public class ImageUtils {
 
-    private static Context context;
-
     private static final String TAG = "ImageUtils";
+    private static Context context;
 
     public ImageUtils(Context context) {
         this.context = context;
@@ -79,7 +78,6 @@ public class ImageUtils {
     }
 
     /**
-     *
      * @param uri
      * @return
      */
@@ -101,7 +99,6 @@ public class ImageUtils {
         opts.inSampleSize = originalSize / 200;
         return BitmapFactory.decodeFile(filePath, opts);
     }
-
 
 
     public static Bitmap getImageRotatedBitmap(Bitmap bitmap, String filePath, int reqWidth, int reqHeight) {

@@ -25,10 +25,10 @@ import java.util.List;
  * Created by reytum on 19/3/16.
  */
 public class MultimediaOptionsGridView {
-    private Uri capturedImageUri;
     public PopupWindow showPopup;
     FragmentActivity context;
     GridView multimediaOptions;
+    private Uri capturedImageUri;
 
     public MultimediaOptionsGridView(FragmentActivity context, GridView multimediaOptions) {
         this.context = context;

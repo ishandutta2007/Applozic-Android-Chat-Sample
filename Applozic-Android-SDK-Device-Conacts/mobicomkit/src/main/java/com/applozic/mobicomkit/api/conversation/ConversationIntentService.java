@@ -21,8 +21,8 @@ import java.util.Set;
  */
 public class ConversationIntentService extends IntentService {
 
-    private static final String TAG = "ConversationIntent";
     public static final String SYNC = "AL_SYNC";
+    private static final String TAG = "ConversationIntent";
     private static final int PRE_FETCH_MESSAGES_FOR = 6;
     private MobiComMessageService mobiComMessageService;
 
@@ -59,21 +59,9 @@ public class ConversationIntentService extends IntentService {
         @Override
         public void run() {
             try {
-                UserService.getInstance(ConversationIntentService.this).processSyncUserBlock();
                 MobiComConversationService mobiComConversationService = new MobiComConversationService(ConversationIntentService.this);
                 List<Message> messages = mobiComConversationService.getLatestMessagesGroupByPeople();
-                for (Message message : messages.subList(0, Math.min(PRE_FETCH_MESSAGES_FOR, messages.size()))) {
-                    Contact contact = null;
-                    Channel channel = null;
-
-                    if (message.getGroupId() != null) {
-                        channel = new Channel(message.getGroupId());
-                    } else {
-                        contact = new Contact(message.getContactIds());
-                    }
-
-                    mobiComConversationService.getMessages(1L, null, contact, channel, null, true);
-                }
+                UserService.getInstance(ConversationIntentService.this).processSyncUserBlock();
 
                 Set<String> contactNoSet = new HashSet<String>();
                 List<Contact> contacts = new AppContactService(ConversationIntentService.this).getContacts(Contact.ContactType.DEVICE);
@@ -88,6 +76,19 @@ public class ConversationIntentService extends IntentService {
                     userService.processUserDetailsByContactNos(contactNoSet);
                 }
                 MobiComUserPreference.getInstance(ConversationIntentService.this).setDeviceContactSyncTime(new Date().getTime());
+                for (Message message : messages.subList(0, Math.min(PRE_FETCH_MESSAGES_FOR, messages.size()))) {
+                    Contact contact = null;
+                    Channel channel = null;
+
+                    if (message.getGroupId() != null) {
+                        channel = new Channel(message.getGroupId());
+                    } else {
+                        contact = new Contact(message.getContactIds());
+                    }
+
+                    mobiComConversationService.getMessages(1L, null, contact, channel, null, true);
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }

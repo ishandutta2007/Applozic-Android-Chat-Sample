@@ -10,6 +10,7 @@ import com.applozic.mobicomkit.api.conversation.database.ConversationDatabaseSer
 import com.applozic.mobicomkit.feed.ApiResponse;
 import com.applozic.mobicomkit.feed.ChannelFeed;
 import com.applozic.mobicomkit.feed.ChannelFeedApiResponse;
+import com.applozic.mobicomkit.feed.ConversationFeed;
 import com.applozic.mobicommons.json.GsonUtils;
 import com.applozic.mobicommons.people.channel.Conversation;
 
@@ -26,12 +27,12 @@ public class ConversationClientService extends MobiComKitClientService {
     private static final String CONVERSATION_CLOSE_TOPIC_ID_URL = "/rest/ws/conversation/closeall";
     private static final String CONVERSATION_CLOSE_URL = "/rest/ws/conversation/close";
     private static final String TAG = "ConversationClient";
+    final private static String TOPIC_ID = "topicId";
+    final private static String WITH_USER_ID = "withUserId";
     private static ConversationClientService conversationClientService;
     private Context context;
     private ConversationDatabaseService conversationDatabaseService;
     private HttpRequestUtils httpRequestUtils;
-    final private static String TOPIC_ID = "topicId";
-    final private static String WITH_USER_ID = "withUserId";
 
     private ConversationClientService(Context context) {
         super(context);
@@ -86,7 +87,7 @@ public class ConversationClientService extends MobiComKitClientService {
         try {
             if (conversationId != null) {
                 response = httpRequestUtils.getResponse(getConversationUrl() + "?id=" + String.valueOf(conversationId), "application/json", "application/json");
-                ApiResponse apiResponse = (ApiResponse) GsonUtils.getObjectFromJson(response, ApiResponse.class);
+                ConversationFeed apiResponse = (ConversationFeed) GsonUtils.getObjectFromJson(response, ConversationFeed.class);
                 Log.i(TAG, "Conversation response  is :" + response);
                 if (apiResponse != null && apiResponse.isSuccess()) {
                     return (Conversation) apiResponse.getResponse();

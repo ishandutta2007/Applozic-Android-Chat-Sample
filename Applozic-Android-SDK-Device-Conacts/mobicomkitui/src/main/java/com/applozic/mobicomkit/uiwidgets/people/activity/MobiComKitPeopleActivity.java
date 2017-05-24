@@ -46,39 +46,54 @@ import java.util.List;
 import java.util.Map;
 
 public class MobiComKitPeopleActivity extends AppCompatActivity implements OnContactsInteractionListener,
-        SearchView.OnQueryTextListener,TabLayout.OnTabSelectedListener  {
+        SearchView.OnQueryTextListener, TabLayout.OnTabSelectedListener {
 
     public static final String SHARED_TEXT = "SHARED_TEXT";
     public static final String FORWARD_MESSAGE = "forwardMessage";
+    public static final String USER_ID_ARRAY = "userIdArray";
     private static final String CONTACT_ID = "contactId";
     private static final String GROUP_ID = "groupId";
     private static final String GROUP_NAME = "groupName";
     private static final String USER_ID = "userId";
-    public static final String USER_ID_ARRAY = "userIdArray";
+    public static boolean isSearching = false;
     protected SearchView searchView;
     protected String searchTerm;
-    private SearchListFragment searchListFragment;
-    private boolean isSearchResultView = false;
     ViewPager viewPager;
     TabLayout tabLayout;
     ActionBar actionBar;
     String[] userIdArray;
-    public static boolean isSearching = false;
     AppContactFragment appContactFragment;
     ChannelFragment channelFragment;
     ViewPagerAdapter adapter;
     AlCustomizationSettings alCustomizationSettings;
+    private SearchListFragment searchListFragment;
+    private boolean isSearchResultView = false;
 
+    public static void addFragment(FragmentActivity fragmentActivity, Fragment fragmentToAdd, String fragmentTag) {
+        FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
+
+        FragmentTransaction fragmentTransaction = supportFragmentManager
+                .beginTransaction();
+        fragmentTransaction.replace(R.id.layout_child_activity, fragmentToAdd,
+                fragmentTag);
+
+        if (supportFragmentManager.getBackStackEntryCount() > 1) {
+            supportFragmentManager.popBackStack();
+        }
+        fragmentTransaction.addToBackStack(fragmentTag);
+        fragmentTransaction.commitAllowingStateLoss();
+        supportFragmentManager.executePendingTransactions();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.people_activity);
         String jsonString = FileUtils.loadSettingsJsonFile(getApplicationContext());
-        if(!TextUtils.isEmpty(jsonString)){
-            alCustomizationSettings = (AlCustomizationSettings) GsonUtils.getObjectFromJson(jsonString,AlCustomizationSettings.class);
-        }else {
-            alCustomizationSettings =  new AlCustomizationSettings();
+        if (!TextUtils.isEmpty(jsonString)) {
+            alCustomizationSettings = (AlCustomizationSettings) GsonUtils.getObjectFromJson(jsonString, AlCustomizationSettings.class);
+        } else {
+            alCustomizationSettings = new AlCustomizationSettings();
         }
         appContactFragment = new AppContactFragment(userIdArray);
         appContactFragment.setAlCustomizationSettings(alCustomizationSettings);
@@ -106,7 +121,7 @@ public class MobiComKitPeopleActivity extends AppCompatActivity implements OnCon
             tabLayout.setOnTabSelectedListener(this);
         } else {
             actionBar.setTitle(getString(R.string.search_title));
-            addFragment(this,appContactFragment , "AppContactFragment");
+            addFragment(this, appContactFragment, "AppContactFragment");
         }
       /*  mContactsListFragment = (AppContactFragment)
                 getSupportFragmentManager().findFragmentById(R.id.contact_list);*/
@@ -143,22 +158,6 @@ public class MobiComKitPeopleActivity extends AppCompatActivity implements OnCon
         searchView.setSubmitButtonEnabled(true);
         searchView.setIconified(true);
         return super.onCreateOptionsMenu(menu);
-    }
-
-    public static void addFragment(FragmentActivity fragmentActivity, Fragment fragmentToAdd, String fragmentTag) {
-        FragmentManager supportFragmentManager = fragmentActivity.getSupportFragmentManager();
-
-        FragmentTransaction fragmentTransaction = supportFragmentManager
-                .beginTransaction();
-        fragmentTransaction.replace(R.id.layout_child_activity, fragmentToAdd,
-                fragmentTag);
-
-        if (supportFragmentManager.getBackStackEntryCount() > 1) {
-            supportFragmentManager.popBackStack();
-        }
-        fragmentTransaction.addToBackStack(fragmentTag);
-        fragmentTransaction.commitAllowingStateLoss();
-        supportFragmentManager.executePendingTransactions();
     }
 
     /**
@@ -296,14 +295,14 @@ public class MobiComKitPeopleActivity extends AppCompatActivity implements OnCon
         viewPager.setCurrentItem(tab.getPosition(), true);
         switch (tab.getPosition()) {
             case 0:
-                setSearchListFragment((AppContactFragment)adapter.getItem(0));
-                if(getSearchListFragment() != null){
+                setSearchListFragment((AppContactFragment) adapter.getItem(0));
+                if (getSearchListFragment() != null) {
                     getSearchListFragment().onQueryTextChange(null);
                 }
                 break;
             case 1:
-                setSearchListFragment((ChannelFragment)adapter.getItem(1));
-                if(getSearchListFragment() != null){
+                setSearchListFragment((ChannelFragment) adapter.getItem(1));
+                if (getSearchListFragment() != null) {
                     getSearchListFragment().onQueryTextChange(null);
                 }
                 break;
@@ -313,7 +312,7 @@ public class MobiComKitPeopleActivity extends AppCompatActivity implements OnCon
 
     @Override
     public void onTabUnselected(TabLayout.Tab tab) {
-        viewPager.setCurrentItem(tab.getPosition(),true);
+        viewPager.setCurrentItem(tab.getPosition(), true);
     }
 
     @Override

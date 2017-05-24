@@ -18,12 +18,12 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class ApplozicMultipartUtility {
-    private final String boundary;
     private static final String LINE_FEED = "\r\n";
+    final String TAG = "AlMultipartUtility";
+    private final String boundary;
     private HttpURLConnection httpConn;
     private OutputStream outputStream;
     private PrintWriter writer;
-   final String TAG  ="AlMultipartUtility";
 
     public ApplozicMultipartUtility(String requestURL, String charset, Context context)
             throws IOException {
@@ -46,7 +46,7 @@ public class ApplozicMultipartUtility {
 
 
     public void addFilePart(String fieldName, File uploadFile)
-            throws IOException,InterruptedException {
+            throws IOException, InterruptedException {
         String fileName = uploadFile.getName();
         writer.append("--" + boundary).append(LINE_FEED);
         writer.append(
@@ -66,7 +66,7 @@ public class ApplozicMultipartUtility {
         int bytesRead = -1;
         while ((bytesRead = inputStream.read(buffer)) != -1) {
             if (Thread.interrupted()) {
-                              throw new InterruptedException();
+                throw new InterruptedException();
             }
             outputStream.write(buffer, 0, bytesRead);
         }
@@ -85,9 +85,9 @@ public class ApplozicMultipartUtility {
         writer.close();
         BufferedReader reader = null;
         int status = httpConn.getResponseCode();
-        try{
+        try {
             if (status == HttpURLConnection.HTTP_OK) {
-                reader  = new BufferedReader(new InputStreamReader(httpConn.getInputStream(), "UTF-8"));
+                reader = new BufferedReader(new InputStreamReader(httpConn.getInputStream(), "UTF-8"));
                 String line = null;
                 while ((line = reader.readLine()) != null) {
                     sb.append(line);
@@ -96,10 +96,10 @@ public class ApplozicMultipartUtility {
                 throw new IOException("Server exception with status code: " + status);
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally {
-            if(reader != null){
+        } finally {
+            if (reader != null) {
                 reader.close();
                 httpConn.disconnect();
             }

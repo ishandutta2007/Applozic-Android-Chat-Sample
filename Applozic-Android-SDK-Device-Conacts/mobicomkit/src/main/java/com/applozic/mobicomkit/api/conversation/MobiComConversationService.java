@@ -72,30 +72,30 @@ public class MobiComConversationService {
     }
 
     public List<Message> getLatestMessagesGroupByPeople() {
-        return getLatestMessagesGroupByPeople(null,null);
+        return getLatestMessagesGroupByPeople(null, null);
     }
 
-    public synchronized List<Message> getLatestMessagesGroupByPeople(Long createdAt,String searchString) {
+    public synchronized List<Message> getLatestMessagesGroupByPeople(Long createdAt, String searchString) {
         boolean emptyTable = messageDatabaseService.isMessageTableEmpty();
 
-        if (emptyTable || createdAt != null  && createdAt != 0) {
-            getMessages(null, createdAt, null, null,null,false);
+        if (emptyTable || createdAt != null && createdAt != 0) {
+            getMessages(null, createdAt, null, null, null, false);
         }
 
-        return  messageDatabaseService.getMessages(createdAt,searchString);
+        return messageDatabaseService.getMessages(createdAt, searchString);
     }
 
     public List<Message> getMessages(String userId, Long startTime, Long endTime) {
-        return getMessages(startTime, endTime, new Contact(userId), null,null,false);
+        return getMessages(startTime, endTime, new Contact(userId), null, null, false);
     }
 
-    public synchronized List<Message>  getMessages(Long startTime, Long endTime, Contact contact, Channel channel, Integer conversationId){
-        return getMessages(startTime,endTime,contact,channel,conversationId,false);
+    public synchronized List<Message> getMessages(Long startTime, Long endTime, Contact contact, Channel channel, Integer conversationId) {
+        return getMessages(startTime, endTime, contact, channel, conversationId, false);
     }
 
-    public synchronized List<Message> getMessages(Long startTime, Long endTime, Contact contact, Channel channel, Integer conversationId,boolean isSkipRead) {
+    public synchronized List<Message> getMessages(Long startTime, Long endTime, Contact contact, Channel channel, Integer conversationId, boolean isSkipRead) {
         List<Message> messageList = new ArrayList<Message>();
-        List<Message> cachedMessageList = messageDatabaseService.getMessages(startTime, endTime, contact, channel,conversationId);
+        List<Message> cachedMessageList = messageDatabaseService.getMessages(startTime, endTime, contact, channel, conversationId);
         boolean isServerCallNotRequired = false;
 
         if (channel != null) {
@@ -114,7 +114,7 @@ public class MobiComConversationService {
 
         String data;
         try {
-            data = messageClientService.getMessages(contact, channel, startTime, endTime,conversationId,isSkipRead);
+            data = messageClientService.getMessages(contact, channel, startTime, endTime, conversationId, isSkipRead);
             Log.i(TAG, "Received response from server for Messages: " + data);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -137,7 +137,7 @@ public class MobiComConversationService {
             JsonParser parser = new JsonParser();
             JSONObject jsonObject = new JSONObject(data);
             String channelFeedResponse = "";
-            String conversationPxyResponse="";
+            String conversationPxyResponse = "";
             String element = parser.parse(data).getAsJsonObject().get("message").toString();
             String userDetailsElement = parser.parse(data).getAsJsonObject().get("userDetails").toString();
 
@@ -149,15 +149,15 @@ public class MobiComConversationService {
             if (jsonObject.has("groupFeeds")) {
                 channelFeedResponse = parser.parse(data).getAsJsonObject().get("groupFeeds").toString();
                 ChannelFeed[] channelFeeds = (ChannelFeed[]) GsonUtils.getObjectFromJson(channelFeedResponse, ChannelFeed[].class);
-                ChannelService.getInstance(context).processChannelFeedList(channelFeeds,false);
-                if(channel != null && !isServerCallNotRequired ){
+                ChannelService.getInstance(context).processChannelFeedList(channelFeeds, false);
+                if (channel != null && !isServerCallNotRequired) {
                     BroadcastService.sendUpdate(context, BroadcastService.INTENT_ACTIONS.UPDATE_TITLE_SUBTITLE.toString());
                 }
             }
             if (jsonObject.has("conversationPxys")) {
                 conversationPxyResponse = parser.parse(data).getAsJsonObject().get("conversationPxys").toString();
                 Conversation[] conversationPxy = (Conversation[]) GsonUtils.getObjectFromJson(conversationPxyResponse, Conversation[].class);
-                ConversationService.getInstance(context).processConversationArray(conversationPxy,channel,contact);
+                ConversationService.getInstance(context).processConversationArray(conversationPxy, channel, contact);
             }
             Message[] messages = gson.fromJson(element, Message[].class);
             MobiComUserPreference userPreferences = MobiComUserPreference.getInstance(context);
@@ -183,12 +183,24 @@ public class MobiComConversationService {
                     if (message.hasAttachment() && !(message.getContentType() == Message.ContentType.TEXT_URL.getValue())) {
                         setFilePathifExist(message);
                     }
-                    if(message.getContentType()== Message.ContentType.CONTACT_MSG.getValue()){
+                    if (message.getContentType() == Message.ContentType.CONTACT_MSG.getValue()) {
                         FileClientService fileClientService = new FileClientService(context);
                         fileClientService.loadContactsvCard(message);
                     }
-                    if(Message.MetaDataType.HIDDEN.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))||Message.MetaDataType.PUSHNOTIFICATION.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))){
+                    if (Message.MetaDataType.HIDDEN.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue())) || Message.MetaDataType.PUSHNOTIFICATION.getValue().equals(message.getMetaDataValueForKey(Message.MetaDataType.KEY.getValue()))) {
                         continue;
+                    }
+                    if (contact == null && channel == null) {
+                        if (message.isHidden()) {
+                            if (message.getGroupId() != null) {
+                                Channel newChannel = ChannelService.getInstance(context).getChannelByChannelKey(message.getGroupId());
+                                if (newChannel != null) {
+                                    getMessages(null, null, null, newChannel, null, true);
+                                }
+                            } else {
+                                getMessages(null, null, new Contact(message.getContactIds()), null, null, true);
+                            }
+                        }
                     }
                     messageDatabaseService.createMessage(message);
                 }
@@ -208,7 +220,7 @@ public class MobiComConversationService {
             }
         });*/
 
-        return messageDatabaseService.getMessages(startTime, endTime, contact, channel,conversationId);
+        return messageDatabaseService.getMessages(startTime, endTime, contact, channel, conversationId);
     }
 
     private void processUserDetails(SyncUserDetailsResponse userDetailsResponse) {
@@ -217,17 +229,15 @@ public class MobiComConversationService {
             Contact contact = new Contact();
             contact.setUserId(userDetail.getUserId());
             contact.setContactNumber(userDetail.getPhoneNumber());
-            contact.setContactType(Contact.ContactType.APPLOZIC.getValue());
             contact.setStatus(userDetail.getStatusMessage());
             //contact.setApplicationId(); Todo: set the application id
             contact.setConnected(userDetail.isConnected());
             contact.setFullName(userDetail.getDisplayName());
             contact.setLastSeenAt(userDetail.getLastSeenAtTime());
-            contact.setUserTypeId(userDetail.getUserTypeId());
-            if(userDetail.getUnreadCount() != null){
+            if (userDetail.getUnreadCount() != null) {
                 contact.setUnreadCount(userDetail.getUnreadCount());
             }
-            if(!TextUtils.isEmpty(userDetail.getImageLink())){
+            if (!TextUtils.isEmpty(userDetail.getImageLink())) {
                 contact.setImageURL(userDetail.getImageLink());
             }
             if (newContact != null) {
@@ -241,14 +251,14 @@ public class MobiComConversationService {
     }
 
     private boolean wasServerCallDoneBefore(Contact contact, Channel channel, Integer conversationId) {
-        if(contact == null && channel == null ){
+        if (contact == null && channel == null) {
             return false;
         }
         return sharedPreferences.getBoolean(getServerSyncCallKey(contact, channel, conversationId), false);
     }
 
     private void updateServerCallDoneStatus(Contact contact, Channel channel, Integer conversationId) {
-        if (contact == null && channel == null){
+        if (contact == null && channel == null) {
             return;
         }
         Log.i(TAG, "updating server call to true");
@@ -258,12 +268,12 @@ public class MobiComConversationService {
     public String getServerSyncCallKey(Contact contact, Channel channel, Integer conversationId) {
         return SERVER_SYNC.replace("[CONVERSATION]", conversationId != null ? String.valueOf(conversationId) : "")
                 .replace("[CONTACT]", contact != null ? contact.getContactIds() : "")
-                .replace("[CHANNEL]", channel != null ? String.valueOf(channel.getKey()): "");
+                .replace("[CHANNEL]", channel != null ? String.valueOf(channel.getKey()) : "");
     }
 
     private void setFilePathifExist(Message message) {
         FileMeta fileMeta = message.getFileMetas();
-        File file = FileClientService.getFilePath(fileMeta.getBlobKeyString() + "." + FileUtils.getFileFormat(fileMeta.getName()), context.getApplicationContext(), fileMeta.getContentType());
+        File file = FileClientService.getFilePath(FileUtils.getName(fileMeta.getName()) + message.getCreatedAtTime() + "." + FileUtils.getFileFormat(fileMeta.getName()), context.getApplicationContext(), fileMeta.getContentType());
         if (file.exists()) {
             ArrayList<String> arrayList = new ArrayList<String>();
             arrayList.add(file.getAbsolutePath());
@@ -319,16 +329,16 @@ public class MobiComConversationService {
         BroadcastService.sendConversationDeleteBroadcast(context, BroadcastService.INTENT_ACTIONS.DELETE_CONVERSATION.toString(), contact.getContactIds(), 0, "success");
     }
 
-    public String deleteSync(final Contact contact, final Channel channel,Integer conversationId) {
+    public String deleteSync(final Contact contact, final Channel channel, Integer conversationId) {
         String response = "";
-        if(contact != null || channel != null){
+        if (contact != null || channel != null) {
             response = messageClientService.syncDeleteConversationThreadFromServer(contact, channel);
         }
 
-        if (!TextUtils.isEmpty(response) && "success".equals(response)){
+        if (!TextUtils.isEmpty(response) && "success".equals(response)) {
             if (contact != null) {
                 messageDatabaseService.deleteConversation(contact.getContactIds());
-                if(conversationId != null && conversationId != 0){
+                if (conversationId != null && conversationId != 0) {
                     conversationService.deleteConversation(contact.getContactIds());
                 }
             } else {
@@ -346,22 +356,14 @@ public class MobiComConversationService {
     }
 
     public synchronized void processLastSeenAtStatus() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SyncUserDetailsResponse userDetailsResponse = messageClientService.getUserDetailsList(MobiComUserPreference.getInstance(context).getLastSeenAtSyncTime());
-                    if (userDetailsResponse != null && userDetailsResponse.getResponse() != null && "success".equals(userDetailsResponse.getStatus())) {
-                        processUserDetails(userDetailsResponse);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        try {
+            SyncUserDetailsResponse userDetailsResponse = messageClientService.getUserDetailsList(MobiComUserPreference.getInstance(context).getLastSeenAtSyncTime());
+            if (userDetailsResponse != null && userDetailsResponse.getResponse() != null && "success".equals(userDetailsResponse.getStatus())) {
+                processUserDetails(userDetailsResponse);
             }
-        });
-        thread.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
-        thread.start();
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void processUserDetails(UserDetail[] userDetails) {
@@ -371,7 +373,6 @@ public class MobiComConversationService {
                 contact.setUserId(userDetail.getUserId());
                 contact.setContactNumber(userDetail.getPhoneNumber());
                 contact.setConnected(userDetail.isConnected());
-                contact.setContactType(Contact.ContactType.APPLOZIC.getValue());
                 contact.setFullName(userDetail.getDisplayName());
                 contact.setLastSeenAt(userDetail.getLastSeenAtTime());
                 contact.setStatus(userDetail.getStatusMessage());
@@ -383,8 +384,8 @@ public class MobiComConversationService {
         }
     }
 
-    public String getConversationIdString(Integer conversationId){
-        return BroadcastService.isContextBasedChatEnabled() && conversationId != null && conversationId != 0 ? "_"+conversationId :"";
+    public String getConversationIdString(Integer conversationId) {
+        return BroadcastService.isContextBasedChatEnabled() && conversationId != null && conversationId != 0 ? "_" + conversationId : "";
     }
 
     public void read(Contact contact, Channel channel) {
@@ -400,12 +401,12 @@ public class MobiComConversationService {
                 messageDatabaseService.updateReadStatusForChannel(String.valueOf(newChannel.getKey()));
             }
 
-            Intent intent =  new Intent(context, ConversationReadService.class);
-            intent.putExtra(ConversationReadService.CONTACT,contact);
-            intent.putExtra(ConversationReadService.CHANNEL,channel);
+            Intent intent = new Intent(context, ConversationReadService.class);
+            intent.putExtra(ConversationReadService.CONTACT, contact);
+            intent.putExtra(ConversationReadService.CHANNEL, channel);
             intent.putExtra(ConversationReadService.UNREAD_COUNT, unreadCount);
             context.startService(intent);
-        } catch (Exception e){
+        } catch (Exception e) {
         }
     }
 

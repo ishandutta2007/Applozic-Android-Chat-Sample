@@ -90,6 +90,7 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
     AppContactService appContactService;
     Channel channel;
     MobiComUserPreference userPreference;
+    AlCustomizationSettings alCustomizationSettings;
     private String mSearchTerm; // Stores the current search query term
     private ContactsAdapter mAdapter;
     private boolean isScrolling = false;
@@ -105,17 +106,16 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
     private int groupType;
     private Bundle bundle;
     private List<String> userIdList;
-    AlCustomizationSettings alCustomizationSettings;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         bundle = getArguments();
         String jsonString = FileUtils.loadSettingsJsonFile(getActivity().getApplicationContext());
-        if(!TextUtils.isEmpty(jsonString)){
-            alCustomizationSettings = (AlCustomizationSettings) GsonUtils.getObjectFromJson(jsonString,AlCustomizationSettings.class);
-        }else {
-            alCustomizationSettings =  new AlCustomizationSettings();
+        if (!TextUtils.isEmpty(jsonString)) {
+            alCustomizationSettings = (AlCustomizationSettings) GsonUtils.getObjectFromJson(jsonString, AlCustomizationSettings.class);
+        } else {
+            alCustomizationSettings = new AlCustomizationSettings();
         }
         if (bundle != null) {
             channel = (Channel) bundle.getSerializable(CHANNEL_OBJECT);
@@ -322,8 +322,8 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
             if (userIdList != null && userIdList.size() == 0) {
                 Toast.makeText(getActivity(), R.string.select_at_least, Toast.LENGTH_SHORT).show();
             } else {
-                final ProgressDialog progressDialog  = ProgressDialog.show(getActivity(), "",
-                        getActivity().getString(TextUtils.isEmpty(channelName)?R.string.broadcast_creating_info:R.string.group_creating_info), true);
+                final ProgressDialog progressDialog = ProgressDialog.show(getActivity(), "",
+                        getActivity().getString(TextUtils.isEmpty(channelName) ? R.string.broadcast_creating_info : R.string.group_creating_info), true);
                 AlChannelCreateAsyncTask.TaskListenerInterface taskListenerInterface = new AlChannelCreateAsyncTask.TaskListenerInterface() {
                     @Override
                     public void onSuccess(Channel channel, Context context) {
@@ -353,27 +353,27 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
                         if (progressDialog != null && progressDialog.isShowing()) {
                             progressDialog.dismiss();
                         }
-                        if(channelFeedApiResponse != null){
+                        if (channelFeedApiResponse != null) {
                             List<ErrorResponseFeed> error = channelFeedApiResponse.getErrorResponse();
-                            if(error !=null  && error.size()>0){
-                                ErrorResponseFeed errorResponseFeed =  error.get(0);
-                                String  errorDescription  = errorResponseFeed.getDescription();
-                                if(!TextUtils.isEmpty(errorDescription)){
-                                    if(MobiComKitConstants.GROUP_USER_LIMIT_EXCEED.equalsIgnoreCase(errorDescription)){
-                                        Toast.makeText(context,R.string.group_members_limit_exceeds,Toast.LENGTH_SHORT).show();
-                                    }else {
-                                        Toast.makeText(context,R.string.applozic_server_error ,Toast.LENGTH_SHORT).show();
+                            if (error != null && error.size() > 0) {
+                                ErrorResponseFeed errorResponseFeed = error.get(0);
+                                String errorDescription = errorResponseFeed.getDescription();
+                                if (!TextUtils.isEmpty(errorDescription)) {
+                                    if (MobiComKitConstants.GROUP_USER_LIMIT_EXCEED.equalsIgnoreCase(errorDescription)) {
+                                        Toast.makeText(context, R.string.group_members_limit_exceeds, Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(context, R.string.applozic_server_error, Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }
-                        }else {
-                            Toast.makeText(context,Utils.isInternetAvailable(context) ? R.string.applozic_server_error : R.string.you_dont_have_any_network_access_info,Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, Utils.isInternetAvailable(context) ? R.string.applozic_server_error : R.string.you_dont_have_any_network_access_info, Toast.LENGTH_SHORT).show();
                         }
                     }
                 };
 
                 if (userIdList != null && userIdList.size() > 0) {
-                    if(TextUtils.isEmpty(channelName)){
+                    if (TextUtils.isEmpty(channelName)) {
                         StringBuffer stringBuffer = new StringBuffer();
                         int i = 0;
                         for (String userId : userIdList) {
@@ -387,12 +387,12 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
                         channelName = stringBuffer.replace(lastIndex, lastIndex + 1, "").toString();
                     }
 
-                    ChannelInfo channelInfo = new ChannelInfo(channelName,userIdList);
-                    if(!TextUtils.isEmpty(imageUrl)) {
+                    ChannelInfo channelInfo = new ChannelInfo(channelName, userIdList);
+                    if (!TextUtils.isEmpty(imageUrl)) {
                         channelInfo.setImageUrl(imageUrl);
                     }
                     channelInfo.setType(groupType);
-                    AlChannelCreateAsyncTask alChannelCreateAsyncTask = new AlChannelCreateAsyncTask(getActivity(),channelInfo,taskListenerInterface);
+                    AlChannelCreateAsyncTask alChannelCreateAsyncTask = new AlChannelCreateAsyncTask(getActivity(), channelInfo, taskListenerInterface);
                     alChannelCreateAsyncTask.execute((Void) null);
                 }
             }
@@ -541,7 +541,7 @@ public class ContactSelectionFragment extends ListFragment implements SearchList
                 isUserPresnt = ChannelService.getInstance(context).isUserAlreadyPresentInChannel(channel.getKey(), contact.getContactIds());
                 if (isUserPresnt) {
                     holder.textView1.setVisibility(View.VISIBLE);
-                    holder.textView1.setText(getString(R.string.applozic_user_already_in_a_group).replace(getString(R.string.groupType_info),Channel.GroupType.BROADCAST.getValue().equals(channel.getType())?getString(R.string.broadcast_string):getString(R.string.group_string)));
+                    holder.textView1.setText(getString(R.string.applozic_user_already_in_a_group).replace(getString(R.string.groupType_info), Channel.GroupType.BROADCAST.getValue().equals(channel.getType()) ? getString(R.string.broadcast_string) : getString(R.string.group_string)));
                     holder.contactNumberTextView.setVisibility(View.GONE);
                     holder.textView1.setTextColor(ContextCompat.getColor(context, R.color.applozic_lite_black_color));
                     holder.textView2.setTextColor(ContextCompat.getColor(context, R.color.applozic_lite_black_color));

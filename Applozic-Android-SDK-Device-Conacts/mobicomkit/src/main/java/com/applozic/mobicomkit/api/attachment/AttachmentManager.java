@@ -98,8 +98,6 @@ public class AttachmentManager {
     private static int NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors();
     // A single instance of PhotoManager, used to implement the singleton pattern
     private static AttachmentManager sInstance = null;
-    public final List<String> attachmentInProgress;
-    public final List<AttachmentTask> attachmentTaskList;
 
     // A static block that sets class fields
     static {
@@ -111,11 +109,8 @@ public class AttachmentManager {
         sInstance = new AttachmentManager();
     }
 
-    /*
-     * Creates a cache of byte arrays indexed by image URLs. As new items are added to the
-     * cache, the oldest items are ejected and subject to garbage collection.
-     */
-    private LruCache<String, Bitmap> mPhotoCache = null;
+    public final List<String> attachmentInProgress;
+    public final List<AttachmentTask> attachmentTaskList;
     // A queue of Runnables for the image download pool
     private final BlockingQueue<Runnable> mDownloadWorkQueue;
     // A queue of Runnables for the image decoding pool
@@ -124,10 +119,14 @@ public class AttachmentManager {
     private final Queue<AttachmentTask> mPhotoTaskWorkQueue;
     // A managed pool of background download threads
     private final ThreadPoolExecutor mDownloadThreadPool;
-
     //taking reference for future use ::
     // A managed pool of background decoder threads
     private final ThreadPoolExecutor mDecodeThreadPool;
+    /*
+     * Creates a cache of byte arrays indexed by image URLs. As new items are added to the
+     * cache, the oldest items are ejected and subject to garbage collection.
+     */
+    private LruCache<String, Bitmap> mPhotoCache = null;
     // An object that manages Messages in a Thread
     private Handler mHandler;
 

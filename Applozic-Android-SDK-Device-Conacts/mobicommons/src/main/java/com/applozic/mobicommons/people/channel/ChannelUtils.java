@@ -58,16 +58,16 @@ public class ChannelUtils {
         return "";
     }
 
-    public static boolean isAdminUserId(String userId,Channel channel){
-        if(channel != null &&  !TextUtils.isEmpty(channel.getAdminKey()) && !TextUtils.isEmpty(userId)){
+    public static boolean isAdminUserId(String userId, Channel channel) {
+        if (channel != null && !TextUtils.isEmpty(channel.getAdminKey()) && !TextUtils.isEmpty(userId)) {
             return channel.getAdminKey().equals(userId);
         }
         return false;
     }
 
-    public static String getWithUserId(Channel channel,String loggedInUserId){
-        try{
-            if(Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())) {
+    public static String getWithUserId(Channel channel, String loggedInUserId) {
+        try {
+            if (Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())) {
                 String[] userIdSplit = new String[2];
                 if (!TextUtils.isEmpty(channel.getClientGroupId())) {
                     userIdSplit = channel.getClientGroupId().split(":");
@@ -80,8 +80,8 @@ public class ChannelUtils {
                     }
                 }
             }
-        }catch (Exception e){
-            Log.i("ChannelUtils","Got exception in Group of two");
+        } catch (Exception e) {
+            Log.i("ChannelUtils", "Got exception in Group of two");
         }
         return "";
     }

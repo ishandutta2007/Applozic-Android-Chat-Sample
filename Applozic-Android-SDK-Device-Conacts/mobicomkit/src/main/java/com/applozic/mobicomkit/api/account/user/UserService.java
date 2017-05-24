@@ -30,12 +30,11 @@ import java.util.Set;
 public class UserService {
 
     private static final String TAG = "UserService";
-
+    private static UserService userService;
     Context context;
     UserClientService userClientService;
-    private static UserService userService;
-    private MobiComUserPreference userPreference;
     BaseContactService baseContactService;
+    private MobiComUserPreference userPreference;
     SyncClientService syncClientService;
 
     private UserService(Context context) {
@@ -54,59 +53,53 @@ public class UserService {
     }
 
     public synchronized void processSyncUserBlock() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SyncBlockUserApiResponse apiResponse = userClientService.getSyncUserBlockList(userPreference.getUserBlockSyncTime());
-                    if (apiResponse != null && SyncBlockUserApiResponse.SUCCESS.equals(apiResponse.getStatus())) {
-                        SyncUserBlockListFeed syncUserBlockListFeed = apiResponse.getResponse();
-                        if (syncUserBlockListFeed != null) {
-                            List<SyncUserBlockFeed> blockedToUserList = syncUserBlockListFeed.getBlockedToUserList();
-                            List<SyncUserBlockFeed> blockedByUserList = syncUserBlockListFeed.getBlockedByUserList();
-                            if (blockedToUserList != null && blockedToUserList.size() > 0) {
-                                for (SyncUserBlockFeed syncUserBlockedFeed : blockedToUserList) {
-                                    Contact contact = new Contact();
-                                    if (syncUserBlockedFeed.getUserBlocked() != null && !TextUtils.isEmpty(syncUserBlockedFeed.getBlockedTo())) {
-                                        if(baseContactService.isContactExists(syncUserBlockedFeed.getBlockedTo())){
-                                            baseContactService.updateUserBlocked(syncUserBlockedFeed.getBlockedTo(),syncUserBlockedFeed.getUserBlocked());
-                                        }else {
-                                            contact.setBlocked(syncUserBlockedFeed.getUserBlocked());
-                                            contact.setContactType(Contact.ContactType.APPLOZIC.getValue());
-                                            contact.setUserId(syncUserBlockedFeed.getBlockedTo());
-                                            baseContactService.upsert(contact);
-                                            baseContactService.updateUserBlocked(syncUserBlockedFeed.getBlockedTo(),syncUserBlockedFeed.getUserBlocked());
-                                        }
-                                    }
-                                }
-                            }
-                            if (blockedByUserList != null && blockedByUserList.size() > 0) {
-                                for (SyncUserBlockFeed syncUserBlockByFeed : blockedByUserList) {
-                                    Contact contact = new Contact();
-                                    if (syncUserBlockByFeed.getUserBlocked() != null && !TextUtils.isEmpty(syncUserBlockByFeed.getBlockedBy())) {
-                                        if(baseContactService.isContactExists(syncUserBlockByFeed.getBlockedBy())){
-                                            baseContactService.updateUserBlockedBy(syncUserBlockByFeed.getBlockedBy(),syncUserBlockByFeed.getUserBlocked());
-                                        }else {
-                                            contact.setBlockedBy(syncUserBlockByFeed.getUserBlocked());
-                                            contact.setContactType(Contact.ContactType.APPLOZIC.getValue());
-                                            contact.setUserId(syncUserBlockByFeed.getBlockedBy());
-                                            baseContactService.upsert(contact);
-                                            baseContactService.updateUserBlockedBy(syncUserBlockByFeed.getBlockedBy(),syncUserBlockByFeed.getUserBlocked());
-                                        }
-                                    }
+        try {
+            SyncBlockUserApiResponse apiResponse = userClientService.getSyncUserBlockList(userPreference.getUserBlockSyncTime());
+            if (apiResponse != null && SyncBlockUserApiResponse.SUCCESS.equals(apiResponse.getStatus())) {
+                SyncUserBlockListFeed syncUserBlockListFeed = apiResponse.getResponse();
+                if (syncUserBlockListFeed != null) {
+                    List<SyncUserBlockFeed> blockedToUserList = syncUserBlockListFeed.getBlockedToUserList();
+                    List<SyncUserBlockFeed> blockedByUserList = syncUserBlockListFeed.getBlockedByUserList();
+                    if (blockedToUserList != null && blockedToUserList.size() > 0) {
+                        for (SyncUserBlockFeed syncUserBlockedFeed : blockedToUserList) {
+                            Contact contact = new Contact();
+                            if (syncUserBlockedFeed.getUserBlocked() != null && !TextUtils.isEmpty(syncUserBlockedFeed.getBlockedTo())) {
+                                if (baseContactService.isContactExists(syncUserBlockedFeed.getBlockedTo())) {
+                                    baseContactService.updateUserBlocked(syncUserBlockedFeed.getBlockedTo(), syncUserBlockedFeed.getUserBlocked());
+                                } else {
+                                    contact.setBlocked(syncUserBlockedFeed.getUserBlocked());
+                                    contact.setContactType(Contact.ContactType.APPLOZIC.getValue());
+                                    contact.setUserId(syncUserBlockedFeed.getBlockedTo());
+                                    baseContactService.upsert(contact);
+                                    baseContactService.updateUserBlocked(syncUserBlockedFeed.getBlockedTo(), syncUserBlockedFeed.getUserBlocked());
                                 }
                             }
                         }
-                        userPreference.setUserBlockSyncTime(apiResponse.getGeneratedAt());
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    if (blockedByUserList != null && blockedByUserList.size() > 0) {
+                        for (SyncUserBlockFeed syncUserBlockByFeed : blockedByUserList) {
+                            Contact contact = new Contact();
+                            if (syncUserBlockByFeed.getUserBlocked() != null && !TextUtils.isEmpty(syncUserBlockByFeed.getBlockedBy())) {
+                                if (baseContactService.isContactExists(syncUserBlockByFeed.getBlockedBy())) {
+                                    baseContactService.updateUserBlockedBy(syncUserBlockByFeed.getBlockedBy(), syncUserBlockByFeed.getUserBlocked());
+                                } else {
+                                    contact.setBlockedBy(syncUserBlockByFeed.getUserBlocked());
+                                    contact.setContactType(Contact.ContactType.APPLOZIC.getValue());
+                                    contact.setUserId(syncUserBlockByFeed.getBlockedBy());
+                                    baseContactService.upsert(contact);
+                                    baseContactService.updateUserBlockedBy(syncUserBlockByFeed.getBlockedBy(), syncUserBlockByFeed.getUserBlocked());
+                                }
+                            }
+                        }
+                    }
                 }
+                userPreference.setUserBlockSyncTime(apiResponse.getGeneratedAt());
             }
-        });
-        thread.setPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-        thread.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
 
     public ApiResponse processUserBlock(String userId, boolean block) {
         ApiResponse apiResponse = userClientService.userBlock(userId, block);
@@ -149,6 +142,7 @@ public class UserService {
     }
 
 
+
     public synchronized void processUser(UserDetail userDetail, Contact.ContactType contactType) {
         Contact contact = new Contact();
         contact.setUserId(userDetail.getUserId());
@@ -165,6 +159,7 @@ public class UserService {
         }
         baseContactService.upsert(contact);
     }
+
 
     public synchronized String[] getOnlineUsers(int numberOfUser) {
         try {
@@ -205,24 +200,24 @@ public class UserService {
         return null;
     }
 
-    public void updateDisplayNameORImageLink( String displayName, String profileImageLink, String localURL, String status ){
+    public void updateDisplayNameORImageLink(String displayName, String profileImageLink, String localURL, String status) {
 
-        ApiResponse response = userClientService.updateDisplayNameORImageLink(displayName,profileImageLink,status);
-        if(response != null && response.isSuccess()){
-            Contact contact=   baseContactService.getContactById(MobiComUserPreference.getInstance(context).getUserId());
-            if(!TextUtils.isEmpty(displayName)){
+        ApiResponse response = userClientService.updateDisplayNameORImageLink(displayName, profileImageLink, status);
+        if (response != null && response.isSuccess()) {
+            Contact contact = baseContactService.getContactById(MobiComUserPreference.getInstance(context).getUserId());
+            if (!TextUtils.isEmpty(displayName)) {
                 contact.setFullName(displayName);
             }
-            if(!TextUtils.isEmpty(profileImageLink)){
+            if (!TextUtils.isEmpty(profileImageLink)) {
                 contact.setImageURL(profileImageLink);
             }
             contact.setLocalImageUrl(localURL);
-            if(!TextUtils.isEmpty(status)){
+            if (!TextUtils.isEmpty(status)) {
                 contact.setStatus(status);
             }
             baseContactService.upsert(contact);
-            Contact contact1=   baseContactService.getContactById(MobiComUserPreference.getInstance(context).getUserId());
-            Log.i("UserService", contact1.getImageURL() + ", " +contact1.getDisplayName() + "," + contact1.getStatus() );
+            Contact contact1 = baseContactService.getContactById(MobiComUserPreference.getInstance(context).getUserId());
+            Log.i("UserService", contact1.getImageURL() + ", " + contact1.getDisplayName() + "," + contact1.getStatus());
         }
     }
 
@@ -240,17 +235,26 @@ public class UserService {
         MobiComUserPreference.getInstance(context).setContactSyncTime(apiResponse.getGeneratedAt());
     }
 
-    public void processUserDetailsByUserIds(Set<String> userIds){
+    public void processUserDetailsByUserIds(Set<String> userIds) {
         userClientService.postUserDetailsByUserIds(userIds);
     }
 
-    public ApiResponse processUserReadConversation(){
-        return  userClientService.getUserReadServerCall();
+    public ApiResponse processUserReadConversation() {
+        return userClientService.getUserReadServerCall();
     }
 
-    public void processUserDetailsResponse(String response){
-        if(!TextUtils.isEmpty(response)){
-            List<UserDetail> userDetails = (List<UserDetail>) GsonUtils.getObjectFromJson(response, new TypeToken<List<UserDetail>>() {}.getType());
+    public String processUpdateUserPassword(String oldPassword, String newPassword) {
+        String response = userClientService.updateUserPassword(oldPassword, newPassword);
+        if (!TextUtils.isEmpty(response) && "success".equals(response)) {
+            userPreference.setPassword(newPassword);
+        }
+        return response;
+    }
+
+    public void processUserDetailsResponse(String response) {
+        if (!TextUtils.isEmpty(response)) {
+            List<UserDetail> userDetails = (List<UserDetail>) GsonUtils.getObjectFromJson(response, new TypeToken<List<UserDetail>>() {
+            }.getType());
             for (UserDetail userDetail : userDetails) {
                 processUser(userDetail);
             }

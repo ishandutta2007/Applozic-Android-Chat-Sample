@@ -176,16 +176,11 @@
             android:value="@string/invite_message" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAv1wf5eMyErPaU3l8EnMUmOsoYJ2joC70" />
-        <meta-data
-            android:name="com.applozic.mobicomkit.uiwidgets.toolbar.tap.activity"
-            android:value="com.applozic.mobicomkit.sample.MainActivity" />
+            android:value="AIzaSyAv1wf5eMyErPaU3l8EnMUmOsoYJ2joC70" />>
         <meta-data
             android:name="activity.open.on.notification"
             android:value="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity" />
-        <meta-data
-            android:name="activity.open.on.call.button.click"
-            android:value="com.applozic.mobicomkit.sample.MainActivity" />
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="9b43bb084d2988834ffc7cc5c9de46ad80356861" />
@@ -211,6 +206,10 @@
             android:exported="false" />
         <service
             android:name="com.applozic.mobicomkit.api.conversation.ConversationReadService"
+            android:exported="false" />
+
+        <service
+            android:name="com.applozic.mobicomkit.uiwidgets.notification.NotificationIntentService"
             android:exported="false" />
 
         <receiver android:name="com.applozic.mobicomkit.broadcast.NotificationBroadcastReceiver">
@@ -302,15 +301,6 @@
         <service
             android:name="com.applozic.mobicomkit.broadcast.ApplozicListenerService"
             android:enabled="true" />
-
-        <receiver
-            android:name="com.applozic.mobicomkit.broadcast.ApplozicBootCompletedReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />/>
-            </intent-filter>
-        </receiver>
 
         <service
             android:name="com.applozic.mobicomkit.uiwidgets.people.contact.DeviceContactSyncService"

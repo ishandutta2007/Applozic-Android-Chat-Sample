@@ -102,8 +102,12 @@ public class LoginActivity extends Activity implements ActivityCompat.OnRequestP
 
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        populateAutoComplete();
-
+        if (Utils.hasMarshmallow()) {
+            showRunTimePermission();
+        }else {
+            Intent deviceContactSyncService = new Intent(this,DeviceContactSyncService.class);
+            startService(deviceContactSyncService);
+        }
         mPhoneNumberView = (EditText) findViewById(R.id.phoneNumber);
         mUserIdView = (EditText) findViewById(R.id.userId);
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -518,8 +522,8 @@ public class LoginActivity extends Activity implements ActivityCompat.OnRequestP
             requestContactsPermissions();
 
         } else {
-
-            new SetupEmailAutoCompleteTask().execute(null, null);
+            Intent deviceContactSyncService = new Intent(this,DeviceContactSyncService.class);
+            startService(deviceContactSyncService);
         }
     }
 
@@ -551,7 +555,9 @@ public class LoginActivity extends Activity implements ActivityCompat.OnRequestP
         if (requestCode == REQUEST_CONTACTS) {
             if (PermissionsUtils.verifyPermissions(grantResults)) {
                 showSnackBar(R.string.contact_permission_granted);
-                new SetupEmailAutoCompleteTask().execute(null, null);
+                //Start device contact service after contact permssion
+                Intent intent = new Intent(this,DeviceContactSyncService.class);
+                startService(intent);
 
             } else {
                 showSnackBar(R.string.contact_permission_granted);
@@ -563,9 +569,14 @@ public class LoginActivity extends Activity implements ActivityCompat.OnRequestP
     }
 
     public void showSnackBar(int resId) {
-        Snackbar.make(layout, resId,
-                Snackbar.LENGTH_SHORT)
-                .show();
+        try{
+            Snackbar.make(layout, resId,
+                    Snackbar.LENGTH_SHORT)
+                    .show();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     /**

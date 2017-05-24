@@ -29,38 +29,51 @@ import java.util.List;
 import java.util.Map;
 
 
-
 public class ConversationFragment extends MobiComConversationFragment implements SearchListFragment {
 
-    private static final String TAG = "ConversationFragment";
-    private MultimediaOptionsGridView popupGrid;
-    InputMethodManager inputMethodManager;
     public static final int ATTCHMENT_OPTIONS = 6;
-
+    private static final String TAG = "ConversationFragment";
+    private final static String CONTACT = "CONTACT";
+    private final static String CHANNEL = "CHANNEL";
+    private final static String CONVERSATION_ID = "CONVERSATION_ID";
+    private final static String SEARCH_STRING = "SEARCH_STRING";
+    InputMethodManager inputMethodManager;
+    Bundle bundle;
+    private MultimediaOptionsGridView popupGrid;
     private List<String> attachmentKey = new ArrayList<>();
     private List<String> attachmentText = new ArrayList<>();
     private List<String> attachmentIcon = new ArrayList<>();
 
-    public ConversationFragment() {
-        this.messageIntentClass = MessageIntentService.class;
+    public static ConversationFragment newInstance(Contact contact, Channel channel, Integer conversationId, String searchString) {
+        ConversationFragment f = new ConversationFragment();
+        Bundle args = new Bundle();
+        if (contact != null) {
+            args.putSerializable(CONTACT, contact);
+        }
+        if (channel != null) {
+            args.putSerializable(CHANNEL, channel);
+        }
+        if (conversationId != null) {
+            args.putInt(CONVERSATION_ID, conversationId);
+        }
+        args.putString(SEARCH_STRING, searchString);
+        f.setArguments(args);
+        return f;
     }
 
-    public ConversationFragment(Contact contact, Channel channel,Integer conversationId) {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         this.messageIntentClass = MessageIntentService.class;
-        this.contact = contact;
-        this.channel = channel;
-        this.currentConversationId = conversationId;
-    }
-
-    public ConversationFragment(Contact contact, Channel channel,Integer conversationId,String searchString) {
-        this.messageIntentClass = MessageIntentService.class;
-        this.contact = contact;
-        this.channel = channel;
-        this.currentConversationId = conversationId;
-        this.searchString=searchString;
-
-        if (searchString != null) {
-            SyncCallService.refreshView=true;
+        bundle = getArguments();
+        if (bundle != null) {
+            contact = (Contact) bundle.getSerializable(CONTACT);
+            channel = (Channel) bundle.getSerializable(CHANNEL);
+            currentConversationId = bundle.getInt(CONVERSATION_ID);
+            searchString = bundle.getString(SEARCH_STRING);
+            if (searchString != null) {
+                SyncCallService.refreshView = true;
+            }
         }
     }
 
@@ -83,10 +96,10 @@ public class ConversationFragment extends MobiComConversationFragment implements
         View view = super.onCreateView(inflater, container, savedInstanceState);
         populateAttachmentOptions();
 
-        if(alCustomizationSettings.isHideAttachmentButton()){
+        if (alCustomizationSettings.isHideAttachmentButton()) {
 
             attachButton.setVisibility(View.GONE);
-            messageEditText.setPadding(20,0,0,0);
+            messageEditText.setPadding(20, 0, 0, 0);
         }
         sendType.setSelection(1);
 
@@ -119,22 +132,22 @@ public class ConversationFragment extends MobiComConversationFragment implements
                     }
                 }
 
-                if(channel !=null){
+                if (channel != null) {
                     String userId = ChannelService.getInstance(getActivity()).getGroupOfTwoReceiverUserId(channel.getKey());
-                    if(!TextUtils.isEmpty(userId)){
+                    if (!TextUtils.isEmpty(userId)) {
                         Contact withUserContact = appContactService.getContactById(userId);
-                        if(withUserContact.isBlocked()){
-                            userBlockDialog(false,withUserContact,true);
-                        }else {
+                        if (withUserContact.isBlocked()) {
+                            userBlockDialog(false, withUserContact, true);
+                        } else {
                             processAttachButtonClick(view);
                         }
-                    }else {
+                    } else {
                         processAttachButtonClick(view);
                     }
-                }else if(contact != null ){
-                    if(contact.isBlocked()) {
-                        userBlockDialog(false,contact,false);
-                    }else {
+                } else if (contact != null) {
+                    if (contact.isBlocked()) {
+                        userBlockDialog(false, contact, false);
+                    } else {
                         processAttachButtonClick(view);
                     }
                 }
@@ -170,12 +183,12 @@ public class ConversationFragment extends MobiComConversationFragment implements
     }
 
 
-    void processAttachButtonClick(View view){
-        MobicomMultimediaPopupAdapter mobicomMultimediaPopupAdapter = new MobicomMultimediaPopupAdapter(getActivity(),attachmentIcon ,attachmentText );
+    void processAttachButtonClick(View view) {
+        MobicomMultimediaPopupAdapter mobicomMultimediaPopupAdapter = new MobicomMultimediaPopupAdapter(getActivity(), attachmentIcon, attachmentText);
         mobicomMultimediaPopupAdapter.setAlCustomizationSettings(alCustomizationSettings);
         multimediaPopupGrid.setAdapter(mobicomMultimediaPopupAdapter);
 
-        int noOfColumn = (attachmentKey.size()== ATTCHMENT_OPTIONS)?3 :attachmentKey.size();
+        int noOfColumn = (attachmentKey.size() == ATTCHMENT_OPTIONS) ? 3 : attachmentKey.size();
         multimediaPopupGrid.setNumColumns(noOfColumn);
         multimediaPopupGrid.setVisibility(View.VISIBLE);
         if (inputMethodManager.isActive()) {
@@ -189,16 +202,16 @@ public class ConversationFragment extends MobiComConversationFragment implements
 
     private void populateAttachmentOptions() {
 
-        String [] allKeys = getResources().getStringArray(R.array.multimediaOptions_without_price_key);
-        String [] allValues = getResources().getStringArray(R.array.multimediaOptions_without_price_text);
-        String [] allIcons = getResources().getStringArray(R.array.multimediaOptionIcons_without_price);
+        String[] allKeys = getResources().getStringArray(R.array.multimediaOptions_without_price_key);
+        String[] allValues = getResources().getStringArray(R.array.multimediaOptions_without_price_text);
+        String[] allIcons = getResources().getStringArray(R.array.multimediaOptionIcons_without_price);
 
-        Map<String,Boolean> maps = alCustomizationSettings.getAttachmentOptions();
+        Map<String, Boolean> maps = alCustomizationSettings.getAttachmentOptions();
 
-        for(int index=0; index < allKeys.length ; index++) {
+        for (int index = 0; index < allKeys.length; index++) {
 
-            String  key =allKeys[index];
-            if( maps==null || maps.get(key)==null || maps.get(key) ){
+            String key = allKeys[index];
+            if (maps == null || maps.get(key) == null || maps.get(key)) {
                 attachmentKey.add(key);
                 attachmentText.add(allValues[index]);
                 attachmentIcon.add(allIcons[index]);

@@ -183,7 +183,7 @@ public class AttachmentTask implements
             final String mimeType = FileUtils.getMimeType(filePath);
             return mimeType;
 
-        } else if (message.getFileMetas() != null ) {
+        } else if (message.getFileMetas() != null) {
             return message.getFileMetas().getContentType();
         }
         return null;

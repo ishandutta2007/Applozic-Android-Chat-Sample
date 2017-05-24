@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -31,13 +30,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.applozic.mobicomkit.ApplozicClient;
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.UserClientService;
 import com.applozic.mobicomkit.api.account.user.UserService;
@@ -64,28 +61,28 @@ public class ProfileFragment extends Fragment {
     public static final int REQUEST_CODE_ATTACH_PHOTO = 101;
     public static final int REQUEST_CODE_TAKE_PHOTO = 102;
     public static final int REQUEST_REMOVE_PHOTO = 102;
-    private static final String TAG = "ProfileFragment";
     public static final String ProfileFragmentTag = "ProfileFragment";
     public static final int PROFILE_UPDATED = 1001;
     public static final int LINE_WIDTH = 2;
     public static final float LEFT_MARGIN = 7.0f;
+    private static final String TAG = "ProfileFragment";
+    AppContactService contactService;
+    Contact userContact;
+    AlCustomizationSettings alCustomizationSettings;
     private ImageView img_profile;
-    private ImageView selectImageProfileIcon,statusEdit;
+    private ImageView selectImageProfileIcon, statusEdit;
     private Button logoutbtn;
     private TextView displayNameText;
     private TextView statusText;
-    private String DEFAULT_CONATCT_IMAGE= "applozic_default_contactImg.jpeg";
-
+    private String DEFAULT_CONATCT_IMAGE = "applozic_default_contactImg.jpeg";
     private ImageLoader mImageLoader; // Handles loading the contact image in a background thread
-    AppContactService contactService;
-    Contact userContact;
     private String changedStatusString;
-    AlCustomizationSettings alCustomizationSettings;
     private ApplozicPermissions applozicPermissions;
 
     public void setApplozicPermissions(ApplozicPermissions applozicPermissions) {
         this.applozicPermissions = applozicPermissions;
     }
+
     public void setAlCustomizationSettings(AlCustomizationSettings alCustomizationSettings) {
         this.alCustomizationSettings = alCustomizationSettings;
     }
@@ -94,19 +91,17 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        View view = inflater.inflate(R.layout.activity_profile, container, false);
-
-
+        View view = inflater.inflate(R.layout.al_activity_profile, container, false);
         img_profile = (ImageView) view.findViewById(R.id.applozic_user_profile);
         statusEdit = (ImageView) view.findViewById(R.id.status_edit_btn);
         selectImageProfileIcon = (ImageView) view.findViewById(R.id.applozic_user_profile_camera);
-        logoutbtn =  (Button) view.findViewById(R.id.applozic_profile_logout);
+        logoutbtn = (Button) view.findViewById(R.id.applozic_profile_logout);
         displayNameText = (TextView) view.findViewById(R.id.applozic_profile_displayname);
         statusText = (TextView) view.findViewById(R.id.applozic_profile_status);
 
-        setupDeviderView(view,R.id.applozic_profile_section_rl,R.id.applozic_profile_verticalline_rl);
-        setupDeviderView(view,R.id.applozic_datausage_section_rl,R.id.applozic_datausage_verticalline_rl);
-        setupDeviderView(view,R.id.applozic_notification_section_rl,R.id.applozic_notification_verticalline_rl);
+        setupDeviderView(view, R.id.applozic_profile_section_rl, R.id.applozic_profile_verticalline_rl);
+        setupDeviderView(view, R.id.applozic_datausage_section_rl, R.id.applozic_datausage_verticalline_rl);
+        setupDeviderView(view, R.id.applozic_notification_section_rl, R.id.applozic_notification_verticalline_rl);
 
         Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
         toolbar.setClickable(false);
@@ -118,10 +113,10 @@ public class ProfileFragment extends Fragment {
         userContact = contactService.getContactById(MobiComUserPreference.getInstance(getActivity()).getUserId());
         displayNameText.setText(userContact.getDisplayName());
 
-        if(!TextUtils.isEmpty(userContact.getStatus())){
+        if (!TextUtils.isEmpty(userContact.getStatus())) {
             statusText.setText(userContact.getStatus());
         }
-        final  Context context = getActivity().getApplicationContext();
+        final Context context = getActivity().getApplicationContext();
         mImageLoader = new ImageLoader(context, img_profile.getHeight()) {
             @Override
             protected Bitmap processBitmap(Object data) {
@@ -137,12 +132,8 @@ public class ProfileFragment extends Fragment {
         });
 
 
-        if(alCustomizationSettings.isProfileOption()){
-            logoutbtn.setVisibility(View.VISIBLE);
-        }else {
-            logoutbtn.setVisibility(View.GONE);
-        }
-        logoutbtn.setOnClickListener(new View.OnClickListener(){
+        logoutbtn.setVisibility(View.GONE);
+        logoutbtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -175,7 +166,7 @@ public class ProfileFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         changedStatusString = input.getText().toString();
-                        new ProfilePictureUpload(changedStatusString,getActivity()).execute((Void[]) null);
+                        new ProfilePictureUpload(changedStatusString, getActivity()).execute((Void[]) null);
                     }
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -202,11 +193,10 @@ public class ProfileFragment extends Fragment {
         menu.findItem(R.id.menu_search).setVisible(false);
     }
 
-    private void setupDeviderView(View view,int parentLayout, int childVerticalLineLayout) {
+    private void setupDeviderView(View view, int parentLayout, int childVerticalLineLayout) {
         final RelativeLayout layout = (RelativeLayout) view.findViewById(parentLayout);
-        final RelativeLayout childLayout = (RelativeLayout)view.findViewById(childVerticalLineLayout);
+        final RelativeLayout childLayout = (RelativeLayout) view.findViewById(childVerticalLineLayout);
         ViewTreeObserver viewTreeObserver = layout.getViewTreeObserver();
-
 
 
         viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -216,55 +206,73 @@ public class ProfileFragment extends Fragment {
                 int height = layout.getMeasuredHeight();
                 float marginPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, LEFT_MARGIN, getActivity().getResources().getDisplayMetrics());
                 float liineWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, LINE_WIDTH, getActivity().getResources().getDisplayMetrics());
-                RelativeLayout.LayoutParams layoutPrams = new RelativeLayout.LayoutParams((int)liineWidth, height );
-                layoutPrams.setMargins((int)marginPx,0,0,0);
+                RelativeLayout.LayoutParams layoutPrams = new RelativeLayout.LayoutParams((int) liineWidth, height);
+                layoutPrams.setMargins((int) marginPx, 0, 0, 0);
                 childLayout.setLayoutParams(layoutPrams);
             }
         });
     }
 
 
-    public void processPhotoOption(){
+    public void processPhotoOption() {
         try {
-        if (PermissionsUtils.isCameraPermissionGranted(getContext()) && !PermissionsUtils.checkSelfForStoragePermission(getActivity())) {
+            if (PermissionsUtils.isCameraPermissionGranted(getContext()) && !PermissionsUtils.checkSelfForStoragePermission(getActivity())) {
 
-            new Handler().post(new Runnable() {
-                public void run() {
-                    FragmentManager supportFragmentManager = getActivity().getSupportFragmentManager();
-                    DialogFragment fragment = new PictureUploadPopUpFragment();
-                    fragment.setTargetFragment(ProfileFragment.this, REQUEST_CODE_ATTACH_PHOTO);
-                    FragmentTransaction fragmentTransaction = supportFragmentManager
-                            .beginTransaction();
-                    Fragment prev = getFragmentManager().findFragmentByTag("PhotosAttachmentFragment");
-                    if (prev != null) {
-                        fragmentTransaction.remove(prev);
+                new Handler().post(new Runnable() {
+                    public void run() {
+                        FragmentManager supportFragmentManager = getActivity().getSupportFragmentManager();
+                        DialogFragment fragment = new PictureUploadPopUpFragment();
+                        fragment.setTargetFragment(ProfileFragment.this, REQUEST_CODE_ATTACH_PHOTO);
+                        FragmentTransaction fragmentTransaction = supportFragmentManager
+                                .beginTransaction();
+                        Fragment prev = getFragmentManager().findFragmentByTag("PhotosAttachmentFragment");
+                        if (prev != null) {
+                            fragmentTransaction.remove(prev);
+                        }
+                        fragmentTransaction.addToBackStack(null);
+                        fragment.show(fragmentTransaction, "PhotosAttachmentFragment");
                     }
-                    fragmentTransaction.addToBackStack(null);
-                    fragment.show(fragmentTransaction, "PhotosAttachmentFragment");
-                }
-            });
+                });
 
-        }else {
-            if ( Utils.hasMarshmallow() ) {
-                if(PermissionsUtils.checkSelfForCameraPermission(getActivity())){
-                    applozicPermissions.requestCameraPermissionForProfilePhoto();
-                }else{
-                    applozicPermissions.requestStoragePermissionsForProfilePhoto();
-                }
             } else {
-                processPhotoOption();
+                if (Utils.hasMarshmallow()) {
+                    if (PermissionsUtils.checkSelfForCameraPermission(getActivity())) {
+                        applozicPermissions.requestCameraPermissionForProfilePhoto();
+                    } else {
+                        applozicPermissions.requestStoragePermissionsForProfilePhoto();
+                    }
+                } else {
+                    processPhotoOption();
+                }
             }
-        }
         } catch (Exception e) {
 
         }
     }
-    public void handleProfileimageUpload(boolean isSaveFile,Uri imageUri,File file) {
+
+    public void handleProfileimageUpload(boolean isSaveFile, Uri imageUri, File file) {
         img_profile.setImageDrawable(null);
         img_profile.setImageURI(imageUri);
-        new ProfilePictureUpload(isSaveFile,imageUri,file,getActivity()).execute((Void[]) null);
+        new ProfilePictureUpload(isSaveFile, imageUri, file, getActivity()).execute((Void[]) null);
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (resultCode == Activity.RESULT_OK) {
+            super.onActivityResult(requestCode, resultCode, intent);
+            File file = FileClientService.getFilePath(DEFAULT_CONATCT_IMAGE, getContext(), "image", true);
+            if (file == null || !file.exists()) {
+                Log.i(TAG, "file not found,exporting it from drawable");
+                Bitmap bm = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.applozic_ic_contact_picture_180_holo_light);
+                String filePath = ImageUtils.saveImageToInternalStorage(FileClientService.getFilePath(DEFAULT_CONATCT_IMAGE, getActivity().getApplicationContext(), "image", true), bm);
+                file = new File(filePath);
+            }
+            handleProfileimageUpload(false, Uri.parse(file.getAbsolutePath()), file);
+        } else {
+            Log.i(TAG, "Activity result failed with code: " + resultCode);
+        }
+
+    }
 
     class ProfilePictureUpload extends AsyncTask<Void, Void, Boolean> {
 
@@ -272,29 +280,31 @@ public class ProfileFragment extends Fragment {
         Uri fileUri;
         String displayName;
         String status;
-        private ProgressDialog progressDialog;
         File file;
         FileClientService fileClientService;
         UserService userService;
         boolean isSaveFile;
+        private ProgressDialog progressDialog;
 
 
-        public ProfilePictureUpload( boolean isSaveFile,Uri fileUri ,File file,Context context) {
+        public ProfilePictureUpload(boolean isSaveFile, Uri fileUri, File file, Context context) {
             this.context = context;
-            this.fileUri=fileUri;
+            this.fileUri = fileUri;
             this.isSaveFile = isSaveFile;
             this.file = file;
             this.fileClientService = new FileClientService(getActivity());
-            this.userService =  UserService.getInstance(context);
+            this.userService = UserService.getInstance(context);
 
         }
-        public ProfilePictureUpload( String status ,Context context) {
+
+        public ProfilePictureUpload(String status, Context context) {
             this.context = context;
-            this.status=status;
+            this.status = status;
             this.fileClientService = new FileClientService(getActivity());
-            this.userService =  UserService.getInstance(context);
+            this.userService = UserService.getInstance(context);
 
         }
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -305,22 +315,22 @@ public class ProfileFragment extends Fragment {
         @Override
         protected Boolean doInBackground(Void... params) {
             try {
-                String response =null;
-                String filePath=null;
-                if(fileUri!=null){
-                    if(isSaveFile){
-                        fileClientService.writeFile(fileUri,file);
+                String response = null;
+                String filePath = null;
+                if (fileUri != null) {
+                    if (isSaveFile) {
+                        fileClientService.writeFile(fileUri, file);
                     }
-                    response= fileClientService.uploadProfileImage(file.getAbsolutePath());
-                    filePath =  file.getAbsolutePath();
+                    response = fileClientService.uploadProfileImage(file.getAbsolutePath());
+                    filePath = file.getAbsolutePath();
                 }
-                if(TextUtils.isEmpty(displayName)){
+                if (TextUtils.isEmpty(displayName)) {
                     this.displayName = userContact.getDisplayName();
                 }
-                userService.updateDisplayNameORImageLink(displayName,response,filePath,status);
+                userService.updateDisplayNameORImageLink(displayName, response, filePath, status);
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.i(ProfileFragment.class.getName(),  "Exception");
+                Log.i(ProfileFragment.class.getName(), "Exception");
 
             }
             return true;
@@ -328,28 +338,10 @@ public class ProfileFragment extends Fragment {
 
         @Override
         protected void onPostExecute(final Boolean result) {
-            if(!TextUtils.isEmpty(changedStatusString)){
+            if (!TextUtils.isEmpty(changedStatusString)) {
                 statusText.setText(changedStatusString);
             }
             progressDialog.dismiss();
-        }
-
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if (resultCode == Activity.RESULT_OK) {
-            super.onActivityResult(requestCode, resultCode, intent);
-            File file = FileClientService.getFilePath(DEFAULT_CONATCT_IMAGE,getContext(), "image",true);
-            if(file==null || !file.exists()) {
-                Log.i(TAG,"file not found,exporting it from drawable");
-                Bitmap bm = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.applozic_ic_contact_picture_180_holo_light);
-                String filePath = ImageUtils.saveImageToInternalStorage(FileClientService.getFilePath(DEFAULT_CONATCT_IMAGE, getActivity().getApplicationContext(), "image", true), bm);
-                file= new File(filePath);
-            }
-            handleProfileimageUpload(false,Uri.parse(file.getAbsolutePath()),file);
-        } else {
-            Log.i(TAG, "Activity result failed with code: " + resultCode);
         }
 
     }

@@ -87,9 +87,10 @@ public class MessageDatabaseService {
         if (!TextUtils.isEmpty(filePaths)) {
             message.setFilePaths(Arrays.asList(filePaths.split(",")));
         }
+        message.setHidden(cursor.getInt(cursor.getColumnIndex(MobiComDatabaseHelper.HIDDEN)) == 1);
         String metadata = cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.MESSAGE_METADATA));
         if (!TextUtils.isEmpty(metadata)) {
-            message.setMetadata(((Map<String, String>)GsonUtils.getObjectFromJson(metadata, Map.class)));
+            message.setMetadata(((Map<String, String>) GsonUtils.getObjectFromJson(metadata, Map.class)));
         }
         message.setApplicationId(cursor.getString(cursor.getColumnIndex("applicationId")));
         message.setContentType(cursor.getShort(cursor.getColumnIndex(MobiComDatabaseHelper.MESSAGE_CONTENT_TYPE)));
@@ -107,7 +108,7 @@ public class MessageDatabaseService {
             message.setGroupId(channelKey);
         }
 
-        if (cursor.getString(cursor.getColumnIndex("blobKeyString"))==null) {
+        if (cursor.getString(cursor.getColumnIndex("blobKeyString")) == null) {
             //file is not present...  Don't set anything ...
         } else {
             FileMeta fileMeta = new FileMeta();
@@ -121,6 +122,7 @@ public class MessageDatabaseService {
         }
         return message;
     }
+
     public static List<Message> getMessageList(Cursor cursor) {
         List<Message> messageList = new ArrayList<Message>();
         try {
@@ -128,8 +130,8 @@ public class MessageDatabaseService {
             if (cursor.getCount() > 0) {
                 do {
                     Message message = getMessage(cursor);
-                    if(Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())){
-                        if(!Message.GroupMessageMetaData.TRUE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.HIDE_KEY.getValue()))) {
+                    if (Message.ContentType.CHANNEL_CUSTOM_MESSAGE.getValue().equals(message.getContentType())) {
+                        if (!Message.GroupMessageMetaData.TRUE.getValue().equals(message.getMetaDataValueForKey(Message.GroupMessageMetaData.HIDE_KEY.getValue()))) {
                             messageList.add(message);
                         }
                     } else {
@@ -195,14 +197,14 @@ public class MessageDatabaseService {
         return messageList;
     }
 
-    public List<Message> getMessages(Long startTime, Long endTime, Contact contact, Channel channel,Integer conversationId) {
+    public List<Message> getMessages(Long startTime, Long endTime, Contact contact, Channel channel, Integer conversationId) {
         String structuredNameWhere = "";
         List<String> structuredNameParamsList = new ArrayList<String>();
 
-        if (channel != null && channel.getKey() != null ) {
+        if (channel != null && channel.getKey() != null) {
             structuredNameWhere += "channelKey = ? AND ";
             structuredNameParamsList.add(String.valueOf(channel.getKey()));
-        }else {
+        } else {
             structuredNameWhere += "channelKey = ? AND ";
             structuredNameParamsList.add("0");
         }
@@ -218,7 +220,7 @@ public class MessageDatabaseService {
             structuredNameWhere += "createdAt < ? AND ";
             structuredNameParamsList.add(String.valueOf(endTime));
         }
-        if( BroadcastService.isContextBasedChatEnabled() && conversationId != null && conversationId != 0 ){
+        if (BroadcastService.isContextBasedChatEnabled() && conversationId != null && conversationId != 0) {
             structuredNameWhere += "conversationId = ? AND ";
             structuredNameParamsList.add(String.valueOf(conversationId));
         }
@@ -226,6 +228,8 @@ public class MessageDatabaseService {
         structuredNameParamsList.add(String.valueOf(Message.ContentType.HIDDEN.getValue()));
         structuredNameParamsList.add(String.valueOf(Message.ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue()));
         structuredNameWhere += "deleted = ? AND ";
+        structuredNameParamsList.add("0");
+        structuredNameWhere += "hidden = ? AND ";
         structuredNameParamsList.add("0");
 
         MobiComUserPreference userPreferences = MobiComUserPreference.getInstance(context);
@@ -246,7 +250,7 @@ public class MessageDatabaseService {
         return messageList;
     }
 
-    public List<Message> getUnreadMessages(){
+    public List<Message> getUnreadMessages() {
         String structuredNameWhere = "";
         List<String> structuredNameParamsList = new ArrayList<String>();
         structuredNameWhere += "messageContentType not in (11) AND ";
@@ -255,7 +259,7 @@ public class MessageDatabaseService {
         structuredNameParamsList.add(String.valueOf(Message.MessageType.MT_INBOX.getValue()));
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor cursor = db.query("sms", null, structuredNameWhere, structuredNameParamsList.toArray(new String[structuredNameParamsList.size()]), null, null, "createdAt desc limit 10");
-        return  MessageDatabaseService.getLatestMessageListForNotification(cursor);
+        return MessageDatabaseService.getLatestMessageListForNotification(cursor);
     }
 
     public List<Message> getPendingMessages() {
@@ -523,7 +527,7 @@ public class MessageDatabaseService {
                 dbHelper.close();
                 return -1;
             }
-            if(cursor != null){
+            if (cursor != null) {
                 cursor.close();
             }
         }
@@ -546,13 +550,14 @@ public class MessageDatabaseService {
             values.put("read", message.isRead() ? 1 : 0);
             values.put("applicationId", message.getApplicationId());
             values.put(MobiComDatabaseHelper.MESSAGE_CONTENT_TYPE, message.getContentType());
-            values.put(MobiComDatabaseHelper.STATUS,message.getStatus());
+            values.put(MobiComDatabaseHelper.STATUS, message.getStatus());
             values.put(MobiComDatabaseHelper.CONVERSATION_ID, message.getConversationId());
             values.put(MobiComDatabaseHelper.TOPIC_ID, message.getTopicId());
-            if(message.getGroupId() != null) {
+            values.put(MobiComDatabaseHelper.HIDDEN, message.isHidden());
+            if (message.getGroupId() != null) {
                 values.put(MobiComDatabaseHelper.CHANNEL_KEY, message.getGroupId());
             }
-            if(!TextUtils.isEmpty(message.getClientGroupId())) {
+            if (!TextUtils.isEmpty(message.getClientGroupId())) {
                 values.put(MobiComDatabaseHelper.CLIENT_GROUP_ID, message.getClientGroupId());
             }
             if (message.getFileMetaKeyStrings() != null) {
@@ -593,30 +598,30 @@ public class MessageDatabaseService {
         dbHelper.close();
     }
 
-    public int updateMessageDeliveryReportForContact(String contactId,boolean markRead) {
+    public int updateMessageDeliveryReportForContact(String contactId, boolean markRead) {
         SQLiteDatabase database = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
-        String whereClause="contactNumbers= '" +contactId + "' and ";
+        String whereClause = "contactNumbers= '" + contactId + "' and ";
         values.put("delivered", "1");
-        if(markRead){
+        if (markRead) {
             whereClause = whereClause + "status not in (5)";
             values.put("status", String.valueOf(Message.Status.DELIVERED_AND_READ.getValue()));
-        }else{
+        } else {
             whereClause = whereClause + "status not in (4,5)";
             values.put("status", String.valueOf(Message.Status.DELIVERED.getValue()));
         }
-        whereClause = whereClause +  " and type=5 ";
+        whereClause = whereClause + " and type=5 ";
         int rows = database.update("sms", values, whereClause, null);
         dbHelper.close();
         return rows;
     }
 
-    public void updateMessageDeliveryReportForContact(String messageKeyString, String contactNumber,boolean markRead) {
+    public void updateMessageDeliveryReportForContact(String messageKeyString, String contactNumber, boolean markRead) {
         SQLiteDatabase database = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
-        if(markRead){
+        if (markRead) {
             values.put("status", String.valueOf(Message.Status.DELIVERED_AND_READ.getValue()));
-        }else{
+        } else {
             values.put("status", String.valueOf(Message.Status.DELIVERED.getValue()));
         }
         values.put("delivered", "1");
@@ -681,7 +686,7 @@ public class MessageDatabaseService {
     public void updateMessageReadFlag(long smsId, boolean read) {
         ContentValues values = new ContentValues();
         values.put("read", read ? 1 : 0);
-        values.put("status",1);
+        values.put("status", 1);
         dbHelper.getWritableDatabase().update("sms", values, "id=" + smsId, null);
         dbHelper.close();
     }
@@ -770,14 +775,14 @@ public class MessageDatabaseService {
     }
 
     public List<Message> getLatestMessageByClientGroupId(String clientGroupId) {
-        return getLatestMessageForChannel(null,clientGroupId);
+        return getLatestMessageForChannel(null, clientGroupId);
     }
 
     public List<Message> getLatestMessageByChannelKey(Integer channelKey) {
-        return getLatestMessageForChannel(channelKey,null);
+        return getLatestMessageForChannel(channelKey, null);
     }
 
-    private List<Message> getLatestMessageForChannel(Integer channelKey,String clientGroupId) {
+    private List<Message> getLatestMessageForChannel(Integer channelKey, String clientGroupId) {
 
         String clauseString = null;
 
@@ -799,14 +804,14 @@ public class MessageDatabaseService {
 
 
     public List<Message> getChannelCustomMessagesByClientGroupId(String clientGroupId) {
-        return getChannelCustomMessageList(null,clientGroupId);
+        return getChannelCustomMessageList(null, clientGroupId);
     }
 
     public List<Message> getChannelCustomMessagesByChannelKey(Integer channelKey) {
-        return getChannelCustomMessageList(channelKey,null);
+        return getChannelCustomMessageList(channelKey, null);
     }
 
-    private List<Message> getChannelCustomMessageList(Integer channelKey,String clientGroupId){
+    private List<Message> getChannelCustomMessageList(Integer channelKey, String clientGroupId) {
         String structuredNameWhere = "";
         List<String> structuredNameParamsList = new ArrayList<String>();
         if (channelKey != null && channelKey != 0) {
@@ -820,9 +825,8 @@ public class MessageDatabaseService {
         structuredNameWhere += "messageContentType in (10) ";
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor cursor = db.query("sms", null, structuredNameWhere, structuredNameParamsList.toArray(new String[structuredNameParamsList.size()]), null, null, "createdAt desc");
-        return  MessageDatabaseService.getMessageList(cursor);
+        return MessageDatabaseService.getMessageList(cursor);
     }
-
 
 
     public int updateReadStatus(String contactNumbers) {
@@ -859,10 +863,10 @@ public class MessageDatabaseService {
     }
 
     public List<Message> getMessages(Long createdAt) {
-        return getMessages(createdAt,null);
+        return getMessages(createdAt, null);
     }
 
-    public List<Message> getMessages(Long createdAt,String searchText) {
+    public List<Message> getMessages(Long createdAt, String searchText) {
         String createdAtClause = "";
         if (createdAt != null && createdAt > 0) {
             createdAtClause = " and m1.createdAt < " + createdAt;
@@ -871,25 +875,25 @@ public class MessageDatabaseService {
 
         String messageTypeClause = "";
         String messageTypeJoinClause = "";
-        String searchCaluse= "";
+        String searchCaluse = "";
         MobiComUserPreference userPreferences = MobiComUserPreference.getInstance(context);
         if (!userPreferences.isDisplayCallRecordEnable()) {
             messageTypeClause = " and m1.type != " + Message.MessageType.CALL_INCOMING.getValue() + " and m1.type != " + Message.MessageType.CALL_OUTGOING.getValue();
             messageTypeJoinClause = " and m1.type = m2.type";
         }
 
-        if (!TextUtils.isEmpty(searchText) ){
-            searchCaluse  +=  " and m1.message like '%"+searchText.replaceAll("'","''") +"%' ";
+        if (!TextUtils.isEmpty(searchText)) {
+            searchCaluse += " and m1.message like '%" + searchText.replaceAll("'", "''") + "%' ";
         }
 
-        String hiddenType = " and m1.messageContentType not in ("+Message.ContentType.HIDDEN.getValue()
-                + "," + Message.ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue() + ") ";
+        String hiddenType = " and m1.messageContentType not in (" + Message.ContentType.HIDDEN.getValue()
+                + "," + Message.ContentType.VIDEO_CALL_NOTIFICATION_MSG.getValue() + ") AND m1.hidden = 0 ";
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         /*final Cursor cursor = db.rawQuery("select * from sms where createdAt in " +
                 "(select max(createdAt) from sms group by contactNumbers) order by createdAt desc", null);*/
         final Cursor cursor = db.rawQuery("select m1.* from sms m1 left outer join sms m2 on (m1.createdAt < m2.createdAt"
-                + " and m1.channelKey = m2.channelKey and m1.contactNumbers = m2.contactNumbers and m1.deleted = m2.deleted and  m1.messageContentType = m2.messageContentType" + messageTypeJoinClause + " ) where m2.createdAt is null " + createdAtClause +searchCaluse+hiddenType+ messageTypeClause
+                + " and m1.channelKey = m2.channelKey and m1.contactNumbers = m2.contactNumbers and m1.deleted = m2.deleted and  m1.messageContentType = m2.messageContentType" + messageTypeJoinClause + " ) where m2.createdAt is null " + createdAtClause + searchCaluse + hiddenType + messageTypeClause
                 + " order by m1.createdAt desc", null);
 
         /*final Cursor cursor = db.rawQuery("SELECT t1.* FROM sms t1" +
@@ -955,7 +959,7 @@ public class MessageDatabaseService {
         }
     }
 
-    public synchronized void updateChannelUnreadCountToZero(Integer channelKey){
+    public synchronized void updateChannelUnreadCountToZero(Integer channelKey) {
         try {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             db.execSQL("UPDATE channel SET unreadCount = 0 WHERE channelKey =" + "'" + channelKey + "'");
@@ -964,7 +968,7 @@ public class MessageDatabaseService {
         }
     }
 
-    public synchronized void updateContactUnreadCountToZero(String userId){
+    public synchronized void updateContactUnreadCountToZero(String userId) {
         try {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             db.execSQL("UPDATE contact SET unreadCount = 0 WHERE userId =" + "'" + userId + "'");

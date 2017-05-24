@@ -38,11 +38,11 @@ public class MobiComUserPreference {
     private static String base_url = "base_url";
     private static String display_name = "display_name";
     private static String logged_in = "logged_in";
-    private static String lastSeenAtSyncTime ="lastSeenAtSyncTime";
-    private static String channelSyncTime ="channelSyncTime";
+    private static String lastSeenAtSyncTime = "lastSeenAtSyncTime";
+    private static String channelSyncTime = "channelSyncTime";
     private static String device_time_offset_from_UTC = "device_time_offset_from_UTC";
     private static String image_compression_enabled = "image_compression_enabled";
-    private static  String userBlockSyncTime = "user_block_Sync_Time";
+    private static String userBlockSyncTime = "user_block_Sync_Time";
     private static String max_compressed_image_size = "max_compressed_image_size";
     private static String image_link = "image_link";
     private static String registered_users_last_fetch_time = "registered_users_last_fetch_time";
@@ -56,7 +56,7 @@ public class MobiComUserPreference {
     private static String enable_encryption = "enable_encryption";
     private static String enable_auto_download_on_wifi = "enable_auto_download_on_wifi";
     private static String enable_auto_download_on_cellular = "enable_auto_download_on_cellular";
-    private static String video_call_token= "video_call_token";
+    private static String video_call_token = "video_call_token";
     private static String user_type_id = "user_type_id";
 
     private static String sync_contacts = "sync_contacts";
@@ -285,12 +285,12 @@ public class MobiComUserPreference {
         sharedPreferences.edit().putBoolean(call_history_display_within_messages_pref_key, enable).commit();
     }
 
-    public void setNewMessageFlag(boolean enable) {
-        sharedPreferences.edit().putBoolean(new_message_flag, enable).commit();
-    }
-
     public boolean getNewMessageFlag() {
         return sharedPreferences.getBoolean(new_message_flag, false);
+    }
+
+    public void setNewMessageFlag(boolean enable) {
+        sharedPreferences.edit().putBoolean(new_message_flag, enable).commit();
     }
 
     public long getDeviceTimeOffset() {
@@ -340,12 +340,12 @@ public class MobiComUserPreference {
         sharedPreferences.edit().putString(mqtt_broker_url, url).commit();
     }
 
-    public void setPricingPackage(int pricingPackage) {
-        sharedPreferences.edit().putInt(pricing_package, pricingPackage).commit();
-    }
-
     public int getPricingPackage() {
         return sharedPreferences.getInt(pricing_package, RegistrationResponse.PricingType.STARTER.getValue());
+    }
+
+    public void setPricingPackage(int pricingPackage) {
+        sharedPreferences.edit().putInt(pricing_package, pricingPackage).commit();
     }
 
     public String getDisplayName() {
@@ -376,14 +376,13 @@ public class MobiComUserPreference {
         sharedPreferences.edit().putString(channelSyncTime, syncChannelTime).commit();
     }
 
-    public void setCompressedImageSizeInMB(int maxSize) {
+    public int getCompressedImageSizeInMB() {
+        return sharedPreferences.getInt(max_compressed_image_size, 10);
 
-        sharedPreferences.edit().putInt(max_compressed_image_size, maxSize).commit();
     }
 
-    public int getCompressedImageSizeInMB() {
-        return  sharedPreferences.getInt(max_compressed_image_size,10);
-
+    public void setCompressedImageSizeInMB(int maxSize) {
+        sharedPreferences.edit().putInt(max_compressed_image_size, maxSize).commit();
     }
 
     public String getUserBlockSyncTime() {
@@ -431,7 +430,7 @@ public class MobiComUserPreference {
     }
 
     public boolean isChannelDeleted() {
-        return sharedPreferences.getBoolean(delete_channel,false);
+        return sharedPreferences.getBoolean(delete_channel, false);
     }
 
     @Override
@@ -454,12 +453,12 @@ public class MobiComUserPreference {
 
     }
 
-    public void setImageCompressionEnabled(boolean imageCompressionEnabled) {
-        sharedPreferences.edit().putBoolean(image_compression_enabled, imageCompressionEnabled).commit();
-    }
-
     public boolean isImageCompressionEnabled() {
         return sharedPreferences.getBoolean(image_compression_enabled, true);
+    }
+
+    public void setImageCompressionEnabled(boolean imageCompressionEnabled) {
+        sharedPreferences.edit().putBoolean(image_compression_enabled, imageCompressionEnabled).commit();
     }
 
     public boolean getWasContactListServerCallAlreadyDone() {
@@ -486,29 +485,28 @@ public class MobiComUserPreference {
         sharedPreferences.edit().putBoolean(enable_encryption, enableEncryption).commit();
     }
 
-    public void setAutoDownloadOnWifi(boolean enable){
-        sharedPreferences.edit().putBoolean(enable_auto_download_on_wifi, enable).commit();
-    }
-
-    public boolean getAutoDownloadOnWifi(){
+    public boolean getAutoDownloadOnWifi() {
         return sharedPreferences.getBoolean(enable_auto_download_on_wifi, false);
     }
 
-    public void setAutoDownloadOnCellular(boolean enable){
-        sharedPreferences.edit().putBoolean(enable_auto_download_on_cellular, enable).commit();
+    public void setAutoDownloadOnWifi(boolean enable) {
+        sharedPreferences.edit().putBoolean(enable_auto_download_on_wifi, enable).commit();
     }
 
-    public boolean getAutoDownloadOnCellular(){
+    public boolean getAutoDownloadOnCellular() {
         return sharedPreferences.getBoolean(enable_auto_download_on_cellular, false);
     }
 
-    public void setVideoCallToken(String token){
-        sharedPreferences.edit().putString(video_call_token, token).commit();
-
+    public void setAutoDownloadOnCellular(boolean enable) {
+        sharedPreferences.edit().putBoolean(enable_auto_download_on_cellular, enable).commit();
     }
 
-    public String getVideoCallToken(){
+    public String getVideoCallToken() {
         return sharedPreferences.getString(video_call_token, null);
+    }
+
+    public void setVideoCallToken(String token) {
+        sharedPreferences.edit().putString(video_call_token, token).commit();
     }
 
     public String getUserTypeId() {

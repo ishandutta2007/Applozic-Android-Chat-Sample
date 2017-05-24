@@ -31,9 +31,9 @@ public class AudioMessageFragment extends DialogFragment {
     Button cancel, send;
     TextView txtcount, audioRecordingText;
     ImageButton record;
+    CountDownTimer t;
     private MediaRecorder audioRecorder;
     private String outputFile = null;
-    CountDownTimer t;
     private int cnt;
     private boolean isRecordring;
 
@@ -127,8 +127,8 @@ public class AudioMessageFragment extends DialogFragment {
                     stopRecording();
                 }
                 //FILE CHECK ....
-                if(!(new File(outputFile).exists())){
-                    Toast.makeText(getContext(),R.string.audio_recording_send_text,Toast.LENGTH_SHORT).show();
+                if (!(new File(outputFile).exists())) {
+                    Toast.makeText(getContext(), R.string.audio_recording_send_text, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 ConversationUIService conversationUIService = new ConversationUIService(getActivity());

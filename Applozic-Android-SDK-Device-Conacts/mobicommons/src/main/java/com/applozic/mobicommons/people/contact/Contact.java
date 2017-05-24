@@ -5,6 +5,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
 import com.applozic.mobicommons.commons.core.utils.ContactNumberUtils;
+import com.applozic.mobicommons.json.JsonMarker;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -16,7 +17,7 @@ import java.util.Map;
 /**
  * @author devashish
  */
-public class Contact implements Serializable {
+public class Contact extends JsonMarker {
 
     public static final String R_DRAWABLE = "R.drawable";
     @Expose
