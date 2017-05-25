@@ -38,7 +38,14 @@
 -keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; }
 -keep class android.support.** { *; }
 -keep interface android.support.** { *; }
-
+-keep class org.webrtc.** { *; }
+-keep class com.twilio.video.** { *; }
+-keep class com.twilio.common.** { *; }
+-dontwarn android.support.v4.**
+-keep public class com.google.android.gms.* { public *; }
+-dontwarn com.google.android.gms.**
+-keep class com.google.gson.** { *; }
+-kepp class com.applozic.audiovideo.authentication.** { *; }
 # Keep SafeParcelable value, needed for reflection. This is required to support backwards
 # compatibility of some classes.
 -keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {

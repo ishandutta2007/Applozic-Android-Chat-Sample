@@ -594,17 +594,21 @@ onSuccess of UserLoginTask, you need to set below handlers in settings.
  -keepclassmembernames class * extends com.applozic.mobicommons.json.JsonParcelableMarker {
  	!static !transient <fields>;
  }
- #GSON Config          
--keepattributes Signature          
--keep class sun.misc.Unsafe { *; }           
--keep class com.google.gson.examples.android.model.** { *; }            
--keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; } 
+#GSON Config
+-keepattributes Signature
+-keep class sun.misc.Unsafe { *; }
+-keep class com.google.gson.examples.android.model.** { *; }
+-keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; }
 -keep class android.support.** { *; }
 -keep interface android.support.** { *; }
+-keep class org.webrtc.** { *; }
+-keep class com.twilio.video.** { *; }
+-keep class com.twilio.common.** { *; }
 -dontwarn android.support.v4.**
 -keep public class com.google.android.gms.* { public *; }
 -dontwarn com.google.android.gms.**
 -keep class com.google.gson.** { *; }
+-kepp class com.applozic.audiovideo.authentication.** { *; }
  ``` 
   
 
