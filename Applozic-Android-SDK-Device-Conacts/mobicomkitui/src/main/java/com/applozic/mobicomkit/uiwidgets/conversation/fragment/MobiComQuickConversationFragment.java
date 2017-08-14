@@ -10,7 +10,6 @@ import android.support.v4.os.AsyncTaskCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,6 +21,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -199,19 +199,19 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
 
         for (int i = 0; i < menuItems.length; i++) {
 
-            if ((message.getGroupId() == null || channel != null && Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())) && (menuItems[i].equals("Delete group") ||
-                    menuItems[i].equals("Exit group"))) {
+            if ((message.getGroupId() == null || (channel != null && Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType()))) && (menuItems[i].equals(getResources().getString(R.string.delete_group)) ||
+                    menuItems[i].equals(getResources().getString(R.string.exit_group)))) {
                 continue;
             }
 
-            if (menuItems[i].equals("Exit group") && (isChannelDeleted || !isUserPresentInGroup)) {
+            if (menuItems[i].equals(getResources().getString(R.string.exit_group)) && (isChannelDeleted || !isUserPresentInGroup)) {
                 continue;
             }
 
-            if (menuItems[i].equals("Delete group") && (isUserPresentInGroup || !isChannelDeleted)) {
+            if (menuItems[i].equals(getResources().getString(R.string.delete_group)) && (isUserPresentInGroup || !isChannelDeleted)) {
                 continue;
             }
-            if (menuItems[i].equals("Delete conversation") && !alCustomizationSettings.isDeleteOption()) {
+            if (menuItems[i].equals(getResources().getString(R.string.delete_conversation)) && !alCustomizationSettings.isDeleteOption()) {
                 continue;
             }
 
@@ -336,8 +336,42 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
                 }
             }
         } catch (Exception e) {
-            Log.w("AL", "Exception while updating view .");
+            Utils.printLog(getActivity(), "AL", "Exception while updating view .");
         }
+    }
+
+
+    public void updateUserInfo(final String userId) {
+        if (!getUserVisibleHint()) {
+            return;
+        }
+        if (getActivity() == null) {
+            return;
+        }
+        if (getActivity() != null) {
+            this.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Message message = latestMessageForEachContact.get(userId);
+                        if (message != null) {
+                            int index = messageList.indexOf(message);
+                            View view = listView.getChildAt(index - listView.getFirstVisiblePosition());
+                            Contact contact = baseContactService.getContactById(userId);
+                            if (view != null && contact != null) {
+                                ImageView contactImage = (ImageView) view.findViewById(R.id.contactImage);
+                                TextView displayNameTextView = (TextView) view.findViewById(R.id.smReceivers);
+                                displayNameTextView.setText(contact.getDisplayName());
+                                conversationAdapter.contactImageLoader.loadImage(contact, contactImage);
+                            }
+                        }
+                    } catch (Exception ex) {
+                        Utils.printLog(getActivity(),"AL", "Exception while updating view .");
+                    }
+                }
+            });
+        }
+
     }
 
     public void updateLastMessage(String keyString, String userId) {
@@ -400,6 +434,9 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
 
 
     public void deleteMessage(final Message message, final String userId) {
+        if (getActivity() == null) {
+            return;
+        }
         this.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -433,6 +470,9 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
     }
 
     public void removeConversation(final Message message, final String userId) {
+        if (getActivity() == null) {
+            return;
+        }
         this.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -449,7 +489,9 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
     }
 
     public void removeConversation(final Contact contact, final Integer channelKey, String response) {
-
+        if (getActivity() == null) {
+            return;
+        }
         if ("success".equals(response)) {
             this.getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -516,7 +558,7 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
     @Override
     public void onResume() {
         //Assigning to avoid notification in case if quick conversation fragment is opened....
-        toolbar.setTitle(ApplozicApplication.TITLE);
+        toolbar.setTitle(getResources().getString(R.string.chats));
         toolbar.setSubtitle("");
         BroadcastService.selectMobiComKitAll();
         super.onResume();
@@ -616,7 +658,7 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
                         conversationAdapter.notifyDataSetChanged();
                     }
                 } catch (Exception ex) {
-                    Log.w("AL", "Exception while updating online status.");
+                    Utils.printLog(getActivity(), "AL", "Exception while updating online status.");
                 }
             }
         });
@@ -648,7 +690,7 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
                         }
                     }
                 } catch (Exception ex) {
-                    Log.w("AL", "Exception while updating Unread count...");
+                    Utils.printLog(getActivity(), "AL", "Exception while updating Unread count...");
                 }
             }
         });
@@ -701,13 +743,15 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
             if (progressBar != null && loadMoreMessages) {
                 progressBar.setVisibility(View.VISIBLE);
             } else {
-                swipeLayout.setEnabled(true);
-                swipeLayout.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        swipeLayout.setRefreshing(true);
-                    }
-                });
+                if (swipeLayout != null) {
+                    swipeLayout.setEnabled(true);
+                    swipeLayout.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            swipeLayout.setRefreshing(true);
+                        }
+                    });
+                }
             }
         }
 
@@ -733,13 +777,15 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
 
         protected void onPostExecute(Long result) {
             if (!loadMoreMessages) {
-                swipeLayout.setEnabled(true);
-                swipeLayout.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        swipeLayout.setRefreshing(false);
-                    }
-                });
+                if (swipeLayout != null) {
+                    swipeLayout.setEnabled(true);
+                    swipeLayout.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            swipeLayout.setRefreshing(false);
+                        }
+                    });
+                }
             }
 
             if (!TextUtils.isEmpty(searchString)) {
@@ -782,13 +828,17 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
             if (progressBar != null && loadMoreMessages) {
                 progressBar.setVisibility(View.GONE);
             }
-            conversationAdapter.notifyDataSetChanged();
+            if (conversationAdapter != null) {
+                conversationAdapter.notifyDataSetChanged();
+            }
             if (initial) {
-                emptyTextView.setVisibility(messageList.isEmpty() ? View.VISIBLE : View.GONE);
-                if (!TextUtils.isEmpty(searchString) && messageList.isEmpty()) {
-                    emptyTextView.setText(alCustomizationSettings.getNoSearchFoundForChatMessages());
-                } else if (TextUtils.isEmpty(searchString) && messageList.isEmpty()) {
-                    emptyTextView.setText(alCustomizationSettings.getNoConversationLabel());
+                if (emptyTextView != null) {
+                    emptyTextView.setVisibility(messageList.isEmpty() ? View.VISIBLE : View.GONE);
+                    if (!TextUtils.isEmpty(searchString) && messageList.isEmpty()) {
+                        emptyTextView.setText(alCustomizationSettings.getNoSearchFoundForChatMessages());
+                    } else if (TextUtils.isEmpty(searchString) && messageList.isEmpty()) {
+                        emptyTextView.setText(alCustomizationSettings.getNoConversationLabel());
+                    }
                 }
                 if (!messageList.isEmpty()) {
                     if (listView != null) {
@@ -804,17 +854,6 @@ public class MobiComQuickConversationFragment extends Fragment implements Search
                 if (!loadMoreMessages) {
                     listView.setSelection(firstVisibleItem);
                 }
-            }
-            /*if (isAdded()) {
-                //Utils.isNetworkAvailable(getActivity(), errorMessage);
-                if (!Utils.isInternetAvailable(getActivity())) {
-                    String errorMessage = getResources().getString(R.string.internet_connection_not_available);
-                    ((MobiComKitActivityInterface) getActivity()).showErrorMessageView(errorMessage);
-                }
-            }*/
-
-            if (context != null && showInstruction) {
-                InstructionUtil.showInstruction(context, R.string.instruction_open_conversation_thread, MobiComKitActivityInterface.INSTRUCTION_DELAY, BroadcastService.INTENT_ACTIONS.INSTRUCTION.toString());
             }
             if (!nextMessageList.isEmpty()) {
                 loadMore = true;

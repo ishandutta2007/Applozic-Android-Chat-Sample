@@ -2,8 +2,10 @@ package com.applozic.mobicomkit.api.conversation;
 
 import android.app.IntentService;
 import android.content.Intent;
-
+import android.support.v4.content.LocalBroadcastManager;
 import com.applozic.mobicomkit.api.account.user.UserService;
+
+import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicommons.people.channel.Channel;
 import com.applozic.mobicommons.people.contact.Contact;
 
@@ -32,8 +34,13 @@ public class ConversationReadService extends IntentService {
         boolean singleMessageRead = intent.getBooleanExtra(SINGLE_MESSAGE_READ, false);
         Contact contact = (Contact) intent.getSerializableExtra(CONTACT);
         Channel channel = (Channel) intent.getSerializableExtra(CHANNEL);
+        if (unreadCount != 0) {
+            Intent readIntent = new Intent(MobiComKitConstants.APPLOZIC_UNREAD_COUNT);
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(readIntent);
+        }
         if (unreadCount != 0 || singleMessageRead) {
             messageClientService.updateReadStatus(contact, channel);
         }
+
     }
 }

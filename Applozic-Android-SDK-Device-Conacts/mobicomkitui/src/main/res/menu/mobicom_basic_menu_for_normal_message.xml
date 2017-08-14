@@ -21,7 +21,7 @@
         android:icon="@drawable/applozic_ic_action_chat"
         android:orderInCategory="2"
         android:showAsAction="ifRoom"
-        android:title="Conversations"
+        android:title="@string/conversation"
         android:visible="false"
         mobicomkit:showAsAction="ifRoom" />
 
@@ -30,7 +30,7 @@
         android:icon="@drawable/applozic_ic_action_add"
         android:orderInCategory="3"
         android:showAsAction="ifRoom|collapseActionView"
-        android:title="Start New"
+        android:title="@string/start_New"
         android:visible="false"
         mobicomkit:showAsAction="ifRoom|collapseActionView" />
 
@@ -39,7 +39,7 @@
         android:icon="@drawable/applozic_ic_action_call"
         android:orderInCategory="4"
         android:showAsAction="ifRoom|collapseActionView"
-        android:title="Dial"
+        android:title="@string/dial"
         android:visible="false"
         mobicomkit:showAsAction="ifRoom|collapseActionView" />
 
@@ -48,7 +48,7 @@
         android:icon="@drawable/applozic_ic_action_time"
         android:orderInCategory="5"
         android:showAsAction="collapseActionView"
-        android:title="Refresh"
+        android:title="@string/refresh"
         android:visible="false"
         mobicomkit:showAsAction="collapseActionView" />
 
@@ -130,6 +130,6 @@
         android:icon="@drawable/applozic_ic_action_time"
         android:orderInCategory="11"
         android:showAsAction="collapseActionView"
-        android:title="Logout"
+        android:title="@string/logout"
         android:visible="false" />
 </menu>

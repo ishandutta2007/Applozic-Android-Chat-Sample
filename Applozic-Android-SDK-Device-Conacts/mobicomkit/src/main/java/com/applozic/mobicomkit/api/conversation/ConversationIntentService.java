@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.UserService;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicommons.people.channel.Channel;
 import com.applozic.mobicommons.people.contact.Contact;
@@ -42,7 +43,7 @@ public class ConversationIntentService extends IntentService {
             return;
         }
         boolean sync = intent.getBooleanExtra(SYNC, false);
-        Log.i(TAG, "Syncing messages service started: " + sync);
+        Utils.printLog(ConversationIntentService.this,TAG, "Syncing messages service started: " + sync);
         if (sync) {
             mobiComMessageService.syncMessages();
         } else {

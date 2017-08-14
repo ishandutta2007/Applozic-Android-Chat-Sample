@@ -57,6 +57,7 @@ public class Message extends JsonMarker {
     private Map<String, String> metadata = new HashMap<>();
     private short status = Status.READ.getValue();
     private boolean hidden;
+    private int replyMessage;
 
     public Message() {
 
@@ -134,7 +135,7 @@ public class Message extends JsonMarker {
     }
 
     public boolean isAttachmentUploadInProgress() {
-        return filePaths != null && !filePaths.isEmpty() && !sentToServer;
+        return filePaths != null && !filePaths.isEmpty() && FileUtils.isFileExist(filePaths.get(0))&& !sentToServer;
     }
 
     public boolean isAttachmentDownloaded() {
@@ -615,6 +616,13 @@ public class Message extends JsonMarker {
         hidden = hidden;
     }
 
+    public int isReplyMessage() {
+        return replyMessage;
+    }
+
+    public void setReplyMessage(int replyMessage) {
+        this.replyMessage = replyMessage;
+    }
 
     @Override
     public String toString() {
@@ -724,8 +732,7 @@ public class Message extends JsonMarker {
         KEY("category"),
         HIDDEN("HIDDEN"),
         PUSHNOTIFICATION("PUSHNOTIFICATION"),
-        ARCHIVE("ARCHIVE");
-
+        ARCHIVE("ARCHIVE"), AL_REPLY("AL_REPLY");
         private String value;
 
         MetaDataType(String value) {
@@ -753,5 +760,19 @@ public class Message extends JsonMarker {
         }
     }
 
+    public enum ReplyMessage{
+        NON_HIDDEN(0),
+        REPLY_MESSAGE(1),
+        HIDE_MESSAGE(2);
+        private Integer value;
+
+        ReplyMessage(Integer value) {
+            this.value = value;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+    }
 
 }

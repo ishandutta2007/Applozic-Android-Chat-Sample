@@ -2,7 +2,6 @@ package com.applozic.mobicomkit.api.conversation;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.HttpRequestUtils;
 import com.applozic.mobicomkit.api.MobiComKitClientService;
@@ -21,6 +20,7 @@ import com.applozic.mobicomkit.feed.MessageResponse;
 import com.applozic.mobicomkit.sync.SmsSyncRequest;
 import com.applozic.mobicomkit.sync.SyncMessageFeed;
 import com.applozic.mobicomkit.sync.SyncUserDetailsResponse;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.json.GsonUtils;
 import com.applozic.mobicommons.people.channel.Channel;
 import com.applozic.mobicommons.people.contact.Contact;
@@ -64,6 +64,7 @@ public class MessageClientService extends MobiComKitClientService {
     public static final String ARGUMRNT_SAPERATOR = "&";
     public static final String UPDATE_READ_STATUS_FOR_SINGLE_MESSAGE_URL = "/rest/ws/message/read";
     public static final String MESSAGE_INFO_URL = "/rest/ws/message/info";
+    public static final String MESSAGE_BY_MESSAGE_KEYS_URL = "/rest/ws/message/detail";
 
     private static final String TAG = "MessageClientService";
     private Context context;
@@ -139,6 +140,10 @@ public class MessageClientService extends MobiComKitClientService {
         return getBaseUrl() + UPDATE_READ_STATUS_FOR_SINGLE_MESSAGE_URL;
     }
 
+    public String getMessageByMessageKeysUrl(){
+        return getBaseUrl() + MESSAGE_BY_MESSAGE_KEYS_URL;
+    }
+
     public void updateDeliveryStatus(String messageKeyString, String userId, String receiverNumber) {
         try {
             //Note: messageKeyString comes as null for the welcome message as it is inserted directly.
@@ -148,22 +153,22 @@ public class MessageClientService extends MobiComKitClientService {
             httpRequestUtils.getResponse(getMtextDeliveryUrl() + "?key=" + messageKeyString
                     + "&userId=" + userId, "text/plain", "text/plain");
         } catch (Exception ex) {
-            Log.e(TAG, "Exception while updating delivery report for MT message", ex);
+            Utils.printLog(context,TAG, "Exception while updating delivery report for MT message");
         }
     }
 
     public synchronized void syncPendingMessages(boolean broadcast) {
         List<Message> pendingMessages = messageDatabaseService.getPendingMessages();
-        Log.i(TAG, "Found " + pendingMessages.size() + " pending messages to sync.");
+        Utils.printLog(context,TAG, "Found " + pendingMessages.size() + " pending messages to sync.");
         for (Message message : pendingMessages) {
-            Log.i(TAG, "Syncing pending message: " + message);
+            Utils.printLog(context,TAG, "Syncing pending message: " + message);
             sendPendingMessageToServer(message, broadcast);
         }
     }
 
     public synchronized void syncDeleteMessages(boolean deleteMessage) {
         List<Message> pendingDeleteMessages = messageDatabaseService.getPendingDeleteMessages();
-        Log.i(TAG, "Found " + pendingDeleteMessages.size() + " pending messages for Delete.");
+        Utils.printLog(context,TAG, "Found " + pendingDeleteMessages.size() + " pending messages for Delete.");
         for (Message message : pendingDeleteMessages) {
             deletePendingMessages(message, deleteMessage);
         }
@@ -183,7 +188,7 @@ public class MessageClientService extends MobiComKitClientService {
         if (message.isSentToServer()) {
             response = httpRequestUtils.getResponse(getMessageDeleteUrl() + "?key=" + message.getKeyString() + contactNumberParameter, "text/plain", "text/plain");
         }
-        Log.i(TAG, "Delete response from server for pending message: " + response);
+        Utils.printLog(context,TAG, "Delete response from server for pending message: " + response);
         if ("success".equals(response)) {
             messageDatabaseService.deleteMessage(message, message.getContactIds());
         }
@@ -191,7 +196,7 @@ public class MessageClientService extends MobiComKitClientService {
     }
 
     public boolean syncMessagesWithServer(List<Message> messageList) {
-        Log.i(TAG, "Total messages to sync: " + messageList.size());
+        Utils.printLog(context,TAG, "Total messages to sync: " + messageList.size());
         List<Message> messages = new ArrayList<Message>(messageList);
         do {
             try {
@@ -206,7 +211,7 @@ public class MessageClientService extends MobiComKitClientService {
                 }
 
                 String response = syncMessages(smsSyncRequest);
-                Log.i(TAG, "response from sync sms url::" + response);
+                Utils.printLog(context,TAG, "response from sync sms url::" + response);
                 String[] keyStrings = null;
                 if (!TextUtils.isEmpty(response) && !response.equals("error")) {
                     keyStrings = response.trim().split(",");
@@ -223,7 +228,7 @@ public class MessageClientService extends MobiComKitClientService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.e(TAG, "exception" + e);
+                Utils.printLog(context,TAG, "exception" + e);
                 return false;
             }
         } while (messages.size() > 0);
@@ -237,7 +242,7 @@ public class MessageClientService extends MobiComKitClientService {
                 try {
                     this.processMessage(message);
                 } catch (Exception e) {
-                    Log.e(TAG, "Exception while sending contact message.", e);
+                    Utils.printLog(context,TAG, "Exception while sending contact message.");
                 }
                 return;
             }
@@ -253,7 +258,7 @@ public class MessageClientService extends MobiComKitClientService {
             String response = sendMessage(message);
 
             if (TextUtils.isEmpty(response) || response.contains("<html>") || response.equals("error")) {
-                Log.w(TAG, "Error while sending pending messages.");
+                Utils.printLog(context,TAG, "Error while sending pending messages.");
                 return;
             }
 
@@ -271,7 +276,7 @@ public class MessageClientService extends MobiComKitClientService {
 
             messageDatabaseService.updateMessageSyncStatus(message, keyString);
         } catch (Exception e) {
-            Log.w(TAG, "Error while sending pending messages.");
+            Utils.printLog(context,TAG, "Error while sending pending messages.");
         }
 
     }
@@ -350,7 +355,7 @@ public class MessageClientService extends MobiComKitClientService {
                         message.setFileMetas(gson.fromJson(jsonObject.get(FILE_META), FileMeta.class));
                     }
                 } catch (Exception ex) {
-                    Log.e(TAG, "Error uploading file to server: " + filePath);
+                    Utils.printLog(context,TAG, "Error uploading file to server: " + filePath);
                   /*  recentMessageSentToServer.remove(message);*/
                     if (!message.isContactMessage() && !skipMessage) {
                         messageDatabaseService.updateCanceledFlag(messageId, 1);
@@ -451,7 +456,7 @@ public class MessageClientService extends MobiComKitClientService {
     public String sendMessage(Message message) {
         try {
             String jsonFromObject = GsonUtils.getJsonFromObject(message, message.getClass());
-            Log.i(TAG, "Sending message to server: " + jsonFromObject);
+            Utils.printLog(context,TAG, "Sending message to server: " + jsonFromObject);
             return httpRequestUtils.postData(getSendMessageUrl(), "application/json;charset=utf-8", null, jsonFromObject);
         } catch (Exception e) {
             return null;
@@ -464,7 +469,7 @@ public class MessageClientService extends MobiComKitClientService {
                 + "=" + lastSyncTime;
         try {
             String response = httpRequestUtils.getResponse(url, "application/json", "application/json");
-            Log.i(TAG, "Sync call response: " + response);
+            Utils.printLog(context,TAG, "Sync call response: " + response);
             return (SyncMessageFeed) GsonUtils.getObjectFromJson(response, SyncMessageFeed.class);
         } catch (Exception e) {
             // showAlert("Unable to Process request .Please Contact Support");
@@ -479,7 +484,7 @@ public class MessageClientService extends MobiComKitClientService {
         try {
             String url = getMessageThreadDeleteUrl() + "?userId=" + contact.getContactIds();
             String response = httpRequestUtils.getResponse(url, "text/plain", "text/plain");
-            Log.i(TAG, "Delete messages response from server: " + response + contact.getContactIds());
+            Utils.printLog(context,TAG, "Delete messages response from server: " + response + contact.getContactIds());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -497,7 +502,7 @@ public class MessageClientService extends MobiComKitClientService {
             }
             String url = getMessageThreadDeleteUrl() + parameterString;
             response = httpRequestUtils.getResponse(url, "text/plain", "text/plain");
-            Log.i(TAG, "Delete messages response from server: " + response);
+            Utils.printLog(context,TAG, "Delete messages response from server: " + response);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -516,10 +521,28 @@ public class MessageClientService extends MobiComKitClientService {
         }
         if (message.isSentToServer()) {
             response = httpRequestUtils.getResponse(getMessageDeleteUrl() + "?key=" + message.getKeyString() + contactNumberParameter, "text/plain", "text/plain");
-            Log.i(TAG, "delete response is " + response);
+            Utils.printLog(context,TAG, "delete response is " + response);
         }
         return response;
     }
+
+
+    public String getMessageByMessageKeys(List<String> messageKeys){
+        if(messageKeys != null && messageKeys.size()>0){
+            String messageKeyUrlBuild="";
+            for (String messageKey : messageKeys) {
+                messageKeyUrlBuild += "keys" + "=" + messageKey+"&";
+            }
+            String  response = httpRequestUtils.getResponse(getMessageByMessageKeysUrl() +"?"+ messageKeyUrlBuild, "application/json", "application/json");
+            Utils.printLog(context,TAG, "Message keys response is :" + response);
+            if (TextUtils.isEmpty(response) || response.contains("<html>")) {
+                return null;
+            }
+            return response;
+        }
+        return null;
+    }
+
 
     public void updateReadStatus(Contact contact, Channel channel) {
         String contactNumberParameter = "";
@@ -530,7 +553,7 @@ public class MessageClientService extends MobiComKitClientService {
             contactNumberParameter = "?groupId=" + channel.getKey();
         }
         response = httpRequestUtils.getResponse(getUpdateReadStatusUrl() + contactNumberParameter, "text/plain", "text/plain");
-        Log.i(TAG, "Read status response is " + response);
+        Utils.printLog(context,TAG, "Read status response is " + response);
     }
 
     public void updateReadStatusForSingleMessage(String pairedmessagekey) {
@@ -540,7 +563,7 @@ public class MessageClientService extends MobiComKitClientService {
             try {
                 singleReadMessageParm = "?key=" + pairedmessagekey;
                 response = httpRequestUtils.getResponse(getSingleMessageReadUrl() + singleReadMessageParm, "text/plain", "text/plain");
-                Log.i(TAG, "Read status response for single message is " + response);
+                Utils.printLog(context,TAG, "Read status response for single message is " + response);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -598,7 +621,7 @@ public class MessageClientService extends MobiComKitClientService {
             if (response == null || TextUtils.isEmpty(response) || response.equals("UnAuthorized Access")) {
                 return null;
             }
-            Log.i(TAG, "Sync UserDetails response is:" + response);
+            Utils.printLog(context,TAG, "Sync UserDetails response is:" + response);
             SyncUserDetailsResponse userDetails = (SyncUserDetailsResponse) GsonUtils.getObjectFromJson(response, SyncUserDetailsResponse.class);
             return userDetails;
         } catch (Exception e) {
@@ -625,11 +648,15 @@ public class MessageClientService extends MobiComKitClientService {
 
     public void processUserStatus(Contact contact) {
         if (contact != null && contact.getContactIds() != null) {
-            processUserStatus(contact.getUserId());
+            processUserStatus(contact.getUserId(),false);
         }
     }
 
-    public void processUserStatus(String userId) {
+    public void processUserStatus(String userId){
+        processUserStatus(userId,false);
+    }
+
+    public void processUserStatus(String userId,boolean isProfileImageUpdated) {
         try {
             String contactNumberParameter = "";
             String response = "";
@@ -641,7 +668,7 @@ public class MessageClientService extends MobiComKitClientService {
             }
 
             response = httpRequestUtils.getResponse(getUserDetailUrl() + contactNumberParameter, "application/json", "application/json");
-            Log.i(TAG, "User details response is " + response);
+            Utils.printLog(context,TAG, "User details response is " + response);
             if (TextUtils.isEmpty(response) || response.contains("<html>")) {
                 return;
             }
@@ -652,24 +679,27 @@ public class MessageClientService extends MobiComKitClientService {
                 for (UserDetail userDetail : userDetails) {
                     Contact contact = new Contact();
                     contact.setUserId(userDetail.getUserId());
-                    contact.setContactType(Contact.ContactType.APPLOZIC.getValue());
                     contact.setFullName(userDetail.getDisplayName());
                     contact.setConnected(userDetail.isConnected());
                     contact.setContactNumber(userDetail.getPhoneNumber());
                     contact.setLastSeenAt(userDetail.getLastSeenAtTime());
                     contact.setImageURL(userDetail.getImageLink());
-                    contact.setUserTypeId(userDetail.getUserTypeId());
                     contact.setStatus(userDetail.getStatusMessage());
+                    contact.setUserTypeId(userDetail.getUserTypeId());
+                    contact.setDeletedAtTime(userDetail.getDeletedAtTime());
                     contact.setUnreadCount(0);
                     baseContactService.upsert(contact);
                 }
-                BroadcastService.sendUpdateLastSeenAtTimeBroadcast(context, BroadcastService.INTENT_ACTIONS.UPDATE_LAST_SEEN_AT_TIME.toString(), userId);
+                if(isProfileImageUpdated){
+                    BroadcastService.sendUpdateUserDetailBroadcast(context,BroadcastService.INTENT_ACTIONS.UPDATE_USER_DETAIL.toString(), userId);
+                }else{
+                    BroadcastService.sendUpdateLastSeenAtTimeBroadcast(context,BroadcastService.INTENT_ACTIONS.UPDATE_LAST_SEEN_AT_TIME.toString(), userId);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     public String getTopicId(Integer conversationId) {
         try {
             String topicId = null;

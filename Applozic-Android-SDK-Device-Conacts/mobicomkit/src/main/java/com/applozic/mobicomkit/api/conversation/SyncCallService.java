@@ -3,7 +3,6 @@ package com.applozic.mobicomkit.api.conversation;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.account.register.RegisterUserClientService;
 import com.applozic.mobicomkit.api.account.user.UserService;
@@ -12,6 +11,7 @@ import com.applozic.mobicomkit.broadcast.BroadcastService;
 import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.people.contact.Contact;
 
 import java.util.Date;
@@ -76,7 +76,7 @@ public class SyncCallService {
 
     public synchronized void syncMessages(String key) {
         if (!TextUtils.isEmpty(key) && mobiComMessageService.isMessagePresent(key)) {
-            Log.d(TAG, "Message is already present, MQTT reached before GCM.");
+            Utils.printLog(context,TAG, "Message is already present, MQTT reached before GCM.");
         } else {
             Intent intent = new Intent(context, ConversationIntentService.class);
             intent.putExtra(ConversationIntentService.SYNC, true);
@@ -144,14 +144,18 @@ public class SyncCallService {
         messageClientService.processUserStatus(userId);
     }
 
+    public void syncUserDetail(String userId) {
+        messageClientService.processUserStatus(userId,true);
+    }
+
     public void processContactSync(final String userId) {
-        Log.i(TAG, "process contact sync for userId: " + userId);
+        Utils.printLog(context,TAG, "process contact sync for userId: " + userId);
         if (!TextUtils.isEmpty(userId) && contactService.isContactPresent(userId)) {
             Contact contact = contactService.getContactById(userId);
 
 
             if (contact.isApplozicType()) {
-                Log.d(TAG, "Contact is already present, MQTT reached before GCM.");
+                Utils.printLog(context,TAG, "Contact is already present, MQTT reached before GCM.");
                 return;
             }
         }
@@ -162,6 +166,5 @@ public class SyncCallService {
             }
         }).start();
     }
-
 
 }

@@ -9,7 +9,6 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.HttpRequestUtils;
 import com.applozic.mobicomkit.api.MobiComKitClientService;
@@ -118,7 +117,7 @@ public class FileClientService extends MobiComKitClientService {
                 try {
                     attachedImage = BitmapFactory.decodeFile(imageLocalPath);
                 } catch (Exception ex) {
-                    Log.e(TAG, "File not found on local storage: " + ex.getMessage());
+                    Utils.printLog(context,TAG, "File not found on local storage: " + ex.getMessage());
                 }
             }
             if (attachedImage == null) {
@@ -130,7 +129,7 @@ public class FileClientService extends MobiComKitClientService {
                     imageLocalPath = ImageUtils.saveImageToInternalStorage(file, attachedImage);
 
                 } else {
-                    Log.w(TAG, "Download is failed response code is ...." + connection.getResponseCode());
+                    Utils.printLog(context,TAG, "Download is failed response code is ...." + connection.getResponseCode());
                     return null;
                 }
             }
@@ -142,9 +141,9 @@ public class FileClientService extends MobiComKitClientService {
             attachedImage = BitmapFactory.decodeFile(imageLocalPath, options);
             return attachedImage;
         } catch (FileNotFoundException ex) {
-            Log.e(TAG, "File not found on server: " + ex.getMessage());
+            Utils.printLog(context,TAG, "File not found on server: " + ex.getMessage());
         } catch (Exception ex) {
-            Log.e(TAG, "Exception fetching file from server: " + ex.getMessage());
+            Utils.printLog(context,TAG, "Exception fetching file from server: " + ex.getMessage());
         }
 
         return null;
@@ -169,7 +168,7 @@ public class FileClientService extends MobiComKitClientService {
                     inputStream = connection.getInputStream();
                 } else {
                     //TODO: Error Handling...
-                    Log.i(TAG, "Got Error response while uploading file : " + connection.getResponseCode());
+                    Utils.printLog(context,TAG, "Got Error response while uploading file : " + connection.getResponseCode());
                     return;
                 }
 
@@ -192,15 +191,15 @@ public class FileClientService extends MobiComKitClientService {
 
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
-            Log.e(TAG, "File not found on server");
+            Utils.printLog(context,TAG, "File not found on server");
         } catch (Exception ex) {
             //If partial file got created delete it, we try to download it again
             if (file != null && file.exists()) {
-                Log.i(TAG, " Exception occured while downloading :" + file.getAbsolutePath());
+                Utils.printLog(context,TAG, " Exception occured while downloading :" + file.getAbsolutePath());
                 file.delete();
             }
             ex.printStackTrace();
-            Log.e(TAG, "Exception fetching file from server");
+            Utils.printLog(context,TAG, "Exception fetching file from server");
         }
     }
 
@@ -218,10 +217,10 @@ public class FileClientService extends MobiComKitClientService {
             return attachedImage;
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
-            Log.e(TAG, "File not found on server: " + ex.getMessage());
+            Utils.printLog(context,TAG, "File not found on server: " + ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
-            Log.e(TAG, "Exception fetching file from server: " + ex.getMessage());
+            Utils.printLog(context,TAG, "Exception fetching file from server: " + ex.getMessage());
         }
 
         return null;
@@ -266,15 +265,15 @@ public class FileClientService extends MobiComKitClientService {
                     inputStream.allowMarksToExpire(true);
                     return attachedImage;
                 } else {
-                    Log.w(TAG, "Download is failed response code is ...." + connection.getResponseCode());
+                    Utils.printLog(context,TAG, "Download is failed response code is ...." + connection.getResponseCode());
                 }
             }
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
-            Log.e(TAG, "Image not found on server: " + ex.getMessage());
+            Utils.printLog(context,TAG, "Image not found on server: " + ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
-            Log.e(TAG, "Exception fetching file from server: " + ex.getMessage());
+            Utils.printLog(context,TAG, "Exception fetching file from server: " + ex.getMessage());
         } catch (Throwable t) {
 
         } finally {
@@ -307,7 +306,6 @@ public class FileClientService extends MobiComKitClientService {
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        Log.i("abc", thumbnailDir);
         videoThumbnailPath = thumbnailDir + videoFileName + ".jpeg";
         Bitmap videoThumbnail = null;
 
@@ -323,7 +321,7 @@ public class FileClientService extends MobiComKitClientService {
                 videoThumbnail.compress(Bitmap.CompressFormat.JPEG, 50, fOut);
                 fOut.flush();
                 fOut.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -398,9 +396,9 @@ public class FileClientService extends MobiComKitClientService {
                 }
             }
         } catch (FileNotFoundException ex) {
-            Log.e(TAG, "Image not found on server: " + ex.getMessage());
+            Utils.printLog(context,TAG, "Image not found on server: " + ex.getMessage());
         } catch (Exception ex) {
-            Log.e(TAG, "Exception fetching file from server: " + ex.getMessage());
+            Utils.printLog(context,TAG, "Exception fetching file from server: " + ex.getMessage());
         } catch (Throwable t) {
 
         } finally {

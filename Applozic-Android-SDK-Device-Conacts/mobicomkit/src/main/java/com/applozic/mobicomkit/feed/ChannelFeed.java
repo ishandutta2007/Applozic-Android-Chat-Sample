@@ -108,6 +108,14 @@ public class ChannelFeed extends JsonMarker {
         this.membersName = membersName;
     }
 
+    public Set<String> getContactGroupMembersId() {
+        return membersId;
+    }
+
+    public void setContactGroupMembersId(Set<String> membersId) {
+        this.membersId = membersId;
+    }
+
     public Conversation getConversationPxy() {
         return conversationPxy;
     }

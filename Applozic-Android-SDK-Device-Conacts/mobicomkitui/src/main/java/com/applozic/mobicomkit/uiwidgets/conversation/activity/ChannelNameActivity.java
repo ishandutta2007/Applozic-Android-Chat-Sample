@@ -7,9 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -24,14 +27,12 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-
 
 import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.api.attachment.FileClientService;
@@ -52,12 +53,12 @@ import com.applozic.mobicommons.people.channel.Channel;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Created by sunil on 10/3/16.
@@ -103,6 +104,13 @@ public class ChannelNameActivity extends AppCompatActivity implements ActivityCo
         } else {
             alCustomizationSettings = new AlCustomizationSettings();
         }
+
+        if(!TextUtils.isEmpty(alCustomizationSettings.getThemeColorPrimary()) && !TextUtils.isEmpty(alCustomizationSettings.getThemeColorPrimaryDark())){
+            mActionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(alCustomizationSettings.getThemeColorPrimary())));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(Color.parseColor(alCustomizationSettings.getThemeColorPrimaryDark()));
+            }
+        }
         int drawableResourceId = getResources().getIdentifier(alCustomizationSettings.getAttachCameraIconName(), "drawable", getPackageName());
         selectImageProfileIcon.setImageResource(drawableResourceId);
 
@@ -115,7 +123,7 @@ public class ChannelNameActivity extends AppCompatActivity implements ActivityCo
             File file = new File(groupInfoUpdate.getLocalImagePath());
             Uri uri = Uri.parse(file.getAbsolutePath());
             if (uri != null) {
-                Log.i("ChannelNameActivity::", uri.toString());
+                Utils.printLog(this,"ChannelNameActivity::", uri.toString());
                 applozicGroupProfileIcon.setImageURI(uri);
             }
         } else {
@@ -213,7 +221,7 @@ public class ChannelNameActivity extends AppCompatActivity implements ActivityCo
                     fileClientService.writeFile(imageChangeUri, profilePhotoFile);
                 }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-                Toast.makeText(this, "Cropping failed: " + result.getError(), Toast.LENGTH_LONG).show();
+                Utils.printLog(this,ChannelNameActivity.class.getName(),this.getString(R.string.applozic_Cropping_failed)+result.getError());
             }
         }
         if (resultCode == Activity.RESULT_OK) {

@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.RingtoneManager;
+import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.ApplozicClient;
 import com.applozic.mobicomkit.api.MobiComKitClientService;
@@ -64,7 +64,7 @@ public class NotificationService {
 
     public void notifyUser(Contact contact, Channel channel, Message message) {
         if (ApplozicClient.getInstance(context).isNotificationDisabled()) {
-            Log.i(TAG, "Notification is disabled");
+            Utils.printLog(context,TAG, "Notification is disabled");
             return;
         }
         String title = null;
@@ -135,7 +135,7 @@ public class NotificationService {
                         .setWhen(System.currentTimeMillis())
                         .setContentTitle(title)
                         .setContentText(channel != null && !Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType()) ? displayNameContact.getDisplayName() + ": " + notificationText : notificationText)
-                        .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+                        .setSound(TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getNotificationSoundFilePath())?RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION): Uri.parse(MobiComUserPreference.getInstance(context).getNotificationSoundFilePath()));
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setAutoCancel(true);
         if (message.hasAttachment()) {

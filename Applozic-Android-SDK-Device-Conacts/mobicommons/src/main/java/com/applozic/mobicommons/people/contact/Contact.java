@@ -57,9 +57,9 @@ public class Contact extends JsonMarker {
     private String status;
     private String phoneDisplayName;
     private Integer contactType;// Default is 0, 1 is for device
-    private boolean applozicType = true;
     private Short userTypeId;
-
+    private boolean applozicType = true;
+    private Long deletedAtTime;
 
     public Contact() {
 
@@ -273,6 +273,18 @@ public class Contact extends JsonMarker {
         this.status = status;
     }
 
+    public Long getDeletedAtTime() {
+        return deletedAtTime == null ? 0 : deletedAtTime;
+    }
+
+    public void setDeletedAtTime(Long deletedAtTime) {
+        this.deletedAtTime = deletedAtTime;
+    }
+
+    public boolean isDeleted() {
+        return (deletedAtTime != null && deletedAtTime > 0);
+    }
+
     public void processFullName(String fullName) {
         this.fullName = fullName;
         if (fullName != null) {
@@ -304,28 +316,6 @@ public class Contact extends JsonMarker {
         this.userTypeId = userTypeId;
     }
 
-    @Override
-    public String toString() {
-        return "Contact{" +
-                "firstName='" + firstName + '\'' +
-                ", middleName='" + middleName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", emailIds=" + emailIds +
-                ", contactNumbers=" + contactNumbers +
-                ", phoneNumbers=" + phoneNumbers +
-                ", contactNumber='" + contactNumber + '\'' +
-                ", formattedContactNumber='" + formattedContactNumber + '\'' +
-                ", contactId=" + contactId +
-                ", fullName='" + fullName + '\'' +
-                ", userId='" + userId + '\'' +
-                ", imageURL='" + imageURL + '\'' +
-                ", localImageUrl='" + localImageUrl + '\'' +
-                ", emailId='" + emailId + '\'' +
-                ", applicationId='" + applicationId + '\'' +
-                ", connected='" + connected + '\'' +
-                ", lastSeenAtTime='" + lastSeenAtTime + '\'' +
-                '}';
-    }
 
     public String getUserId() {
         return userId;
@@ -467,4 +457,34 @@ public class Contact extends JsonMarker {
         }
     }
 
+    @Override
+    public String toString() {
+        return "Contact{" +
+                "firstName='" + firstName + '\'' +
+                ", middleName='" + middleName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", emailIds=" + emailIds +
+                ", contactNumbers=" + contactNumbers +
+                ", phoneNumbers=" + phoneNumbers +
+                ", contactNumber='" + contactNumber + '\'' +
+                ", formattedContactNumber='" + formattedContactNumber + '\'' +
+                ", contactId=" + contactId +
+                ", fullName='" + fullName + '\'' +
+                ", userId='" + userId + '\'' +
+                ", imageURL='" + imageURL + '\'' +
+                ", localImageUrl='" + localImageUrl + '\'' +
+                ", emailId='" + emailId + '\'' +
+                ", applicationId='" + applicationId + '\'' +
+                ", connected=" + connected +
+                ", lastSeenAtTime=" + lastSeenAtTime +
+                ", checked=" + checked +
+                ", unreadCount=" + unreadCount +
+                ", blocked=" + blocked +
+                ", blockedBy=" + blockedBy +
+                ", status='" + status + '\'' +
+                ", contactType=" + contactType +
+                ", userTypeId=" + userTypeId +
+                ", deletedAtTime=" + deletedAtTime +
+                '}';
+    }
 }

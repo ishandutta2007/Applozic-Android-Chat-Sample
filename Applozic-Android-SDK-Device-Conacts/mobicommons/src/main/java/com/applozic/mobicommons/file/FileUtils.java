@@ -37,6 +37,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.commons.image.ImageUtils;
 
 import java.io.BufferedReader;
@@ -315,7 +316,7 @@ public class FileUtils {
     public static String getPath(final Context context, final Uri uri) {
 
         if (DEBUG)
-            Log.d(TAG + " File -",
+            Utils.printLog(context,TAG + " File -",
                     "Authority: " + uri.getAuthority() +
                             ", Fragment: " + uri.getFragment() +
                             ", Port: " + uri.getPort() +
@@ -542,10 +543,10 @@ public class FileUtils {
      */
     public static Bitmap getThumbnail(Context context, Uri uri, String mimeType) {
         if (DEBUG)
-            Log.d(TAG, "Attempting to get thumbnail");
+            Utils.printLog(context,TAG, "Attempting to get thumbnail");
 
         if (!isMediaUri(uri)) {
-            Log.e(TAG, "You can only retrieve thumbnails for images and videos.");
+            Utils.printLog(context,TAG, "You can only retrieve thumbnails for images and videos.");
             return null;
         }
 
@@ -558,7 +559,7 @@ public class FileUtils {
                 if (cursor.moveToFirst()) {
                     final int id = cursor.getInt(0);
                     if (DEBUG)
-                        Log.d(TAG, "Got thumb ID: " + id);
+                        Utils.printLog(context,TAG, "Got thumb ID: " + id);
 
                     if (mimeType.contains("video")) {
                         bm = MediaStore.Video.Thumbnails.getThumbnail(
@@ -864,6 +865,29 @@ public class FileUtils {
             return name;
         }
         return name.substring(0, pos);
+    }
+
+    public static boolean isMaxUploadSizeReached(Context context ,Uri uri,int maxFileSize) {
+        try{
+            Cursor returnCursor = context.getContentResolver().query(uri, null, null, null, null);
+            if (returnCursor != null) {
+                int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
+                returnCursor.moveToFirst();
+                Long fileSize = returnCursor.getLong(sizeIndex);
+                returnCursor.close();
+                return fileSize > maxFileSize;
+            }
+
+        }catch (Exception e){
+        }
+        return false;
+    }
+
+    public static boolean isContentScheme(Uri uri){
+        if (uri == null) {
+            return false;
+        }
+        return "content".equalsIgnoreCase(uri.getScheme());
     }
 
 }

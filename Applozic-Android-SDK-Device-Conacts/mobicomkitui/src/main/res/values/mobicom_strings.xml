@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources  xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
 
     <string name="app_name">Applozic</string>
     <string name="conversations">Conversations</string>
@@ -79,8 +80,9 @@
         \nFor any queries, get in touch with us at support@mobitexter.net</string>
 
     <string name="info_app_not_found_to_open_file">No application found to open this file</string>
+    <string name="unable_to_play_requested_audio_file">No application found to open this file</string>
     <string name="file_not_selected">Did you miss selecting the file?</string>
-    <string name="info_attachment_max_allowed_file_size">Can\'t send maximum uploading file size limit exceeded 10Mb </string>
+    <string name="info_attachment_max_allowed_file_size">Can\'t send maximum uploading file size limit exceeded! </string>
     <string name="info_file_attachment_error">Can\'t send! Some unexpected error occurred while reading file</string>
     <string name="select_file_count_limit">Can\'t select more than 1 file</string>
 
@@ -150,7 +152,7 @@
     <string name="broadcast_delete_button">DELETE BROADCAST</string>
     <string name="channel_created_by">Created by</string>
     <string name="remove_member">Remove</string>
-    <string name="add_member">Add</string>
+    <string name="add">Add</string>
     <string name="group_creating_info">Creating group please wait</string>
     <string name="broadcast_creating_info">Creating broadcast please wait</string>
     <string name="channel_exit">Exit</string>
@@ -172,7 +174,22 @@
     <string name="applozic_userId_error_info_in_logs">UserId can not be null or empty and Channel key should not be null</string>
     <string name="applozic_channel_error_info_in_logs">Please check group name is Null or Empty or it has at least one member to be added in group</string>
     <string name="applozic_add_user_to_multiple_channel_error_info_in_logs">UserId can not be null or empty and Channel key list should not be null</string>
-    <string name="video_string">Video</string>
     <string name="user_logout_info">Logout successful</string>
-
+    <string name="unable_share_message">Unable to share you are not a participant of this group</string>
+    <string name="user_is_blocked">Unable to send user is blocked</string>
+    <string name="when_on_wifi">When on wifi</string>
+    <string name="when_on_cellular_network">When on cellular network</string>
+    <string name="media_auto_download">Media-auto download</string>
+    <string name="applozic_network_usage">Network Usage</string>
+    <string name="enable_vibration_notification">Enable vibration on notification</string>
+    <string name="user_has_been_deleted_text">User has been deleted</string>
+    <string name="make_admin_text_info">Make group admin</string>
+    <string name="attachment_string">Attachment</string>
+    <string name="photo_string">Photo</string>
+    <string name="contact_string">Contact</string>
+    <string name="video_string">Video</string>
+    <string name="audio_string">Audio</string>
+    <string name="al_location_string">Location</string>
+    <string name="restricted_words_are_not_allowed">Restricted words are not allowed</string>
+    <string name="ok_alert">Ok</string>
 </resources>

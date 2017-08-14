@@ -3,7 +3,6 @@ package com.applozic.mobicomkit.contact;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.attachment.FileClientService;
 import com.applozic.mobicomkit.broadcast.BroadcastService;
@@ -97,13 +96,14 @@ public class AppContactService implements BaseContactService {
                 contactDatabase.updateContact(contact);
             }
         }
-    }
 
+    }
 
     @Override
     public List<Contact> getContacts(Contact.ContactType contactType) {
         return contactDatabase.getContacts(contactType);
     }
+
 
     @Override
     public List<Contact> getAllContactListExcludingLoggedInUser() {

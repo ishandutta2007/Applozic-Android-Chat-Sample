@@ -6,9 +6,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -23,7 +26,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,8 +42,8 @@ import com.applozic.mobicomkit.api.attachment.FileClientService;
 import com.applozic.mobicomkit.broadcast.ConnectivityReceiver;
 import com.applozic.mobicomkit.feed.RegisteredUsersApiResponse;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
+import com.applozic.mobicomkit.uiwidgets.ApplozicSetting;
 import com.applozic.mobicomkit.uiwidgets.R;
-import com.applozic.mobicomkit.uiwidgets.conversation.fragment.MultimediaOptionFragment;
 import com.applozic.mobicomkit.uiwidgets.conversation.fragment.PictureUploadPopUpFragment;
 import com.applozic.mobicomkit.uiwidgets.instruction.ApplozicPermissions;
 import com.applozic.mobicomkit.uiwidgets.people.fragment.ProfileFragment;
@@ -72,6 +74,8 @@ public class ChannelCreateActivity extends AppCompatActivity implements Activity
     private static final int REQUEST_CODE_ATTACH_PHOTO = 901;
     private static final String TAG = "ChannelCreateActivity";
     public static String GROUP_TYPE = "GroupType";
+    public static String CONTACTS_GROUP_ID = "ContactsGroupId";
+    public String contactsGroupId;
     MobiComUserPreference userPreference;
     AlCustomizationSettings alCustomizationSettings;
     ConnectivityReceiver connectivityReceiver;
@@ -105,6 +109,12 @@ public class ChannelCreateActivity extends AppCompatActivity implements Activity
         connectivityReceiver = new ConnectivityReceiver();
         userPreference = MobiComUserPreference.getInstance(ChannelCreateActivity.this);
         mActionBar = getSupportActionBar();
+        if(!TextUtils.isEmpty(alCustomizationSettings.getThemeColorPrimary()) && !TextUtils.isEmpty(alCustomizationSettings.getThemeColorPrimaryDark())){
+            mActionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(alCustomizationSettings.getThemeColorPrimary())));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(Color.parseColor(alCustomizationSettings.getThemeColorPrimaryDark()));
+            }
+        }
         mActionBar.setTitle(R.string.channel_create_title);
         mActionBar.setDisplayShowHomeEnabled(true);
         mActionBar.setDisplayHomeAsUpEnabled(true);
@@ -128,6 +138,7 @@ public class ChannelCreateActivity extends AppCompatActivity implements Activity
         fileClientService = new FileClientService(this);
         if (getIntent() != null) {
             groupType = getIntent().getIntExtra(GROUP_TYPE, Channel.GroupType.PUBLIC.getValue().intValue());
+            contactsGroupId = getIntent().getStringExtra(CONTACTS_GROUP_ID);
         }
        /* groupType = getIntent().getIntExtra(GROUP_TYPE, Channel.GroupType.PRIVATE.getValue().intValue());
         if(groupType.equals(Channel.GroupType.BROADCAST.getValue().intValue())){
@@ -158,13 +169,16 @@ public class ChannelCreateActivity extends AppCompatActivity implements Activity
             }
             if (check) {
                 Utils.toggleSoftKeyBoard(ChannelCreateActivity.this, true);
-                if (alCustomizationSettings.getTotalRegisteredUserToFetch() > 0 && alCustomizationSettings.isRegisteredUserContactListCall() && !userPreference.getWasContactListServerCallAlreadyDone()) {
+                if (alCustomizationSettings.getTotalRegisteredUserToFetch() > 0 && (alCustomizationSettings.isRegisteredUserContactListCall() || ApplozicSetting.getInstance(this).isRegisteredUsersContactCall())&& !userPreference.getWasContactListServerCallAlreadyDone()) {
                     processDownloadRegisteredUsers();
                 } else {
                     Intent intent = new Intent(ChannelCreateActivity.this, ContactSelectionActivity.class);
                     intent.putExtra(ContactSelectionActivity.CHANNEL, channelName.getText().toString());
                     if (!TextUtils.isEmpty(groupIconImageLink)) {
                         intent.putExtra(ContactSelectionActivity.IMAGE_LINK, groupIconImageLink);
+                    }
+                    if (contactsGroupId != null) {
+                        intent.putExtra(ContactSelectionActivity.CONTACTS_GROUP_ID, contactsGroupId);
                     }
                     intent.putExtra(ContactSelectionActivity.GROUP_TYPE, groupType);
                     startActivity(intent);
@@ -244,14 +258,14 @@ public class ChannelCreateActivity extends AppCompatActivity implements Activity
                         new ProfilePictureUpload(true, profilePhotoFile, imageChangeUri, ChannelCreateActivity.this).execute((Void[]) null);
                     }
                 } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-                    Toast.makeText(this, "Cropping failed: " + result.getError(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, this.getString(R.string.applozic_Cropping_failed) + result.getError(), Toast.LENGTH_LONG).show();
                 }
             }
             if (resultCode == Activity.RESULT_OK) {
                 handleOnActivityResult(requestCode, intent);
             }
         } catch (Exception e) {
-            Log.i(TAG, "exception in profile image");
+            Utils.printLog(this, TAG, "exception in profile image");
         }
     }
 
@@ -414,15 +428,15 @@ public class ChannelCreateActivity extends AppCompatActivity implements Activity
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.i(ChannelCreateActivity.class.getName(), "Exception");
-
             }
             return true;
         }
 
         @Override
         protected void onPostExecute(final Boolean result) {
-            progressDialog.dismiss();
+            if (progressDialog != null && progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
         }
 
     }

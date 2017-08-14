@@ -71,7 +71,6 @@ public class PhotoDecodeRunnable implements Runnable {
          */
         String imagePath = mPhotoTask.getLocalPath();
         if (imagePath == null) {
-            Log.e(LOG_TAG, "@@@Image path is coming as null");
             mPhotoTask.handleDecodeState(DECODE_STATE_FAILED);
             return;
 

@@ -113,7 +113,7 @@ public class ChannelFragment extends ListFragment implements
         shareButton = (Button) view.findViewById(R.id.actionButton);
         shareButton.setVisibility(View.GONE);
         resultTextView = (TextView) view.findViewById(R.id.result);
-        resultTextView.setText("No Groups");
+        resultTextView.setText(getString(R.string.no_groups));
         return view;
     }
 
@@ -224,8 +224,9 @@ public class ChannelFragment extends ListFragment implements
 
         // Updates current filter to new filter
         mSearchTerm = newFilter;
-        mAdapter.indexOfSearchQuery(newFilter);
-
+        if(mAdapter != null){
+            mAdapter.indexOfSearchQuery(newFilter);
+        }
         getLoaderManager().restartLoader(
                 QUERY_ID, null, ChannelFragment.this);
 

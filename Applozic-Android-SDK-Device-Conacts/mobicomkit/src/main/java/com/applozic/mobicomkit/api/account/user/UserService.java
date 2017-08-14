@@ -2,8 +2,8 @@ package com.applozic.mobicomkit.api.account.user;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
+import com.applozic.mobicomkit.api.MobiComKitClientService;
 import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.api.account.register.SyncClientService;
 import com.applozic.mobicomkit.contact.AppContactService;
@@ -15,6 +15,7 @@ import com.applozic.mobicomkit.feed.SyncBlockUserApiResponse;
 import com.applozic.mobicomkit.feed.SyncPxy;
 import com.applozic.mobicomkit.sync.SyncUserBlockFeed;
 import com.applozic.mobicomkit.sync.SyncUserBlockListFeed;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.json.GsonUtils;
 import com.applozic.mobicommons.people.contact.Contact;
 import com.google.gson.reflect.TypeToken;
@@ -148,9 +149,9 @@ public class UserService {
         contact.setUserId(userDetail.getUserId());
         contact.setContactNumber(userDetail.getPhoneNumber());
         contact.setConnected(userDetail.isConnected());
+        contact.setStatus(userDetail.getStatusMessage());
         contact.setFullName(userDetail.getDisplayName());
         contact.setLastSeenAt(userDetail.getLastSeenAtTime());
-        contact.setStatus(userDetail.getStatusMessage());
         contact.setUserTypeId(userDetail.getUserTypeId());
         contact.setContactType(contactType.getValue());
         contact.setUnreadCount(0);
@@ -159,7 +160,6 @@ public class UserService {
         }
         baseContactService.upsert(contact);
     }
-
 
     public synchronized String[] getOnlineUsers(int numberOfUser) {
         try {
@@ -200,9 +200,17 @@ public class UserService {
         return null;
     }
 
-    public void updateDisplayNameORImageLink(String displayName, String profileImageLink, String localURL, String status) {
+    public String updateDisplayNameORImageLink(String displayName, String profileImageLink, String localURL, String status) {
+        return updateDisplayNameORImageLink(displayName, profileImageLink, status, null);
+    }
 
-        ApiResponse response = userClientService.updateDisplayNameORImageLink(displayName, profileImageLink, status);
+    public String updateDisplayNameORImageLink(String displayName, String profileImageLink, String localURL, String status, String contactNumber) {
+
+        ApiResponse response = userClientService.updateDisplayNameORImageLink(displayName, profileImageLink, status, contactNumber);
+
+        if (response == null) {
+            return null;
+        }
         if (response != null && response.isSuccess()) {
             Contact contact = baseContactService.getContactById(MobiComUserPreference.getInstance(context).getUserId());
             if (!TextUtils.isEmpty(displayName)) {
@@ -215,41 +223,16 @@ public class UserService {
             if (!TextUtils.isEmpty(status)) {
                 contact.setStatus(status);
             }
+            if (!TextUtils.isEmpty(contactNumber)) {
+                contact.setContactNumber(contactNumber);
+            }
             baseContactService.upsert(contact);
             Contact contact1 = baseContactService.getContactById(MobiComUserPreference.getInstance(context).getUserId());
-            Log.i("UserService", contact1.getImageURL() + ", " + contact1.getDisplayName() + "," + contact1.getStatus());
+            Utils.printLog(context, "UserService", contact1.getImageURL() + ", " + contact1.getDisplayName() + "," + contact1.getStatus() + "," + contact1.getStatus());
         }
+        return response.getStatus();
     }
 
-    public void processContactSync() {
-        Set<String> userIds = new HashSet<String>();
-        SyncApiResponse apiResponse = syncClientService.getSyncCall(MobiComUserPreference.getInstance(context).getContactSyncTime(), SyncClientService.SyncType.CONTACT);
-        if (apiResponse == null || apiResponse.getResponse() == null || apiResponse.getResponse().isEmpty()) {
-            Log.i(TAG, "Contact Sync call response is empty.");
-            return;
-        }
-        for (SyncPxy syncPxy: apiResponse.getResponse()) {
-            userIds.add(syncPxy.getParam());
-        }
-        processUserDetails(userIds);
-        MobiComUserPreference.getInstance(context).setContactSyncTime(apiResponse.getGeneratedAt());
-    }
-
-    public void processUserDetailsByUserIds(Set<String> userIds) {
-        userClientService.postUserDetailsByUserIds(userIds);
-    }
-
-    public ApiResponse processUserReadConversation() {
-        return userClientService.getUserReadServerCall();
-    }
-
-    public String processUpdateUserPassword(String oldPassword, String newPassword) {
-        String response = userClientService.updateUserPassword(oldPassword, newPassword);
-        if (!TextUtils.isEmpty(response) && "success".equals(response)) {
-            userPreference.setPassword(newPassword);
-        }
-        return response;
-    }
 
     public void processUserDetailsResponse(String response) {
         if (!TextUtils.isEmpty(response)) {
@@ -261,4 +244,49 @@ public class UserService {
         }
     }
 
+    public void processUserDetailsByUserIds(Set<String> userIds) {
+        userClientService.postUserDetailsByUserIds(userIds);
+    }
+
+    public ApiResponse processUserReadConversation() {
+        return userClientService.getUserReadServerCall();
+    }
+
+
+
+    public String processUpdateUserPassword(String oldPassword, String newPassword) {
+        String response = userClientService.updateUserPassword(oldPassword, newPassword);
+        if (!TextUtils.isEmpty(response) && MobiComKitConstants.SUCCESS.equals(response)) {
+            userPreference.setPassword(newPassword);
+        }
+        return response;
+    }
+
+
+    public void processPackageDetail() {
+        CustomerPackageDetail customerPackageDetail = new CustomerPackageDetail();
+        customerPackageDetail.setApplicationKey((MobiComKitClientService.getApplicationKey(context)));
+        customerPackageDetail.setPackageName(context.getPackageName());
+        String response = userClientService.packageDetail(customerPackageDetail);
+        if (!TextUtils.isEmpty(response) && response.equals(MobiComKitConstants.APPLICATION_INFO_RESPONSE)) {
+            userPreference.setApplicationInfoCallDone(true);
+        } else {
+            userPreference.setApplicationInfoCallDone(false);
+        }
+    }
+
+
+    public void processContactSync() {
+        Set<String> userIds = new HashSet<String>();
+        SyncApiResponse apiResponse = syncClientService.getSyncCall(MobiComUserPreference.getInstance(context).getContactSyncTime(), SyncClientService.SyncType.CONTACT);
+        if (apiResponse == null || apiResponse.getResponse() == null || apiResponse.getResponse().isEmpty()) {
+            Utils.printLog(context,TAG, "Contact Sync call response is empty.");
+            return;
+        }
+        for (SyncPxy syncPxy: apiResponse.getResponse()) {
+            userIds.add(syncPxy.getParam());
+        }
+        processUserDetails(userIds);
+        MobiComUserPreference.getInstance(context).setContactSyncTime(apiResponse.getGeneratedAt());
+    }
 }
