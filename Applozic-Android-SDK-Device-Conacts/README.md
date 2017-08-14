@@ -82,8 +82,8 @@ To disable the location sharing via map add this line ApplozicSetting.getInstanc
            android:exported="false"
            android:grantUriPermissions="true">
 <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
-           android:resource="@xml/provider_paths"/>
- </provider>  
+           android:resource="@xml/applozic_provider_paths"/>
+ </provider> 
      
 ```
    **Note**: If you are **not using gradle build** you need to replace ${applicationId}  with your Android app package name
@@ -94,19 +94,6 @@ To disable the location sharing via map add this line ApplozicSetting.getInstanc
 ```
 <string name="default_media_location_folder">YOUR_APP_NAME</string> 
 ```
-
-Adding  File Provider path in your app 
-
-1.Create a android resorce directory as xml directory  
-2.Create a XML resource file in xml directory as provider_paths and paste the below code
-
-```
-<?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <external-path name="files" path="."/>
-</paths>
-```
-
 
 Permissions:          
 
@@ -128,6 +115,8 @@ Permissions:
 <uses-permission android:name="android.permission.CALL_PHONE" />
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
   ```
 
 
@@ -345,6 +334,7 @@ new UserLoginTask(user, listener, this).execute((Void) null);
 ```
 
 If it is a new user, new user account will get created else existing user will be logged in to the application.
+You can check if user is logged in to applozic or not by using ```MobiComUserPreference.getInstance(this).isLoggedIn()```
 
 
 
@@ -563,7 +553,7 @@ Note :Use async task or thread to call this logout method
 
 
 ```
- #keep json classes
+ #keep json classes                
  -keepclassmembernames class * extends com.applozic.mobicommons.json.JsonMarker {
  	!static !transient <fields>;
  }
@@ -571,11 +561,11 @@ Note :Use async task or thread to call this logout method
  -keepclassmembernames class * extends com.applozic.mobicommons.json.JsonParcelableMarker {
  	!static !transient <fields>;
  }
- #GSON Config
--keepattributes Signature
--keep class sun.misc.Unsafe { *; }
--keep class com.google.gson.examples.android.model.** { *; }
--keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; }
+ #GSON Config          
+-keepattributes Signature          
+-keep class sun.misc.Unsafe { *; }           
+-keep class com.google.gson.examples.android.model.** { *; }            
+-keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; } 
 -keep class android.support.** { *; }
 -keep interface android.support.** { *; }
 -dontwarn android.support.v4.**
