@@ -26,7 +26,7 @@ Documentation: [Applozic Android Chat & Messaging SDK Documentation](https://www
 **Step 1: Add the following in your build.gradle dependency**:  
 
 ```
-compile 'com.applozic.communication.uiwidget:audiovideo:1.2'
+compile 'com.applozic.communication.uiwidget:audiovideo:1.4'
 ```
 
 
@@ -82,8 +82,8 @@ To disable the location sharing via map add this line ApplozicSetting.getInstanc
            android:exported="false"
            android:grantUriPermissions="true">
 <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
-           android:resource="@xml/provider_paths"/>
- </provider>           
+           android:resource="@xml/applozic_provider_paths"/>
+ </provider>          
          
 ```
    **Note**: If you are **not using gradle build** you need to replace ${applicationId}  with your Android app package name
@@ -95,25 +95,7 @@ To disable the location sharing via map add this line ApplozicSetting.getInstanc
 <string name="default_media_location_folder">YOUR_APP_NAME</string> 
 ```
 
-Adding  File Provider path in your app 
-
-1.Create a android resorce directory as xml directory  
-2.Create a XML resource file in xml directory as provider_paths and paste the below code
-
-```
-<?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <external-path name="files" path="."/>
-</paths>
-```
-
-
 Permissions:          
-
-
-
-
-
 
 ```
 <uses-permission android:name="<APP_PKG_NAME>.permission.MAPS_RECEIVE" />
@@ -129,6 +111,7 @@ Permissions:
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 <uses-permission android:name="android.permission.CALL_PHONE" />
 <uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
   ```
 
@@ -169,21 +152,30 @@ Paste the following in your androidmanifest.xml:
  </activity>
                    
 <activity android:name="com.applozic.mobicomkit.uiwidgets.people.activity.MobiComKitPeopleActivity"
-          android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
-          android:label="@string/activity_contacts_list"
-          android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
-          android:theme="@style/ApplozicTheme"
-          android:windowSoftInputMode="adjustResize">
-     <!-- Parent activity meta-data to support API level 7+ -->
-<meta-data
-          android:name="android.support.PARENT_ACTIVITY"
-          android:value="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity" />
+           android:configChanges="keyboardHidden|screenSize|smallestScreenSize|screenLayout|orientation"
+           android:label="@string/app_name"
+           android:parentActivityName="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity"
+           android:theme="@style/ApplozicTheme"
+           android:windowSoftInputMode="adjustResize">
+
+            <!-- Parent activity meta-data to support API level 7+ -->
+<meta-data android:name="android.support.PARENT_ACTIVITY"
+           android:value="com.applozic.mobicomkit.uiwidgets.conversation.activity.ConversationActivity" />
+
          <intent-filter>
-             <action android:name="android.intent.action.SEARCH" />
+                <action android:name="android.intent.action.SEARCH" />
          </intent-filter>
-<meta-data
-          android:name="android.app.searchable"
-          android:resource="@xml/searchable_contacts" />
+
+         <intent-filter>
+               <action android:name="android.intent.action.SEND" />             
+               <category android:name="android.intent.category.DEFAULT" />
+               <data android:mimeType="image/*" />
+               <data android:mimeType="audio/*" />
+               <data android:mimeType="video/*" />
+               <data android:mimeType="text/plain"/>
+         </intent-filter>
+<meta-data android:name="android.app.searchable"
+           android:resource="@xml/searchable_contacts" />
 </activity>
 
 <activity android:name="com.applozic.mobicomkit.uiwidgets.conversation.activity.FullScreenImageActivity"
@@ -348,6 +340,7 @@ new UserLoginTask(user, listener, this).execute((Void) null);
 ```
 
 If it is a new user, new user account will get created else existing user will be logged in to the application.
+You can check if user is logged in to applozic or not by using ``` MobiComUserPreference.getInstance(this).isLoggedIn() ```
 
 
 
@@ -608,7 +601,6 @@ onSuccess of UserLoginTask, you need to set below handlers in settings.
 -keep public class com.google.android.gms.* { public *; }
 -dontwarn com.google.android.gms.**
 -keep class com.google.gson.** { *; }
--kepp class com.applozic.audiovideo.authentication.** { *; }
  ``` 
   
 
