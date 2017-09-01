@@ -29,6 +29,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="10dp"
             android:background="@android:color/transparent"
+            android:layout_marginStart="10dp"
             android:src="@drawable/applozic_ic_action_call" />
 
 
@@ -38,11 +39,13 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:paddingEnd="10dp"
             android:layout_toEndOf="@+id/applozic_call_image_type"
             android:layout_toRightOf="@+id/applozic_call_image_type"
             android:fontFamily="sans-serif-condensed"
             android:paddingRight="10dp"
-            android:text="missed"
+            android:text="@string/missed"
             android:textColor="@color/white"
             android:textSize="15sp" />
 
@@ -54,9 +57,11 @@
             android:layout_alignParentBottom="true"
             android:layout_below="@+id/applozic_call_status"
             android:fontFamily="sans-serif"
+            android:paddingEnd="10dp"
             android:paddingBottom="10dp"
             android:paddingRight="10dp"
             android:paddingTop="15dp"
+            android:layout_alignStart="@+id/applozic_call_status"
             android:text="1 min 5 sec"
             android:textColor="@color/white"
             android:textSize="10sp" />
@@ -69,6 +74,7 @@
             android:layout_alignParentRight="true"
             android:layout_marginTop="10dp"
             android:fontFamily="sans-serif-condensed"
+            android:layout_alignParentEnd="true"
             android:padding="10dp"
             android:text="11:40"
             android:textColor="@color/white"

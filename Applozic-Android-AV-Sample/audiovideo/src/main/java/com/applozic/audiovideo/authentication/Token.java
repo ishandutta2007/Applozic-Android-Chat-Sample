@@ -1,9 +1,12 @@
 package com.applozic.audiovideo.authentication;
 
+
+import com.applozic.mobicommons.json.JsonMarker;
+
 /**
  * Created by anuranjit on 16/7/16.
  */
-public class Token {
+public class Token extends JsonMarker{
 
     public String identity;
     public String token;

@@ -219,7 +219,7 @@ public class QuickConversationAdapter extends BaseAdapter implements Filterable 
             } else if (attachmentIcon != null && message.getContentType() == Message.ContentType.LOCATION.getValue()) {
                 attachmentIcon.setVisibility(View.VISIBLE);
                 attachmentIcon.setImageResource(R.drawable.mobicom_notification_location_icon);
-                messageTextView.setText("Location");
+                messageTextView.setText(context.getString(R.string.Location));
             } else if (message.getContentType() == Message.ContentType.PRICE.getValue()) {
                 messageTextView.setText(EmoticonUtils.getSmiledText(context, ConversationUIService.FINAL_PRICE_TEXT + message.getMessage(), emojiconHandler));
             } else if (message.getContentType() == Message.ContentType.TEXT_HTML.getValue()) {

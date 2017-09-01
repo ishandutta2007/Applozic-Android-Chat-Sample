@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.app.DialogFragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +16,7 @@ import android.widget.Toast;
 import com.applozic.mobicomkit.api.attachment.FileClientService;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.conversation.ConversationUIService;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,7 +81,7 @@ public class AudioMessageFragment extends DialogFragment {
                         if (audioRecorder == null) {
                             prepareMediaRecorder();
                         }
-                        audioRecordingText.setText("STOP");
+                        audioRecordingText.setText(getResources().getString(R.string.stop));
                         audioRecorder.prepare();
                         audioRecorder.start();
                         isRecordring = true;
@@ -110,7 +110,7 @@ public class AudioMessageFragment extends DialogFragment {
 
                 File file = new File(outputFile);
                 if (file != null) {
-                    Log.i("AudioFRG:", "File deleted...");
+                    Utils.printLog(getContext(),"AudioFRG:", "File deleted...");
                     file.delete();
                 }
                 AudioMessageFragment.this.dismiss();
@@ -166,7 +166,7 @@ public class AudioMessageFragment extends DialogFragment {
             try {
                 audioRecorder.stop();
             } catch (RuntimeException stopException) {
-                Log.i("AudioMsgFrag:", "Runtime exception.This is thrown intentionally if stop is called just after start");
+                Utils.printLog(getContext(),"AudioMsgFrag:", "Runtime exception.This is thrown intentionally if stop is called just after start");
             } finally {
                 audioRecorder.release();
                 audioRecorder = null;

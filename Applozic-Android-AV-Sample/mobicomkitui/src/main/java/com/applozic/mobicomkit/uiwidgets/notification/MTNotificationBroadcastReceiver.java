@@ -4,10 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.api.conversation.Message;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.json.GsonUtils;
 
 /**
@@ -21,7 +21,7 @@ public class MTNotificationBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         String action = intent.getAction();
         String messageJson = intent.getStringExtra(MobiComKitConstants.MESSAGE_JSON_INTENT);
-        Log.i(TAG, "Received broadcast, action: " + action + ", message: " + messageJson);
+        Utils.printLog(context,TAG, "Received broadcast, action: " + action + ", message: " + messageJson);
         if (!TextUtils.isEmpty(messageJson)) {
             final Message message = (Message) GsonUtils.getObjectFromJson(messageJson, Message.class);
             Intent notificationIntentService = new Intent(context, NotificationIntentService.class);

@@ -14,7 +14,9 @@
         android:layout_height="wrap_content"
         android:paddingBottom="6dp"
         android:paddingLeft="@dimen/listview_item_padding"
+        android:paddingStart="@dimen/listview_item_padding"
         android:paddingRight="0dp"
+        android:paddingEnd="0dp"
         android:paddingTop="8dp">
 
         <TextView
@@ -37,7 +39,8 @@
             android:layout_gravity="center"
             android:layout_toRightOf="@+id/alphabeticImage"
             android:src="@drawable/applozic_ic_contact_picture_holo_light"
-            android:visibility="visible" />
+            android:visibility="visible"
+            android:layout_toEndOf="@+id/alphabeticImage" />
 
     </RelativeLayout>
 
@@ -48,7 +51,7 @@
         android:layout_alignBottom="@+id/profile_image_relative_layout"
         android:layout_alignEnd="@+id/profile_image_relative_layout"
         android:layout_alignRight="@+id/profile_image_relative_layout"
-        android:layout_gravity="left|top"
+        android:layout_gravity="start|top"
         android:background="@drawable/online_circle"
         android:textColor="@color/white"
         android:textStyle="bold"
@@ -67,7 +70,12 @@
         android:layout_marginRight="5dp"
         android:layout_toRightOf="@+id/profile_image_relative_layout"
         android:paddingLeft="@dimen/listview_item_padding"
-        android:paddingRight="@dimen/listview_item_padding">
+        android:paddingStart="@dimen/listview_item_padding"
+        android:paddingRight="@dimen/listview_item_padding"
+        android:paddingEnd="@dimen/listview_item_padding"
+        android:layout_toEndOf="@+id/profile_image_relative_layout"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="5dp">
 
         <TextView
             android:id="@+id/applozic_group_member_info"
@@ -108,10 +116,14 @@
         android:layout_toRightOf="@id/profile_image_relative_layout"
         android:ellipsize="end"
         android:gravity="center_vertical"
+        android:textDirection="locale"
         android:paddingLeft="@dimen/listview_item_padding"
+        android:paddingStart="@dimen/listview_item_padding"
         android:singleLine="true"
         android:textColor="@color/message_details_text_color"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:layout_marginEnd="30dp"
+        android:layout_toEndOf="@id/profile_image_relative_layout" />
 
 
     <android.support.v7.widget.AppCompatCheckBox
@@ -125,6 +137,9 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:padding="10dp"
-        app:buttonTint="#b2b2b2" />
+        app:buttonTint="#b2b2b2"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="5dp"
+        android:layout_marginStart="5dp" />
 
 </RelativeLayout>

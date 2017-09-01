@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.api.conversation.Message;
@@ -14,7 +13,7 @@ import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.instruction.InstructionUtil;
-
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.json.GsonUtils;
 import com.applozic.mobicommons.people.contact.Contact;
 
@@ -41,7 +40,7 @@ public class MobiComKitBroadcastReceiver extends BroadcastReceiver {
         if (!TextUtils.isEmpty(messageJson)) {
             message = (Message) GsonUtils.getObjectFromJson(messageJson, Message.class);
         }
-        Log.i(TAG, "Received broadcast, action: " + action + ", message: " + message);
+        Utils.printLog(context,TAG, "Received broadcast, action: " + action + ", message: " + message);
 
         if (message != null && !message.isSentToMany()) {
             conversationUIService.addMessage(message);
@@ -111,6 +110,8 @@ public class MobiComKitBroadcastReceiver extends BroadcastReceiver {
             String currentId = intent.getStringExtra("currentId");
             boolean isGroup = intent.getBooleanExtra("isGroup", false);
             conversationUIService.updateConversationRead(currentId, isGroup);
+        } else if (BroadcastService.INTENT_ACTIONS.UPDATE_USER_DETAIL.toString().equals(action)) {
+            conversationUIService.updateUserInfo(intent.getStringExtra("contactId"));
         }
     }
 }

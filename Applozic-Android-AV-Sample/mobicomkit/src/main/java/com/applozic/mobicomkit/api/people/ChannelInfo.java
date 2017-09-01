@@ -21,6 +21,7 @@ public class ChannelInfo extends JsonMarker {
     private String imageUrl;
     private int type = Channel.GroupType.PUBLIC.getValue().intValue();
     private Map<String, String> metadata;
+    private String admin;
     private ChannelMetadata channelMetadata;
 
     public ChannelInfo(String groupName, List<String> groupMemberList) {
@@ -78,6 +79,14 @@ public class ChannelInfo extends JsonMarker {
         return channelMetadata;
     }
 
+    public String getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(String admin) {
+        this.admin = admin;
+    }
+
     public void setChannelMetadata(ChannelMetadata channelMetadata) {
         this.channelMetadata = channelMetadata;
         if (channelMetadata != null) {
@@ -114,6 +123,8 @@ public class ChannelInfo extends JsonMarker {
                 ", imageUrl='" + imageUrl + '\'' +
                 ", type=" + type +
                 ", metadata=" + metadata +
+                ", admin='" + admin + '\'' +
+                ", channelMetadata=" + channelMetadata +
                 '}';
     }
 }

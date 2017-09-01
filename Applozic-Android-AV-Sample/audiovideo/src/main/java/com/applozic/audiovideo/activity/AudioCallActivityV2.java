@@ -136,6 +136,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     private String participantIdentity;
     private int previousAudioMode;
     private int cnt;
+    private boolean previousMicrophoneMute;
+
 
     public AudioCallActivityV2() {
         this.videoCall = false;
@@ -229,17 +231,22 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     }
 
     protected void createAudioAndVideoTracks() {
-        // Share your microphone
-        localAudioTrack = LocalAudioTrack.create(this, true);
-        // Share your camera
-        cameraCapturer = new CameraCapturer(this, CameraCapturer.CameraSource.FRONT_CAMERA);
-        localVideoTrack = LocalVideoTrack.create(this, true, cameraCapturer);
-        primaryVideoView.setMirror(true);
-        if (videoCall) {
-            localVideoTrack.addRenderer(primaryVideoView);
-            localVideoView = primaryVideoView;
+        try {
+            // Share your microphone
+            localAudioTrack = LocalAudioTrack.create(this, true);
+            // Share your camera
+            cameraCapturer = new CameraCapturer(this, CameraCapturer.CameraSource.FRONT_CAMERA);
+            localVideoTrack = LocalVideoTrack.create(this, true, cameraCapturer);
+            primaryVideoView.setMirror(true);
+            if (videoCall) {
+                localVideoTrack.addRenderer(primaryVideoView);
+                localVideoView = primaryVideoView;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -273,19 +280,22 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         /*
          * If the local video track was released when the app was put in the background, recreate.
          */
-
-        if (videoCall) {
-            if (localVideoTrack == null && checkPermissionForCameraAndMicrophone()) {
-                localVideoTrack = LocalVideoTrack.create(this, true, cameraCapturer);
-                localVideoTrack.addRenderer(localVideoView);
+        try {
+            if (videoCall) {
+                if (localVideoTrack == null && checkPermissionForCameraAndMicrophone()) {
+                    localVideoTrack = LocalVideoTrack.create(this, true, cameraCapturer);
+                    localVideoTrack.addRenderer(localVideoView);
 
             /*
              * If connected to a Room then share the local video track.
              */
-                if (localParticipant != null) {
-                    localParticipant.addVideoTrack(localVideoTrack);
+                    if (localParticipant != null && localVideoTrack != null) {
+                        localParticipant.addVideoTrack(localVideoTrack);
+                    }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -369,7 +379,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
     protected void connectToRoom(String roomName) {
         try {
-            setAudioFocus(true);
+            configureAudio(true);
             ConnectOptions.Builder connectOptionsBuilder = new ConnectOptions.Builder(accessToken)
                     .roomName(roomName);
 
@@ -401,9 +411,9 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
      */
     protected void intializeUI() {
         connectActionFab.setImageDrawable(ContextCompat.getDrawable(this,
-                R.drawable.ic_call_white_24px));
+                R.drawable.ic_call_end_white_24px));
         connectActionFab.show();
-        connectActionFab.setOnClickListener(connectActionClickListener());
+        connectActionFab.setOnClickListener(disconnectClickListener());
         if (videoCall) {
             switchCameraActionFab.show();
             switchCameraActionFab.setOnClickListener(switchCameraClickListener());
@@ -434,7 +444,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
          */
         if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
             Snackbar.make(connectActionFab,
-                    "Multiple participants are not currently support in this UI",
+                    R.string.multiple_participants_not_available,
                     Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
             return;
@@ -467,13 +477,19 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     }
 
     protected void moveLocalVideoToThumbnailView() {
-        if (thumbnailVideoView.getVisibility() == View.GONE) {
-            thumbnailVideoView.setVisibility(View.VISIBLE);
-            localVideoTrack.removeRenderer(primaryVideoView);
-            localVideoTrack.addRenderer(thumbnailVideoView);
-            localVideoView = thumbnailVideoView;
-            thumbnailVideoView.setMirror(cameraCapturer.getCameraSource() ==
-                    CameraCapturer.CameraSource.FRONT_CAMERA);
+        try {
+            if (thumbnailVideoView.getVisibility() == View.GONE) {
+                thumbnailVideoView.setVisibility(View.VISIBLE);
+                if (localVideoTrack != null) {
+                    localVideoTrack.removeRenderer(primaryVideoView);
+                    localVideoTrack.addRenderer(thumbnailVideoView);
+                    localVideoView = thumbnailVideoView;
+                    thumbnailVideoView.setMirror(cameraCapturer.getCameraSource() ==
+                            CameraCapturer.CameraSource.FRONT_CAMERA);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -492,7 +508,6 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         if (participant.getVideoTracks().size() > 0) {
             removeParticipantVideo(participant.getVideoTracks().get(0));
         }
-        participant.setListener(null);
         if (videoCall) {
             moveLocalVideoToPrimaryView();
         }
@@ -503,13 +518,19 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     }
 
     protected void moveLocalVideoToPrimaryView() {
-        if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-            localVideoTrack.removeRenderer(thumbnailVideoView);
-            thumbnailVideoView.setVisibility(View.GONE);
-            localVideoTrack.addRenderer(primaryVideoView);
-            localVideoView = primaryVideoView;
-            primaryVideoView.setMirror(cameraCapturer.getCameraSource() ==
-                    CameraCapturer.CameraSource.FRONT_CAMERA);
+        try {
+            if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
+                if (localVideoTrack != null) {
+                    localVideoTrack.removeRenderer(thumbnailVideoView);
+                    thumbnailVideoView.setVisibility(View.GONE);
+                    localVideoTrack.addRenderer(primaryVideoView);
+                    localVideoView = primaryVideoView;
+                    primaryVideoView.setMirror(cameraCapturer.getCameraSource() ==
+                            CameraCapturer.CameraSource.FRONT_CAMERA);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -522,8 +543,9 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             public void onConnected(Room room) {
                 localParticipant = room.getLocalParticipant();
                 videoStatusTextView.setText("Connected to " + room.getName());
+                Log.d(TAG, "Connected to room");
                 setTitle(room.getName());
-                setSpeakerphoneOn(false);
+                setSpeakerphoneOn(videoCall);
                 for (Participant participant : room.getParticipants()) {
                     addParticipant(participant);
                     hideProgress();
@@ -537,33 +559,41 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             @Override
             public void onConnectFailure(Room room, TwilioException e) {
                 videoStatusTextView.setText("Failed to connect");
+                Log.d(TAG, "Failed to connect to room");
                 inviteSent = false;
                 hideProgress();
+                configureAudio(false);
                 finish();
             }
 
             @Override
             public void onDisconnected(Room room, TwilioException e) {
-                localParticipant = null;
-                videoStatusTextView.setText("Disconnected from " + room.getName());
-                AudioCallActivityV2.this.room = null;
-                setAudioFocus(false);
-                if (!videoCall) {
-                    timer.cancel();
-                }
-                if (!incomingCall && callStartTime > 0) {
-                    long diff = (System.currentTimeMillis() - callStartTime);
-                    videoCallNotificationHelper.sendVideoCallEnd(contactToCall, callId, String.valueOf(diff));
-                }
+                try {
+                    localParticipant = null;
+                    videoStatusTextView.setText("Disconnected from " + room.getName());
+                    Log.d(TAG, "Disconnected from room" + room.getName());
+                    AudioCallActivityV2.this.room = null;
+                    configureAudio(false);
+                    if (!videoCall) {
+                        timer.cancel();
+                    }
 
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.pause();
+                    if (!incomingCall && callStartTime > 0) {
+                        long diff = (System.currentTimeMillis() - callStartTime);
+                        videoCallNotificationHelper.sendVideoCallEnd(contactToCall, callId, String.valueOf(diff));
+                    }
+
+                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                        mediaPlayer.pause();
+                    }
+                    finish();
+                } catch (Exception exp) {
                 }
-                finish();
             }
 
             @Override
             public void onParticipantConnected(Room room, Participant participant) {
+                Log.d(TAG, "onParticipantConnected for room");
                 addParticipant(participant);
                 hideProgress();
                 if (!videoCall) {
@@ -578,7 +608,12 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
             @Override
             public void onParticipantDisconnected(Room room, Participant participant) {
                 removeParticipant(participant);
-                disconnectAndExit();
+                Log.d(TAG, "Participant has disconnected");
+                if (room != null) {
+                    room.disconnect();
+                } else {
+                    finish();
+                }
             }
 
             @Override
@@ -667,6 +702,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
     private void disconnectAndExit() {
         if (room != null) {
             room.disconnect();
+        } else {
+            finish();
         }
     }
 
@@ -693,14 +730,18 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (cameraCapturer != null) {
-                    CameraCapturer.CameraSource cameraSource = cameraCapturer.getCameraSource();
-                    cameraCapturer.switchCamera();
-                    if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-                        thumbnailVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
-                    } else {
-                        primaryVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                try {
+                    if (cameraCapturer != null) {
+                        CameraCapturer.CameraSource cameraSource = cameraCapturer.getCameraSource();
+                        cameraCapturer.switchCamera();
+                        if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
+                            thumbnailVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                        } else {
+                            primaryVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         };
@@ -757,8 +798,8 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         initiateCall();
     }
 
-    private void setAudioFocus(boolean focus) {
-        if (focus) {
+    private void configureAudio(boolean enable) {
+        if (enable) {
             previousAudioMode = audioManager.getMode();
             // Request audio focus before making any device switch.
             audioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
@@ -770,9 +811,15 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
              * speaker mode if this is not set.
              */
             audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            /*
+             * Always disable microphone mute during a WebRTC call.
+             */
+            previousMicrophoneMute = audioManager.isMicrophoneMute();
+            audioManager.setMicrophoneMute(false);
         } else {
             audioManager.setMode(previousAudioMode);
             audioManager.abandonAudioFocus(null);
+            audioManager.setMicrophoneMute(previousMicrophoneMute);
         }
     }
 
@@ -817,7 +864,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         } else {
             if (incomingCall) {
                 progress = new ProgressDialog(this);
-                progress.setMessage("Connecting...");
+                progress.setMessage(getString(R.string.connecting));
                 progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progress.setIndeterminate(true);
                 progress.setCancelable(false);
@@ -918,7 +965,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
                 if (ConnectivityReceiver.CONNECTIVITY_CHANGE.equals(intent.getAction())) {
                     if (!Utils.isInternetAvailable(context)) {
-                        Toast.makeText(context, "No network connectivity.", Toast.LENGTH_LONG);
+                        Toast.makeText(context, R.string.no_network_connectivity, Toast.LENGTH_LONG);
                         if (room != null && room.getState().equals(RoomState.CONNECTED)) {
                             room.disconnect();
                         }
@@ -940,7 +987,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                         VideoCallNotificationHelper.CALL_END.equals(intent.getAction()))
                         && isNotificationForSameId) {
 
-                    Toast.makeText(context, "Participant is busy..", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, R.string.participant_busy, Toast.LENGTH_LONG).show();
                     hideProgress();
                     if (room != null) {
                         inviteSent = false;
@@ -986,7 +1033,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
                     public void run() {
                         //Check for incoming call if
                         if (incomingCall && participantIdentity == null) {
-                            Toast.makeText(context, "Connection error..", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, R.string.connection_error, Toast.LENGTH_LONG).show();
                             hideProgress();
                             disconnectAndExit();
                             return;
@@ -996,7 +1043,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
 
                             videoCallNotificationHelper.sendCallMissed(contactToCall, callId);
                             videoCallNotificationHelper.sendVideoCallMissedMessage(contactToCall, callId);
-                            Toast.makeText(context, "No answers..", Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, R.string.no_answer, Toast.LENGTH_LONG).show();
                             hideProgress();
                             disconnectAndExit();
                         }
@@ -1083,7 +1130,7 @@ public class AudioCallActivityV2 extends AppCompatActivity implements TokenGener
         };
     }
 
-    private void setSpeakerphoneOn(boolean onOrOff) {
+    protected void setSpeakerphoneOn(boolean onOrOff) {
         if (room == null) {
             Log.e(TAG, "Unable to set audio output, conversation client is null");
             return;

@@ -1,7 +1,6 @@
 package com.applozic.mobicomkit.api.attachment;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.HttpRequestUtils;
 

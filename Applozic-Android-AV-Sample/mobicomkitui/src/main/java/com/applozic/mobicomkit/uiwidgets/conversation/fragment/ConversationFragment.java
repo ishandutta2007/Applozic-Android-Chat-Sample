@@ -3,6 +3,7 @@ package com.applozic.mobicomkit.uiwidgets.conversation.fragment;
 import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +21,7 @@ import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.conversation.MultimediaOptionsGridView;
 import com.applozic.mobicomkit.uiwidgets.conversation.adapter.MobicomMultimediaPopupAdapter;
 import com.applozic.mobicommons.commons.core.utils.LocationUtils;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.people.SearchListFragment;
 import com.applozic.mobicommons.people.channel.Channel;
 import com.applozic.mobicommons.people.contact.Contact;
@@ -89,7 +91,7 @@ public class ConversationFragment extends MobiComConversationFragment implements
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        this.title = ApplozicApplication.TITLE;
+        this.title = getResources().getString(R.string.chats);
         this.conversationService = new MobiComConversationService(getActivity());
         hideExtendedSendingOptionLayout = true;
 
@@ -103,7 +105,7 @@ public class ConversationFragment extends MobiComConversationFragment implements
         }
         sendType.setSelection(1);
 
-        messageEditText.setHint(R.string.enter_mt_message_hint);
+        messageEditText.setHint(R.string.enter_message_hint);
 
         multimediaPopupGrid.setVisibility(View.GONE);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(),
@@ -133,15 +135,17 @@ public class ConversationFragment extends MobiComConversationFragment implements
                 }
 
                 if (channel != null) {
-                    String userId = ChannelService.getInstance(getActivity()).getGroupOfTwoReceiverUserId(channel.getKey());
-                    if (!TextUtils.isEmpty(userId)) {
-                        Contact withUserContact = appContactService.getContactById(userId);
-                        if (withUserContact.isBlocked()) {
-                            userBlockDialog(false, withUserContact, true);
-                        } else {
-                            processAttachButtonClick(view);
+                    if (Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())) {
+                        String userId = ChannelService.getInstance(getActivity()).getGroupOfTwoReceiverUserId(channel.getKey());
+                        if (!TextUtils.isEmpty(userId)) {
+                            Contact withUserContact = appContactService.getContactById(userId);
+                            if (withUserContact.isBlocked()) {
+                                userBlockDialog(false, withUserContact, true);
+                            } else {
+                                processAttachButtonClick(view);
+                            }
                         }
-                    } else {
+                    }else {
                         processAttachButtonClick(view);
                     }
                 } else if (contact != null) {
@@ -216,6 +220,43 @@ public class ConversationFragment extends MobiComConversationFragment implements
                 attachmentText.add(allValues[index]);
                 attachmentIcon.add(allIcons[index]);
             }
+        }
+    }
+
+    public void reload() {
+
+        try {
+            StringBuffer stringBufferTitle = new StringBuffer();
+            if (contact != null) {
+                Contact updatedInfoContact = appContactService.getContactById(contact.getContactIds());
+                if (updatedInfoContact.isDeleted()) {
+                    Utils.toggleSoftKeyBoard(getActivity(), true);
+                    bottomlayoutTextView.setText(R.string.user_has_been_deleted_text);
+                    userNotAbleToChatLayout.setVisibility(View.VISIBLE);
+                    individualMessageSendLayout.setVisibility(View.GONE);
+                    ((AppCompatActivity) getActivity()).getSupportActionBar().setSubtitle("");
+                }
+                if (updatedInfoContact != null && (!TextUtils.isEmpty(contact.getDisplayName())) && (!contact.getDisplayName().equals(updatedInfoContact.getDisplayName()))) {
+                    stringBufferTitle.append(updatedInfoContact.getDisplayName());
+                }
+            } else if (channel != null) {
+                if (Channel.GroupType.GROUPOFTWO.getValue().equals(channel.getType())) {
+                    String userId = ChannelService.getInstance(getActivity()).getGroupOfTwoReceiverUserId(channel.getKey());
+                    if (!TextUtils.isEmpty(userId)) {
+                        Contact withUserContact = appContactService.getContactById(userId);
+                        if (withUserContact != null && (!TextUtils.isEmpty(contact.getDisplayName())) && (!contact.getDisplayName().equals(withUserContact.getDisplayName()))) {
+                            stringBufferTitle.append(withUserContact.getDisplayName());
+                        }
+                    }
+                }
+            }
+            if (!TextUtils.isEmpty(stringBufferTitle)) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(stringBufferTitle.toString());
+            }
+            conversationAdapter.refreshContactData();
+            conversationAdapter.notifyDataSetChanged();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.conversation.ApplozicIntentService;
@@ -26,7 +25,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         this.context = context;
         String action = intent.getAction();
-        Log.i(TAG, action);
+        Utils.printLog(context,TAG, action);
         LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(action));
         if (action.equalsIgnoreCase(CONNECTIVITY_CHANGE) || action.equalsIgnoreCase(BOOT_COMPLETED)) {
             if (!Utils.isInternetAvailable(context)) {

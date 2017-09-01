@@ -20,7 +20,7 @@
         android:id="@+id/layout_child_activity"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_gravity="left|top"
+        android:layout_gravity="start|top"
         android:background="@color/conversation_list_all_background" />
 
     <LinearLayout

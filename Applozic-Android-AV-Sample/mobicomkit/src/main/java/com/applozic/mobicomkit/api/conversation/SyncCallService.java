@@ -3,7 +3,6 @@ package com.applozic.mobicomkit.api.conversation;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.api.account.register.RegisterUserClientService;
 import com.applozic.mobicomkit.api.account.user.UserService;
@@ -12,6 +11,7 @@ import com.applozic.mobicomkit.broadcast.BroadcastService;
 import com.applozic.mobicomkit.channel.service.ChannelService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 
 import java.util.Date;
 import java.util.List;
@@ -75,7 +75,7 @@ public class SyncCallService {
 
     public synchronized void syncMessages(String key) {
         if (!TextUtils.isEmpty(key) && mobiComMessageService.isMessagePresent(key)) {
-            Log.d(TAG, "Message is already present, MQTT reached before GCM.");
+            Utils.printLog(context,TAG, "Message is already present, MQTT reached before GCM.");
         } else {
             Intent intent = new Intent(context, ConversationIntentService.class);
             intent.putExtra(ConversationIntentService.SYNC, true);
@@ -141,6 +141,10 @@ public class SyncCallService {
 
     public void processUserStatus(String userId) {
         messageClientService.processUserStatus(userId);
+    }
+
+    public void syncUserDetail(String userId) {
+        messageClientService.processUserStatus(userId,true);
     }
 
 }

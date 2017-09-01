@@ -4,7 +4,6 @@ import com.applozic.mobicommons.json.JsonMarker;
 import com.applozic.mobicommons.people.contact.Contact;
 import com.google.gson.annotations.Expose;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -210,6 +209,7 @@ public class Channel extends JsonMarker {
         BROADCAST(5),
         OPEN(6),
         GROUPOFTWO(7),
+        CONTACT_GROUP(9),
         BROADCAST_ONE_BY_ONE(106);
 
         private Integer value;

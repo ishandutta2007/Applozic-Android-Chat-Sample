@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +22,7 @@ import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.conversation.activity.RemoveInterfaceListener;
 import com.applozic.mobicomkit.uiwidgets.people.fragment.ProfileFragment;
 import com.applozic.mobicomkit.uiwidgets.uilistener.MobicomkitUriListener;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 
 import java.util.List;
 
@@ -117,7 +117,7 @@ public class PictureUploadPopUpFragment extends DialogFragment {
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         if (!(getActivity() instanceof MobicomkitUriListener)) {
-            Log.d(TAG, "Activity must implement MobicomkitUriListener to get image file uri");
+            Utils.printLog(getContext(),TAG, "Activity must implement MobicomkitUriListener to get image file uri");
             return;
         }
 

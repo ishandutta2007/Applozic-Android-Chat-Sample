@@ -13,18 +13,22 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.attachment.FileClientService;
+import com.applozic.mobicomkit.api.conversation.Message;
 import com.applozic.mobicomkit.broadcast.ConnectivityReceiver;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
 import com.applozic.mobicomkit.uiwidgets.R;
+import com.applozic.mobicomkit.uiwidgets.conversation.ConversationUIService;
 import com.applozic.mobicomkit.uiwidgets.conversation.adapter.MobiComAttachmentGridViewAdapter;
+import com.applozic.mobicommons.commons.core.utils.Utils;
+import com.applozic.mobicommons.file.FilePathFinder;
 import com.applozic.mobicommons.file.FileUtils;
 import com.applozic.mobicommons.json.GsonUtils;
 
@@ -32,6 +36,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -40,9 +45,19 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity {
 
     public static final String MULTISELECT_SELECTED_FILES = "multiselect.selectedFiles";
     public static final String MULTISELECT_MESSAGE = "multiselect.message";
+    public static final String URI_LIST = "URI_LIST";
+    public static String USER_ID = "USER_ID";
+    public static String DISPLAY_NAME = "DISPLAY_NAME";
+    public static String GROUP_ID = "GROUP_ID";
+    public static String GROUP_NAME = "GROUP_NAME";
     private static int REQUEST_CODE_ATTACH_PHOTO = 10;
     AlCustomizationSettings alCustomizationSettings;
     FileClientService fileClientService;
+    Uri imageUri;
+    String userID, displayName, groupName;
+    Integer groupID;
+    Message message;
+    MobiComUserPreference userPreferences;
     private String TAG = "MultiAttActivity";
     private Button sendAttachment;
     private Button cancelAttachment;
@@ -62,14 +77,29 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity {
         } else {
             alCustomizationSettings = new AlCustomizationSettings();
         }
+
+        fileClientService = new FileClientService(this);
+        userPreferences = MobiComUserPreference.getInstance(this);
+        Intent intent = getIntent();
+        if (intent.getExtras() != null) {
+            userID = intent.getExtras().getString(USER_ID);
+            displayName = intent.getExtras().getString(DISPLAY_NAME);
+            groupID = intent.getExtras().getInt(GROUP_ID, 0);
+            groupName = intent.getExtras().getString(GROUP_NAME);
+            imageUri = (Uri) intent.getParcelableExtra(URI_LIST);
+            if (imageUri != null) {
+                attachmentFileList.add(imageUri);
+            }
+        }
         initViews();
         setUpGridView();
         fileClientService = new FileClientService(this);
-
-        Intent getContentIntent = FileUtils.createGetContentIntent();
-        getContentIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-        Intent intentPick = Intent.createChooser(getContentIntent, getString(R.string.select_file));
-        startActivityForResult(intentPick, REQUEST_CODE_ATTACH_PHOTO);
+        if (imageUri == null) {
+            Intent getContentIntent = FileUtils.createGetContentIntent();
+            getContentIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+            Intent intentPick = Intent.createChooser(getContentIntent, getString(R.string.select_file));
+            startActivityForResult(intentPick, REQUEST_CODE_ATTACH_PHOTO);
+        }
         connectivityReceiver = new ConnectivityReceiver();
         registerReceiver(connectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
@@ -104,11 +134,63 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity {
                     return;
                 }
 
-                Intent intent = new Intent();
-                intent.putParcelableArrayListExtra(MULTISELECT_SELECTED_FILES, attachmentFileList);
-                intent.putExtra(MULTISELECT_MESSAGE, messageEditText.getText().toString());
-                setResult(RESULT_OK, intent);
-                finish();
+                if (imageUri != null) {
+                    for (Uri uri : attachmentFileList) {
+                        try {
+                            String filePath = uri.getPath();
+                            if (TextUtils.isEmpty(filePath)) {
+                                Toast.makeText(MobiComAttachmentSelectorActivity.this, R.string.info_file_attachment_error, Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            Message messageToSend = new Message();
+                            if (groupID != 0) {
+                                messageToSend.setGroupId(groupID);
+                            } else {
+                                messageToSend.setTo(userID);
+                                messageToSend.setContactIds(userID);
+                            }
+                            messageToSend.setContentType(Message.ContentType.ATTACHMENT.getValue());
+                            messageToSend.setRead(Boolean.TRUE);
+                            messageToSend.setStoreOnDevice(Boolean.TRUE);
+                            if (messageToSend.getCreatedAtTime() == null) {
+                                messageToSend.setCreatedAtTime(System.currentTimeMillis() + userPreferences.getDeviceTimeOffset());
+                            }
+                            messageToSend.setSendToDevice(Boolean.FALSE);
+                            messageToSend.setType(Message.MessageType.MT_OUTBOX.getValue());
+                            messageToSend.setMessage(messageEditText.getText().toString());
+                            messageToSend.setDeviceKeyString(userPreferences.getDeviceKeyString());
+                            messageToSend.setSource(Message.Source.MT_MOBILE_APP.getValue());
+                            if (!TextUtils.isEmpty(filePath)) {
+                                List<String> filePaths = new ArrayList<String>();
+                                filePaths.add(filePath);
+                                messageToSend.setFilePaths(filePaths);
+                            }
+                            Intent startConversationActivity = new Intent(MobiComAttachmentSelectorActivity.this, ConversationActivity.class);
+                            if (groupID != 0) {
+                                startConversationActivity.putExtra(ConversationUIService.GROUP_ID, groupID);
+                                startConversationActivity.putExtra(ConversationUIService.GROUP_NAME, groupName);
+                                startConversationActivity.putExtra(ConversationUIService.FORWARD_MESSAGE, GsonUtils.getJsonFromObject(messageToSend, messageToSend.getClass()));
+                            } else {
+                                startConversationActivity.putExtra(ConversationUIService.USER_ID, userID);
+                                startConversationActivity.putExtra(ConversationUIService.DISPLAY_NAME, displayName);
+                                startConversationActivity.putExtra(ConversationUIService.FORWARD_MESSAGE, GsonUtils.getJsonFromObject(messageToSend, messageToSend.getClass()));
+                            }
+                            startActivity(startConversationActivity);
+                            finish();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                } else {
+                    Intent intent = new Intent();
+                    intent.putParcelableArrayListExtra(MULTISELECT_SELECTED_FILES, attachmentFileList);
+                    intent.putExtra(MULTISELECT_MESSAGE, messageEditText.getText().toString());
+                    setResult(RESULT_OK, intent);
+                    finish();
+                }
+
+
             }
         });
 
@@ -120,7 +202,7 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity {
     private void addUri(Uri uri) {
 
         attachmentFileList.add(uri);
-        Log.i(TAG, "attachmentFileList  :: " + attachmentFileList);
+        Utils.printLog(MobiComAttachmentSelectorActivity.this,TAG, "attachmentFileList  :: " + attachmentFileList);
 
 
     }
@@ -129,7 +211,7 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity {
      *
      */
     private void setUpGridView() {
-        imagesAdapter = new MobiComAttachmentGridViewAdapter(MobiComAttachmentSelectorActivity.this, attachmentFileList, alCustomizationSettings);
+        imagesAdapter = new MobiComAttachmentGridViewAdapter(MobiComAttachmentSelectorActivity.this, attachmentFileList, alCustomizationSettings, imageUri != null);
         galleryImagesGridView.setAdapter(imagesAdapter);
     }
 
@@ -137,8 +219,8 @@ public class MobiComAttachmentSelectorActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (resultCode == Activity.RESULT_OK) {
             Uri selectedFileUri = (intent == null ? null : intent.getData());
-            Log.i(TAG, "selectedFileUri :: " + selectedFileUri);
-            if (selectedFileUri != null) {
+            Utils.printLog(MobiComAttachmentSelectorActivity.this,TAG, "selectedFileUri :: " + selectedFileUri);
+            if(selectedFileUri != null) {
                 String fileName = null;
                 try {
                     int maxFileSize = alCustomizationSettings.getMaxAttachmentSizeAllowed() * 1024 * 1024;

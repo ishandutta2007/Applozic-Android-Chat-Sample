@@ -67,6 +67,7 @@ public class ContactDatabase {
             contact.setBlockedBy(userBlockedBy);
             contact.setStatus(cursor.getString(cursor.getColumnIndex(MobiComDatabaseHelper.STATUS)));
             contact.setUserTypeId(cursor.getShort(cursor.getColumnIndex(MobiComDatabaseHelper.USER_TYPE_ID)));
+            contact.setDeletedAtTime(cursor.getLong(cursor.getColumnIndex(MobiComDatabaseHelper.DELETED_AT)));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -252,6 +253,7 @@ public class ContactDatabase {
             contentValues.put(MobiComDatabaseHelper.CONTACT_TYPE, contact.getContactType());
         }
         contentValues.put(MobiComDatabaseHelper.USER_TYPE_ID, contact.getUserTypeId());
+        contentValues.put(MobiComDatabaseHelper.DELETED_AT, contact.getDeletedAtTime());
         return contentValues;
     }
 
@@ -357,14 +359,14 @@ public class ContactDatabase {
                 String query = "select userId as _id, fullName, contactNO, " +
                         "displayName,contactImageURL,contactImageLocalURI,email," +
                         "applicationId,connected,lastSeenAt,unreadCount,blocked," +
-                        "blockedBy,status,contactType,userTypeId from " + CONTACT;
+                        "blockedBy,status,contactType,userTypeId,deletedAtTime from " + CONTACT + " where deletedAtTime=0 ";
 
                 if (userIdArray != null && userIdArray.length > 0) {
                     String placeHolderString = Utils.makePlaceHolders(userIdArray.length);
                     if (!TextUtils.isEmpty(searchString)) {
-                        query = query + " where fullName like '%" + searchString.replaceAll("'", "''") + "%' and  userId  IN (" + placeHolderString + ")";
+                        query = query + " and fullName like '%" + searchString.replaceAll("'", "''") + "%' and  userId  IN (" + placeHolderString + ")";
                     } else {
-                        query = query + " where userId IN (" + placeHolderString + ")";
+                        query = query + " and userId IN (" + placeHolderString + ")";
                     }
                     query = query + " order by connected desc,lastSeenAt desc ";
 
@@ -372,18 +374,18 @@ public class ContactDatabase {
                 } else {
                     if (ApplozicClient.getInstance(context).isShowMyContacts()) {
                         if (!TextUtils.isEmpty(searchString)) {
-                            query = query + " where fullName like '%" + searchString.replaceAll("'", "''") + "%' AND contactType != 0 AND userId NOT IN ('" + userPreferences.getUserId().replaceAll("'", "''") + "')";
+                            query = query + " and fullName like '%" + searchString.replaceAll("'", "''") + "%' AND contactType != 0 AND userId NOT IN ('" + userPreferences.getUserId().replaceAll("'", "''") + "')";
                         } else {
-                            query = query + " where contactType != 0 AND userId != '" + userPreferences.getUserId() + "'";
+                            query = query + " and contactType != 0 AND userId != '" + userPreferences.getUserId() + "'";
                         }
                     } else {
                         if (!TextUtils.isEmpty(searchString)) {
-                            query = query + " where fullName like '%" + searchString.replaceAll("'", "''") + "%' AND userId NOT IN ('" + userPreferences.getUserId().replaceAll("'", "''") + "')";
+                            query = query + " and fullName like '%" + searchString.replaceAll("'", "''") + "%' AND userId NOT IN ('" + userPreferences.getUserId().replaceAll("'", "''") + "')";
                         } else {
-                            query = query + " where userId != '" + userPreferences.getUserId() + "'";
+                            query = query + " and userId != '" + userPreferences.getUserId() + "'";
                         }
                     }
-                    query = query + " order by fullName,userId asc ";
+                    query = query + " order by fullName COLLATE NOCASE,userId COLLATE NOCASE asc ";
                     cursor = db.rawQuery(query, null);
                 }
 

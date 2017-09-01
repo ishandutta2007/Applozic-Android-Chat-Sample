@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import android.util.Base64;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -105,7 +104,6 @@ public class MobiComVCFParser {
             Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
             return bitmap;
         } catch (Exception e) {
-            Log.e("MobiComVCFParser", encodedString, e);
             return null;
         }
     }

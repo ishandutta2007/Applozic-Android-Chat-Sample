@@ -120,6 +120,12 @@ public class CallActivity extends Activity {
         ImageButton reject = (ImageButton) findViewById(R.id.alarmlistitem_rejectButton);
         ImageView profileImage = (ImageView) findViewById(R.id.notification_profile_image);
         TextView textView = (TextView) findViewById(R.id.notification_user_name);
+        TextView callType = (TextView) findViewById(R.id.call_type);
+
+        if (isAudioOnly) {
+            callType.setText(R.string.incoming_audio_call);
+            callType.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_call_white_24px), null, null, null);
+        }
 
         reject.setOnClickListener(new View.OnClickListener() {
             @Override

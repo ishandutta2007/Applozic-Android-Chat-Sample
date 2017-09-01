@@ -9,13 +9,17 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_gravity="center_vertical"
-        android:paddingLeft="10dp" />
+        android:paddingLeft="10dp"
+        android:paddingStart="10dp"/>
 
     <TextView
         android:id="@+id/video_outgoing_call_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textDirection="locale"
+        android:textAlignment="gravity"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="20dp"
+        android:layout_marginStart="20dp"
         android:text="Connecting...." />
 </LinearLayout>

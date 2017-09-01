@@ -18,7 +18,7 @@
         app:subtitleTextAppearance="@style/ToolbarSubtitle"
         app:titleTextAppearance="@style/ToolbarTitle" />
 
-    <com.applozic.mobicomkit.api.attachment.AttachmentView
+    <com.applozic.mobicomkit.uiwidgets.conversation.TouchImageView
         android:id="@+id/full_screen_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

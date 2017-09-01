@@ -3,6 +3,7 @@ package com.applozic.mobicomkit.uiwidgets.conversation.activity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -54,6 +55,7 @@ import com.applozic.mobicomkit.feed.ErrorResponseFeed;
 import com.applozic.mobicomkit.feed.GroupInfoUpdate;
 import com.applozic.mobicomkit.feed.RegisteredUsersApiResponse;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
+import com.applozic.mobicomkit.uiwidgets.ApplozicSetting;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.alphanumbericcolor.AlphaNumberColorUtil;
 import com.applozic.mobicomkit.uiwidgets.conversation.ConversationUIService;
@@ -70,7 +72,6 @@ import com.applozic.mobicommons.people.contact.Contact;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -107,6 +108,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
     private Button exitChannelButton, deleteChannelButton;
     private RelativeLayout channelDeleteRelativeLayout, channelExitRelativeLayout;
     private Integer channelKey;
+    private RefreshBroadcast refreshBroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +122,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
         } else {
             alCustomizationSettings = new AlCustomizationSettings();
         }
+        refreshBroadcast = new RefreshBroadcast();
         baseContactService = new AppContactService(getApplicationContext());
         channelImage = (ImageView) findViewById(R.id.channelImage);
         userPreference = MobiComUserPreference.getInstance(this);
@@ -252,6 +255,9 @@ public class ChannelInfoActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mobiComKitBroadcastReceiver);
+        if(refreshBroadcast != null){
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(refreshBroadcast);
+        }
         BroadcastService.currentInfoId = null;
         contactImageLoader.setPauseWork(false);
 
@@ -261,6 +267,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(mobiComKitBroadcastReceiver, BroadcastService.getIntentFilter());
+        LocalBroadcastManager.getInstance(this).registerReceiver(refreshBroadcast, new IntentFilter(BroadcastService.INTENT_ACTIONS.UPDATE_USER_DETAIL.toString()));
         if (channel != null) {
             BroadcastService.currentInfoId = String.valueOf(channel.getKey());
             Channel newChannel = ChannelService.getInstance(this).getChannelByChannelKey(channel.getKey());
@@ -374,7 +381,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
         if (id == R.id.add_member_to_channel) {
             if (isUserPresent) {
                 Utils.toggleSoftKeyBoard(ChannelInfoActivity.this, true);
-                if (alCustomizationSettings.getTotalRegisteredUserToFetch() > 0 && alCustomizationSettings.isRegisteredUserContactListCall() && !userPreference.getWasContactListServerCallAlreadyDone()) {
+                if (alCustomizationSettings.getTotalRegisteredUserToFetch() > 0 && (alCustomizationSettings.isRegisteredUserContactListCall() || ApplozicSetting.getInstance(this).isRegisteredUsersContactCall())&& !userPreference.getWasContactListServerCallAlreadyDone()) {
                     processLoadRegisteredUsers();
                 } else {
                     Intent addMemberIntent = new Intent(ChannelInfoActivity.this, ContactSelectionActivity.class);
@@ -474,7 +481,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
 
                     }
                 });
-        alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+        alertDialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
             }
@@ -495,14 +502,14 @@ public class ChannelInfoActivity extends AppCompatActivity {
 
     public void addChannelUser(final String userId, final Channel channel) {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this).
-                setPositiveButton(R.string.add_member, new DialogInterface.OnClickListener() {
+                setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         new ChannelMemberAdd(channel, userId, ChannelInfoActivity.this).execute();
 
                     }
                 });
-        alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+        alertDialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
             }
@@ -528,7 +535,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
                         new ChannelAsync(channel, ChannelInfoActivity.this).execute();
                     }
                 });
-        alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+        alertDialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
             }
@@ -548,7 +555,7 @@ public class ChannelInfoActivity extends AppCompatActivity {
                         new ChannelMemberAdd(channel, ChannelInfoActivity.this).execute();
                     }
                 });
-        alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+        alertDialog.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
             }
@@ -926,6 +933,15 @@ public class ChannelInfoActivity extends AppCompatActivity {
                     channelImage.setImageURI(Uri.parse(groupInfoUpdate.getContentUri()));
                 }
             }
+        }
+    }
+
+
+    public class RefreshBroadcast extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateChannelList();
         }
     }
 

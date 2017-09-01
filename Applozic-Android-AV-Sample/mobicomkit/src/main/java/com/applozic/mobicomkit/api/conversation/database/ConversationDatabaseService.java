@@ -5,9 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.applozic.mobicomkit.database.MobiComDatabaseHelper;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.people.channel.Channel;
 import com.applozic.mobicommons.people.channel.Conversation;
 import com.applozic.mobicommons.people.contact.Contact;
@@ -202,7 +202,7 @@ public class ConversationDatabaseService {
 
     public void deleteConversation(String userId) {
         int deletedRows = dbHelper.getWritableDatabase().delete(MobiComDatabaseHelper.CONVERSATION, MobiComDatabaseHelper.USERID + "=?", new String[]{userId});
-        Log.i(TAG, "Delete no of conversation:" + deletedRows);
+        Utils.printLog(context,TAG, "Delete no of conversation:" + deletedRows);
     }
 
     public Integer isConversationExit(String userId, String topicId) {
@@ -235,7 +235,6 @@ public class ConversationDatabaseService {
         ContentValues contentValues = new ContentValues();
         contentValues.put(MobiComDatabaseHelper.TOPIC_LOCAL_IMAGE_URL, imageUri);
         int updatedRow = dbHelper.getWritableDatabase().update(MobiComDatabaseHelper.CONVERSATION, contentValues, MobiComDatabaseHelper.KEY + "=?", new String[]{String.valueOf(conversationId)});
-        Log.i("updating", "now" + updatedRow);
     }
 
 }

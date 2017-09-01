@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:background="@color/video_call_top_color"
-        android:gravity="left">
+        android:gravity="start">
 
         <TextView
             android:id="@+id/contact_name"
@@ -29,11 +29,12 @@
             android:layout_marginLeft="29dp"
             android:layout_marginStart="29dp"
             android:layout_toLeftOf="@+id/video_call_option_rl"
+            android:layout_toStartOf="@+id/video_call_option_rl"
             android:ellipsize="end"
             android:fontFamily="sans-serif-condensed"
             android:padding="@dimen/fab_margin"
             android:singleLine="true"
-            android:text="kfjhdfhhf hkj hfkdsahfkjhf hfjkhfk jsdhfkh "
+            android:text=""
             android:textColor="@color/white"
             android:textSize="25sp" />
 
@@ -46,7 +47,7 @@
         android:layout_below="@+id/relativeLayout2"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="42dp"
-        android:src="@drawable/applozic_ic_contact_picture_180_holo_light"></de.hdodenhof.circleimageview.CircleImageView>
+        android:src="@drawable/applozic_ic_contact_picture_180_holo_light"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -65,6 +66,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_volume_down_white_24px"
@@ -77,13 +79,14 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:layout_margin="@dimen/fab_margin"
-            android:src="@drawable/ic_call_white_24px" />
+            android:src="@drawable/ic_call_end_white_24px" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/mute_action_fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_mic_green_24px"
@@ -94,6 +97,8 @@
     <TextView
         android:id="@+id/applozic_audio_timer"
         android:layout_width="wrap_content"
+        android:textDirection="locale"
+        android:textAlignment="gravity"
         android:layout_height="wrap_content"
         android:layout_below="@+id/applozic_audio_profile_image"
         android:layout_centerHorizontal="true"

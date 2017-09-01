@@ -166,14 +166,18 @@ public class VideoActivity extends AudioCallActivityV2 {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (cameraCapturer != null) {
-                    CameraCapturer.CameraSource cameraSource = cameraCapturer.getCameraSource();
-                    cameraCapturer.switchCamera();
-                    if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
-                        thumbnailVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
-                    } else {
-                        primaryVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                try {
+                    if (cameraCapturer != null) {
+                        CameraCapturer.CameraSource cameraSource = cameraCapturer.getCameraSource();
+                        cameraCapturer.switchCamera();
+                        if (thumbnailVideoView.getVisibility() == View.VISIBLE) {
+                            thumbnailVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                        } else {
+                            primaryVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         };
@@ -204,9 +208,7 @@ public class VideoActivity extends AudioCallActivityV2 {
         };
     }
 
-
     public boolean isFrontCamAvailable(Context context) {
-
         if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
             return true;
         } else {

@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.applozic.mobicomkit.api.account.user.MobiComUserPreference;
 import com.applozic.mobicomkit.api.account.user.User;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.encryption.EncryptionUtils;
 
 import java.io.BufferedReader;
@@ -46,7 +47,7 @@ public class HttpRequestUtils {
     }
 
     public String postData(String urlString, String contentType, String accept, String data) throws Exception {
-        Log.i(TAG, "Calling url: " + urlString);
+        Utils.printLog(context,TAG, "Calling url: " + urlString);
         HttpURLConnection connection;
         URL url;
         try {
@@ -96,7 +97,7 @@ public class HttpRequestUtils {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i(TAG, "Response : " + sb.toString());
+            Utils.printLog(context,TAG, "Response : " + sb.toString());
             if (!TextUtils.isEmpty(sb.toString())) {
                 if (!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getEncryptionKey())) {
                     return EncryptionUtils.decrypt(MobiComUserPreference.getInstance(context).getEncryptionKey(), sb.toString());
@@ -108,7 +109,7 @@ public class HttpRequestUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Log.e(TAG, "Http call failed");
+        Utils.printLog(context,TAG, "Http call failed");
         return null;
     }
 
@@ -135,7 +136,7 @@ public class HttpRequestUtils {
             InputStream inputStream = connection.getInputStream();
             br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
         } else {
-            Log.i(TAG, "Response code for post json is :" + connection.getResponseCode());
+            Utils.printLog(context,TAG, "Response code for post json is :" + connection.getResponseCode());
         }
         StringBuilder sb = new StringBuilder();
         try {
@@ -148,7 +149,7 @@ public class HttpRequestUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Log.i(TAG, "Response: " + sb.toString());
+        Utils.printLog(context,TAG, "Response: " + sb.toString());
         return sb.toString();
     }
 
@@ -157,7 +158,7 @@ public class HttpRequestUtils {
     }
 
     public String getResponse(String urlString, String contentType, String accept, boolean isFileUpload) {
-        Log.i(TAG, "Calling url: " + urlString);
+        Utils.printLog(context,TAG, "Calling url: " + urlString);
 
         HttpURLConnection connection = null;
         URL url;
@@ -187,7 +188,7 @@ public class HttpRequestUtils {
                 InputStream inputStream = connection.getInputStream();
                 br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             } else {
-                Log.i(TAG, "Response code for getResponse is  :" + connection.getResponseCode());
+                Utils.printLog(context,TAG, "Response code for getResponse is  :" + connection.getResponseCode());
             }
 
             StringBuilder sb = new StringBuilder();
@@ -201,7 +202,7 @@ public class HttpRequestUtils {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.i(TAG, "Response :" + sb.toString());
+            Utils.printLog(context,TAG, "Response :" + sb.toString());
 
             if (!TextUtils.isEmpty(sb.toString())) {
                 if (!TextUtils.isEmpty(MobiComUserPreference.getInstance(context).getEncryptionKey())) {
@@ -210,7 +211,7 @@ public class HttpRequestUtils {
             }
             return sb.toString();
         } catch (ConnectException e) {
-            Log.i(TAG, "failed to connect Internet is not working");
+            Utils.printLog(context,TAG, "failed to connect Internet is not working");
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

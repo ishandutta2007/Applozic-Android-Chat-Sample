@@ -32,20 +32,24 @@ public class MobiComAttachmentGridViewAdapter extends BaseAdapter {
     ImageView attachmentImageView;
     TextView fileName;
     AlCustomizationSettings alCustomizationSettings;
+    boolean disableNewAttachment;
     private Context context;
     private ArrayList<Uri> uris;
 
-    public MobiComAttachmentGridViewAdapter(Context context, ArrayList<Uri> uris, AlCustomizationSettings alCustomizationSettings) {
+
+    public MobiComAttachmentGridViewAdapter(Context context, ArrayList<Uri> uris, AlCustomizationSettings alCustomizationSettings, boolean disableNewAttachment) {
         this.context = context;
         this.alCustomizationSettings = alCustomizationSettings;
         this.uris = uris;
+        this.disableNewAttachment = disableNewAttachment;
     }
 
     @Override
     public int getCount() {
         //Extra one item is added
-        return uris.size() + 1;
+        return uris.size() + (disableNewAttachment ? 0 : 1);
     }
+
 
     @Override
     public Object getItem(int i) {
@@ -89,6 +93,9 @@ public class MobiComAttachmentGridViewAdapter extends BaseAdapter {
             }
         });
 
+        if (disableNewAttachment) {
+            deleteButton.setVisibility(View.GONE);
+        }
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -98,12 +105,16 @@ public class MobiComAttachmentGridViewAdapter extends BaseAdapter {
         });
 
         if (position == getCount() - 1) {
-            setNewAttachmentView();
-            return view;
+            if (!disableNewAttachment) {
+                setNewAttachmentView();
+                return view;
+            }
         } else {
-            deleteButton.setVisibility(View.VISIBLE);
-
+            if (!disableNewAttachment) {
+                deleteButton.setVisibility(View.VISIBLE);
+            }
         }
+
         try {
             Uri uri = (Uri) getItem(position);
             Bitmap previewBitmap = ImageUtils.getPreview(context, uri);
@@ -140,7 +151,7 @@ public class MobiComAttachmentGridViewAdapter extends BaseAdapter {
         galleryImageView.setImageResource(R.drawable.applozic_ic_action_add);
         fileName.setVisibility(View.GONE);
         attachmentImageView.setVisibility(View.GONE);
-        fileSize.setText("New Attachment");
+        fileSize.setText(R.string.New_Attachment);
     }
 
 }

@@ -2,8 +2,8 @@ package com.applozic.mobicomkit.api.account.user;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
+import com.applozic.mobicomkit.api.MobiComKitClientService;
 import com.applozic.mobicomkit.api.MobiComKitConstants;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
@@ -12,6 +12,7 @@ import com.applozic.mobicomkit.feed.RegisteredUsersApiResponse;
 import com.applozic.mobicomkit.feed.SyncBlockUserApiResponse;
 import com.applozic.mobicomkit.sync.SyncUserBlockFeed;
 import com.applozic.mobicomkit.sync.SyncUserBlockListFeed;
+import com.applozic.mobicommons.commons.core.utils.Utils;
 import com.applozic.mobicommons.json.GsonUtils;
 import com.applozic.mobicommons.people.contact.Contact;
 import com.google.gson.reflect.TypeToken;
@@ -183,9 +184,17 @@ public class UserService {
         return null;
     }
 
-    public void updateDisplayNameORImageLink(String displayName, String profileImageLink, String localURL, String status) {
+    public String updateDisplayNameORImageLink(String displayName, String profileImageLink, String localURL, String status) {
+        return updateDisplayNameORImageLink(displayName, profileImageLink, status, null);
+    }
 
-        ApiResponse response = userClientService.updateDisplayNameORImageLink(displayName, profileImageLink, status);
+    public String updateDisplayNameORImageLink(String displayName, String profileImageLink, String localURL, String status, String contactNumber) {
+
+        ApiResponse response = userClientService.updateDisplayNameORImageLink(displayName, profileImageLink, status, contactNumber);
+
+        if (response == null) {
+            return null;
+        }
         if (response != null && response.isSuccess()) {
             Contact contact = baseContactService.getContactById(MobiComUserPreference.getInstance(context).getUserId());
             if (!TextUtils.isEmpty(displayName)) {
@@ -198,11 +207,16 @@ public class UserService {
             if (!TextUtils.isEmpty(status)) {
                 contact.setStatus(status);
             }
+            if (!TextUtils.isEmpty(contactNumber)) {
+                contact.setContactNumber(contactNumber);
+            }
             baseContactService.upsert(contact);
             Contact contact1 = baseContactService.getContactById(MobiComUserPreference.getInstance(context).getUserId());
-            Log.i("UserService", contact1.getImageURL() + ", " + contact1.getDisplayName() + "," + contact1.getStatus());
+            Utils.printLog(context, "UserService", contact1.getImageURL() + ", " + contact1.getDisplayName() + "," + contact1.getStatus() + "," + contact1.getStatus());
         }
+        return response.getStatus();
     }
+
 
     public void processUserDetailsResponse(String response) {
         if (!TextUtils.isEmpty(response)) {
@@ -224,10 +238,22 @@ public class UserService {
 
     public String processUpdateUserPassword(String oldPassword, String newPassword) {
         String response = userClientService.updateUserPassword(oldPassword, newPassword);
-        if (!TextUtils.isEmpty(response) && "success".equals(response)) {
+        if (!TextUtils.isEmpty(response) && MobiComKitConstants.SUCCESS.equals(response)) {
             userPreference.setPassword(newPassword);
         }
         return response;
     }
 
+
+    public void processPackageDetail() {
+        CustomerPackageDetail customerPackageDetail = new CustomerPackageDetail();
+        customerPackageDetail.setApplicationKey((MobiComKitClientService.getApplicationKey(context)));
+        customerPackageDetail.setPackageName(context.getPackageName());
+        String response = userClientService.packageDetail(customerPackageDetail);
+        if (!TextUtils.isEmpty(response) && response.equals(MobiComKitConstants.APPLICATION_INFO_RESPONSE)) {
+            userPreference.setApplicationInfoCallDone(true);
+        } else {
+            userPreference.setApplicationInfoCallDone(false);
+        }
+    }
 }

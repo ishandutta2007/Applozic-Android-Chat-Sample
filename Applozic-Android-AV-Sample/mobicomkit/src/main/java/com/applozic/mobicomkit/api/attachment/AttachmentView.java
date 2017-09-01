@@ -224,7 +224,7 @@ public class AttachmentView extends ImageView {
     }
 
     public void cancelDownload() {
-        AttachmentManager.removeDownload(mDownloadThread);
+        AttachmentManager.removeDownload(mDownloadThread, false);
         getDownloadProgressLayout().setVisibility(GONE);
         mIsDrawn = false;
     }

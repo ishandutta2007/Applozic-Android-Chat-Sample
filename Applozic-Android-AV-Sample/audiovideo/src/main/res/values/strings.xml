@@ -48,4 +48,12 @@
         Plug &amp; Play Messaging: http://www.applozic.com</string>
     <string name="facebook_app_id">2194468880571702</string>
     <string name="permissions_needed">Permission is not granted</string>
+    <string name="no_answer">No answers..</string>
+    <string name="connection_error">Connection error..</string>
+    <string name="participant_busy">Participant is busy..</string>
+    <string name="no_network_connectivity">No network connectivity.</string>
+    <string name="connecting">Connecting...</string>
+    <string name="incoming_audio_call">Incoming audio call</string>
+    <string name="incoming_video_call">Incoming video call</string>
+    <string name="multiple_participants_not_available">Multiple participants are not currently support in this UI</string>
 </resources>

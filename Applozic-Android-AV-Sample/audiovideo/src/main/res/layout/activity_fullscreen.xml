@@ -13,7 +13,8 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:keepScreenOn="true"
-        android:text="Dumy content"
+        android:textDirection="locale"
+        android:textAlignment="gravity"
         android:textColor="#33b5e5"
         android:textSize="50sp"
         android:textStyle="bold" />
@@ -39,8 +40,7 @@
                 android:id="@+id/dummy_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Dummy  button" />
+                android:layout_weight="1" />
 
         </LinearLayout>
     </FrameLayout>

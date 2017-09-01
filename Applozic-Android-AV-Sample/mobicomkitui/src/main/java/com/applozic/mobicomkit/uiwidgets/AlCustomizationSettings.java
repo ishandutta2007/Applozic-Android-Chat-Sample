@@ -55,7 +55,7 @@ public class AlCustomizationSettings extends JsonMarker {
     private String restrictedWordMessage = "Restricted words are not allowed";
     private boolean locationShareViaMap = true;
     private boolean startNewFloatingButton;
-    private boolean startNewButton;
+    private boolean startNewButton = true;
     private boolean onlineStatusMasterList;
     private boolean priceWidget;
     private boolean startNewGroup = true;
@@ -83,11 +83,19 @@ public class AlCustomizationSettings extends JsonMarker {
     private String logoutPackageName;
     private boolean logoutOption = false;
 
-
     private int totalRegisteredUserToFetch = 100;
     private int maxAttachmentAllowed = 5;
     private int maxAttachmentSizeAllowed = 30;
     private int totalOnlineUsers = 0;
+    private String themeColorPrimary;
+    private String themeColorPrimaryDark;
+    private String editTextHintText = "Write a Message..";
+    private boolean replyOption = true;
+    private String replyMessageLayoutSentMessageBackground = "#C0C0C0";
+    private String replyMessageLayoutReceivedMessageBackground = "#F5F5F5";
+    private boolean groupInfoScreenVisible = true;
+    private boolean forwardOption = true;
+    private boolean recordButton = true;
 
     private boolean launchChatFromProfilePicOrName;
 
@@ -434,6 +442,54 @@ public class AlCustomizationSettings extends JsonMarker {
 
     public void setLogoutPackageName(String logoutPackageName) {
         this.logoutPackageName = logoutPackageName;
+    }
+
+    public String getThemeColorPrimary() {
+        return themeColorPrimary;
+    }
+
+    public String getThemeColorPrimaryDark() {
+        return themeColorPrimaryDark;
+    }
+
+    public String getEditTextHintText() {
+        return editTextHintText;
+    }
+
+    public boolean isReplyOption() {
+        return replyOption;
+    }
+
+    public void setReplyOption(boolean replyOption) {
+        this.replyOption = replyOption;
+    }
+
+    public String getReplyMessageLayoutSentMessageBackground() {
+        return replyMessageLayoutSentMessageBackground;
+    }
+
+    public String getReplyMessageLayoutReceivedMessageBackground() {
+        return replyMessageLayoutReceivedMessageBackground;
+    }
+
+    public boolean isGroupInfoScreenVisible() {
+        return groupInfoScreenVisible;
+    }
+
+    public boolean isForwardOption() {
+        return forwardOption;
+    }
+
+    public void setForwardOption(boolean forwardOption) {
+        this.forwardOption = forwardOption;
+    }
+
+    public boolean isRecordButton() {
+        return recordButton;
+    }
+
+    public void setRecordButton(boolean recordButton) {
+        this.recordButton = recordButton;
     }
 
     @Override

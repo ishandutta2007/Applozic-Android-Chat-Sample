@@ -11,6 +11,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -63,10 +64,11 @@ import com.applozic.mobicomkit.api.conversation.service.ConversationService;
 import com.applozic.mobicomkit.api.people.UserIntentService;
 import com.applozic.mobicomkit.broadcast.BroadcastService;
 import com.applozic.mobicomkit.broadcast.ConnectivityReceiver;
+import com.applozic.mobicomkit.channel.database.ChannelDatabaseService;
 import com.applozic.mobicomkit.contact.AppContactService;
 import com.applozic.mobicomkit.contact.BaseContactService;
-import com.applozic.mobicomkit.uiwidgets.ApplozicSetting;
 import com.applozic.mobicomkit.uiwidgets.AlCustomizationSettings;
+import com.applozic.mobicomkit.uiwidgets.ApplozicSetting;
 import com.applozic.mobicomkit.uiwidgets.R;
 import com.applozic.mobicomkit.uiwidgets.conversation.ConversationUIService;
 import com.applozic.mobicomkit.uiwidgets.conversation.MessageCommunicator;
@@ -77,6 +79,7 @@ import com.applozic.mobicomkit.uiwidgets.conversation.fragment.MobiComQuickConve
 import com.applozic.mobicomkit.uiwidgets.conversation.fragment.MultimediaOptionFragment;
 import com.applozic.mobicomkit.uiwidgets.instruction.ApplozicPermissions;
 import com.applozic.mobicomkit.uiwidgets.instruction.InstructionUtil;
+import com.applozic.mobicomkit.uiwidgets.people.activity.MobiComKitPeopleActivity;
 import com.applozic.mobicomkit.uiwidgets.people.fragment.ProfileFragment;
 import com.applozic.mobicomkit.uiwidgets.uilistener.MobicomkitUriListener;
 import com.applozic.mobicommons.commons.core.utils.PermissionsUtils;
@@ -99,16 +102,14 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 
 /**
  * Created by devashish on 6/25/2015.
  */
-public class ConversationActivity extends AppCompatActivity implements MessageCommunicator, MobiComKitActivityInterface, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ActivityCompat.OnRequestPermissionsResultCallback, MobicomkitUriListener, SearchView.OnQueryTextListener {
+public class ConversationActivity extends AppCompatActivity implements MessageCommunicator, MobiComKitActivityInterface, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ActivityCompat.OnRequestPermissionsResultCallback, MobicomkitUriListener, SearchView.OnQueryTextListener, OnClickReplyInterface {
 
     public static final int LOCATION_SERVICE_ENABLE = 1001;
     public static final String TAKE_ORDER = "takeOrder";
@@ -125,6 +126,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
     private static final String CAPTURED_IMAGE_URI = "capturedImageUri";
     private static final String CAPTURED_VIDEO_URI = "capturedVideoUri";
     private static final String SHARE_TEXT = "share_text";
+    public static final String CONTACTS_GROUP_ID = "CONTACTS_GROUP_ID";
     private static Uri capturedImageUri;
     private static String inviteMessage;
     private static int retry;
@@ -150,6 +152,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
     File mediaFile;
     File profilePhotoFile;
     SyncAccountStatusAsyncTask accountStatusAsyncTask;
+    String contactsGroupId;
     private LocationRequest locationRequest;
     private Channel channel;
     private BaseContactService baseContactService;
@@ -160,7 +163,6 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
     private SearchView searchView;
     private String searchTerm;
     private SearchListFragment searchListFragment;
-    private Calendar calendar;
 
     public ConversationActivity() {
 
@@ -176,9 +178,10 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
                 fragmentTag);
 
         if (supportFragmentManager.getBackStackEntryCount() > 1
-                && !ConversationUIService.MESSGAE_INFO_FRAGMENT.equalsIgnoreCase(fragmentTag)) {
+                && !ConversationUIService.MESSGAE_INFO_FRAGMENT.equalsIgnoreCase(fragmentTag) && !ConversationUIService.USER_PROFILE_FRAMENT.equalsIgnoreCase(fragmentTag)) {
             supportFragmentManager.popBackStackImmediate();
         }
+
         fragmentTransaction.addToBackStack(fragmentTag);
         fragmentTransaction.commitAllowingStateLoss();
         supportFragmentManager.executePendingTransactions();
@@ -198,7 +201,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
         try {
             layout.setVisibility(View.VISIBLE);
             snackbar = Snackbar.make(layout, message, Snackbar.LENGTH_LONG);
-            snackbar.setAction("OK", new View.OnClickListener() {
+            snackbar.setAction(this.getString(R.string.ok_alert), new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     snackbar.dismiss();
@@ -343,11 +346,17 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
         childFragmentLayout = (RelativeLayout) findViewById(R.id.layout_child_activity);
         profilefragment = new ProfileFragment();
         profilefragment.setAlCustomizationSettings(alCustomizationSettings);
-
+        contactsGroupId = MobiComUserPreference.getInstance(this).getContactsGroupId();
         if (Utils.hasMarshmallow()) {
             applozicPermission.checkRuntimePermissionForStorage();
         }
         mActionBar = getSupportActionBar();
+        if (!TextUtils.isEmpty(alCustomizationSettings.getThemeColorPrimary()) && !TextUtils.isEmpty(alCustomizationSettings.getThemeColorPrimaryDark())) {
+            mActionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor(alCustomizationSettings.getThemeColorPrimary())));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(Color.parseColor(alCustomizationSettings.getThemeColorPrimaryDark()));
+            }
+        }
         inviteMessage = Utils.getMetaDataValue(getApplicationContext(), SHARE_TEXT);
         retry = 0;
         if (savedInstanceState != null) {
@@ -406,7 +415,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
         //setIntent(intent);
         if (!MobiComUserPreference.getInstance(this).isLoggedIn()) {
             //user is not logged in
-            Log.i("AL", "user is not logged in yet.");
+            Utils.printLog(this, "AL", "user is not logged in yet.");
             return;
         }
 
@@ -457,7 +466,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
                     if (imageUri != null) {
                         imageUri = result.getUri();
                         if (imageUri != null && profilefragment != null) {
-                            profilefragment.handleProfileimageUpload(false, imageUri, profilePhotoFile);
+                            profilefragment.handleProfileimageUpload(true, imageUri, profilePhotoFile);
                         }
                     } else {
                         imageUri = result.getUri();
@@ -469,7 +478,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
                         }
                     }
                 } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-                    Toast.makeText(this, "Cropping failed: " + result.getError(), Toast.LENGTH_LONG).show();
+                    Utils.printLog(this, ConversationActivity.class.getName(), "Cropping failed:" + result.getError());
                 }
             }
             if (requestCode == LOCATION_SERVICE_ENABLE) {
@@ -591,7 +600,14 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
             } else {
                 showSnackBar(R.string.storage_permission_not_granted);
             }
-        } else {
+        } else if (requestCode == PermissionsUtils.REQUEST_CAMERA_AUDIO) {
+            if (PermissionsUtils.verifyPermissions(grantResults)) {
+                showSnackBar(R.string.phone_camera_and_audio_permission_granted);
+            } else {
+                showSnackBar(R.string.audio_or_camera_permission_not_granted);
+            }
+        }
+        else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
@@ -600,8 +616,6 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
         if (alCustomizationSettings.isLocationShareViaMap() && !TextUtils.isEmpty(geoApiKey) && !API_KYE_STRING.equals(geoApiKey)) {
             Intent toMapActivity = new Intent(this, MobicomLocationActivity.class);
             startActivityForResult(toMapActivity, MultimediaOptionFragment.REQUEST_CODE_SEND_LOCATION);
-            Log.i("test", "Activity for result strarted");
-
         } else {
             //================= START GETTING LOCATION WITHOUT LOADING MAP AND SEND LOCATION AS TEXT===============
 
@@ -617,7 +631,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
                                 startActivityForResult(intent, LOCATION_SERVICE_ENABLE);
                             }
                         })
-                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 dialog.cancel();
                                 Toast.makeText(ConversationActivity.this, R.string.location_sending_cancelled, Toast.LENGTH_LONG).show();
@@ -652,7 +666,20 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
         if (id == R.id.start_new) {
-            conversationUIService.startContactActivityForResult();
+                if (!TextUtils.isEmpty(contactsGroupId)) {
+                    if (Utils.isInternetAvailable(this)) {
+                        conversationUIService.startContactActivityForResult();
+                    } else {
+                        Intent intent = new Intent(this, MobiComKitPeopleActivity.class);
+                        ChannelDatabaseService channelDatabaseService = ChannelDatabaseService.getInstance(this);
+                        String[] userIdArray = channelDatabaseService.getChannelMemberByName(contactsGroupId, null);
+                        if (userIdArray != null) {
+                            conversationUIService.startContactActivityForResult(intent, null, null, userIdArray);
+                        }
+                    }
+                } else {
+                    conversationUIService.startContactActivityForResult();
+                }
         } else if (id == R.id.conversations) {
             Intent intent = new Intent(this, ChannelCreateActivity.class);
             intent.putExtra(ChannelCreateActivity.GROUP_TYPE, Channel.GroupType.PUBLIC.getValue().intValue());
@@ -893,12 +920,36 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
         }
     }
 
+    public void processVideoCall(Contact contactObj, Integer conversationId) {
+        this.contact = baseContactService.getContactById(contactObj.getContactIds());
+        if (ApplozicClient.getInstance(getApplicationContext()).isIPCallEnabled()) {
+            try {
+                if (Utils.hasMarshmallow() && !PermissionsUtils.checkPermissionForCameraAndMicrophone(this)) {
+                    applozicPermission.checkRuntimePermissionForCameraAndAudioRecording();
+                    return;
+                }
+                String activityName = ApplozicSetting.getInstance(this).getActivityCallback(ApplozicSetting.RequestCode.VIDEO_CALL);
+                Class activityToOpen = Class.forName(activityName);
+                Intent intent = new Intent(this, activityToOpen);
+                intent.putExtra("CONTACT_ID", contact.getUserId());
+                startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     public void processCall(Contact contactObj, Integer conversationId) {
         this.contact = baseContactService.getContactById(contactObj.getContactIds());
         this.currentConversationId = conversationId;
         try {
+
             if (ApplozicClient.getInstance(getApplicationContext()).isIPCallEnabled()) {
+                if (Utils.hasMarshmallow() && !PermissionsUtils.checkPermissionForCameraAndMicrophone(this)) {
+                    applozicPermission.checkRuntimePermissionForCameraAndAudioRecording();
+                    return;
+                }
                 //Audio Call
                 String activityName = ApplozicSetting.getInstance(this).getActivityCallback(ApplozicSetting.RequestCode.AUDIO_CALL);
                 Class activityToOpen = Class.forName(activityName);
@@ -943,7 +994,7 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
             }
 
         } catch (Exception e) {
-            Log.i("ConversationActivity", "Call permission is not added in androidManifest");
+            Utils.printLog(this, "ConversationActivity", "Call permission is not added in androidManifest");
         }
     }
 
@@ -1159,6 +1210,12 @@ public class ConversationActivity extends AppCompatActivity implements MessageCo
         }
     }
 
+    @Override
+    public void onClickOnMessageReply(Message message) {
+        if (message != null && conversation != null) {
+            conversation.onClickOnMessageReply(message);
+        }
+    }
 
     private class SyncMessagesAsyncTask extends AsyncTask<Boolean, Void, Void> {
         MobiComMessageService messageService;

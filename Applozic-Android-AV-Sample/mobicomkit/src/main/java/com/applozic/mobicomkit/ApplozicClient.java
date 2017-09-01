@@ -221,5 +221,4 @@ public class ApplozicClient {
         return sharedPreferences.getBoolean(AL_SHOW_APP_ICON, false);
     }
 
-
 }

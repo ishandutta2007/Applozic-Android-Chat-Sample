@@ -34,7 +34,6 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         String messageJson = intent.getStringExtra(MobiComKitConstants.MESSAGE_JSON_INTENT);
         String activityToOpen = Utils.getMetaDataValueForReceiver(context, NotificationBroadcastReceiver.class.getName(), "activity.open.on.notification");
-        Log.i(TAG, "got broadcast receiver.." + messageJson + " , " + activityToOpen + " class name : " + NotificationBroadcastReceiver.class.getName());
         Intent newIntent;
         if (actionName.equals(LAUNCH_APP)) {
             String messageText = getMessageText(intent) == null ? null : getMessageText(intent).toString();
@@ -60,7 +59,6 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 activity = Class.forName(activityToOpen);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
-                Log.i(TAG, "not able to load class. Please,  ");
             }
             if (activity == null) {
 

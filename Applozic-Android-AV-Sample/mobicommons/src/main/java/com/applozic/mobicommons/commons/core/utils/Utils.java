@@ -335,4 +335,18 @@ public class Utils {
 
         return formattedDuration;
     }
+
+    public static void printLog(Context context, String tag, String message) {
+        try{
+            if(context != null) {
+                boolean isDebuggable = (0 != (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE));
+                if (isDebuggable) {
+                    Log.i(tag, message);
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
 }
